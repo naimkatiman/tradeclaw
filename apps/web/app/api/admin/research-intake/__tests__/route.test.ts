@@ -69,13 +69,13 @@ describe('GET /api/admin/research-intake', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 56,
-        sourceAudited: 1,
+        discovered: 55,
+        sourceAudited: 2,
         replicated: 4,
         failed: 3,
         inconclusive: 1,
         untested: 57,
-        sourceNoGo: 1,
+        sourceNoGo: 2,
       },
       pagination: {
         page: 1,
@@ -191,7 +191,7 @@ describe('GET /api/admin/research-intake', () => {
     ).toBe(true);
   });
 
-  it('exposes the source-audit no-go without relabeling it as a local failure', async () => {
+  it('exposes both source-audit no-go records without relabeling either as a local failure', async () => {
     mockedAdmin.mockResolvedValue(null);
 
     const response = await GET(
@@ -200,26 +200,45 @@ describe('GET /api/admin/research-intake', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.pagination).toMatchObject({ totalRecords: 1, returnedRecords: 1 });
+    expect(body.pagination).toMatchObject({ totalRecords: 2, returnedRecords: 2 });
     expect(body.filteredSummary).toMatchObject({
-      sourceAudited: 1,
-      sourceNoGo: 1,
+      sourceAudited: 2,
+      sourceNoGo: 2,
       failed: 0,
-      untested: 1,
+      untested: 2,
     });
-    expect(body.records[0]).toMatchObject({
-      id: 'price-overreactions-in-the-cryptocurrency-market',
-      stage: 'source-audited',
-      verdict: 'not-tested',
-      marketingDisposition: 'none',
-      tradeClawEvidence: null,
-      tradeClawSourceAudit: {
-        disposition: 'no-go',
-        tradeClawBacktestRun: false,
-        publishedResult: { conclusion: 'no-exploitable-profit' },
+    expect(body.records.map((record: { id: string }) => record.id)).toEqual([
+      'price-overreactions-in-the-cryptocurrency-market',
+      'a-risk-based-approach-to-tactical-asset-allocation',
+    ]);
+    expect(body.records[0].tradeClawSourceAudit).toMatchObject({
+      taskId: 'TC-256',
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      publishedResult: { conclusion: 'no-exploitable-profit' },
+    });
+    expect(body.records[1].tradeClawSourceAudit).toMatchObject({
+      taskId: 'TC-260',
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      primarySource: {
+        documentSha256: 'fb43ff7f323218ea4ebe043fa7b9bbdbe2232a9b65b6b9c3461c1c4d98f2faba',
       },
     });
-    expect(body.records[0].marketingReviewDraft).toBeNull();
+    expect(body.records.every(
+      (record: {
+        stage: string;
+        verdict: string;
+        marketingDisposition: string;
+        tradeClawEvidence: unknown;
+        marketingReviewDraft: unknown;
+      }) =>
+        record.stage === 'source-audited' &&
+        record.verdict === 'not-tested' &&
+        record.marketingDisposition === 'none' &&
+        record.tradeClawEvidence === null &&
+        record.marketingReviewDraft === null,
+    )).toBe(true);
   });
 
   it('combines filters without changing pinned source order', async () => {

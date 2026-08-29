@@ -54,16 +54,27 @@ describe('public research intake CSV projection', () => {
     }, {});
 
     expect(counts).toEqual({
-      'not-tested': 56,
-      'source-audit-only-no-local-backtest': 1,
+      'not-tested': 55,
+      'source-audit-only-no-local-backtest': 2,
       'modeled-historical-fail': 3,
       'qa-only-no-performance-result': 1,
     });
 
+    const sourceNoGos = rows.filter(
+      (row) => row.performanceEvidenceStatus === 'source-audit-only-no-local-backtest',
+    );
     const sourceNoGo = rows.find((row) => row.tradeClawTaskId === 'TC-256');
+    const riskBasedSourceNoGo = rows.find((row) => row.tradeClawTaskId === 'TC-260');
     const qaOnly = rows.find((row) => row.tradeClawTaskId === 'TC-257');
 
     expect(sourceNoGo).toEqual(expect.objectContaining({
+      evidenceBasis: 'tradeclaw-source-audit-only',
+      performanceEvidenceStatus: 'source-audit-only-no-local-backtest',
+      verdict: 'not-tested',
+      tradeClawArtifactPath: '',
+    }));
+    expect(sourceNoGos).toHaveLength(2);
+    expect(riskBasedSourceNoGo).toEqual(expect.objectContaining({
       evidenceBasis: 'tradeclaw-source-audit-only',
       performanceEvidenceStatus: 'source-audit-only-no-local-backtest',
       verdict: 'not-tested',

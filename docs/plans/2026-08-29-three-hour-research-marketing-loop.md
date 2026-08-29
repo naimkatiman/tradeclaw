@@ -74,8 +74,8 @@ filters and pagination. It lists every server-authored draft whose evidence was
 available at the observation instant, plus the latest handoff and any handoff in
 the current UTC window. Each entry says whether it came from a cycle receipt or
 the explicit pre-loop TC-255 closure; TC-255 keeps a null cycle ID, so the API
-does not invent historical receipt coverage. TC-256 remains absent because its
-source-audit no-go deliberately produced no draft. Summary counts separate
+does not invent historical receipt coverage. TC-256 and TC-260 remain absent
+because their source-audit no-go receipts deliberately produced no drafts. Summary counts separate
 pre-loop and receipt-backed evidence and keep publication-approved drafts at
 zero. `review-ready` means only that factual copy exists for a human to inspect;
 automatic publication and posting remain false.
@@ -212,6 +212,16 @@ gates passed, but only 1/4 paper folds beat both frozen benchmarks and the
 identically costed one-month sleeve. Its `+3,917.50%` full-window headline and
 the stronger prior-only ambiguity control cannot override those failures. The
 canonical result remains FAIL and is not observed security performance.
+
+TC-260 then selected the older weekly Expected-Shortfall allocation idea because
+it offered the shortlist's only meaningful post-publication horizon. The exact
+specification stopped at source audit: the paper delegates its Filtered
+Bootstrap parameters, depends on proprietary and author-stitched histories,
+fills a close-derived signal at that same close, and substitutes fixed annual
+expense ratios for turnover-linked costs. The retained record is `not-tested`,
+has no preregistration, return, result artifact, or marketing draft, and is not a
+TradeClaw performance failure. Its receipt is
+`docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md`.
 
 For the next catalog cycle, prefer a rule with fewer than daily position
 transitions, an immutable or append-stable source subset, a primary rule that

@@ -93,8 +93,8 @@ function buildResearchLoopMarketingHandoffs(): readonly ResearchLoopMarketingHan
 
   const receiptHandoffs = RESEARCH_LOOP_RECEIPTS.flatMap((receipt) => {
     if (receipt.marketingDraft === 'none') return [];
-    if (receipt.taskId === 'TC-256') {
-      throw new Error('TC-256 no-draft receipt acquired a marketing handoff');
+    if (receipt.taskId === 'TC-256' || receipt.taskId === 'TC-260') {
+      throw new Error(`${receipt.taskId} no-draft receipt acquired a marketing handoff`);
     }
     const record = recordForTask(receipt.taskId);
     if (record.id !== receipt.candidateId) {

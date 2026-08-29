@@ -325,6 +325,52 @@ export interface TradeClawSourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawRiskBasedAllocationSourceAuditEvidence {
+  taskId: 'TC-260';
+  auditDate: '2026-08-29';
+  researchPath: string;
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  primarySource: {
+    title: 'A Risk Based Approach to Tactical Asset Allocation';
+    authors: readonly ['Stefano Colucci', 'Dario Brandolini'];
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1965423';
+    doi: 'https://doi.org/10.2139/ssrn.1965423';
+    documentUrl: string;
+    documentSha256: string;
+    documentBytes: 492231;
+    documentPages: 27;
+    citedRiskModelUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1965377';
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    cadence: 'weekly';
+    expectedShortfallTargetPct: -6;
+    horizon: 'one-month';
+    tailProbabilityPct: 5;
+    decisionEveryMarketDays: 5;
+    defensiveSleeve: 'US-Treasuries-7-to-10-years-except-commodity-cash';
+    sourceFill: 'signal-day-close';
+    paperSample: '2000-01-01/2011-08-22';
+    maximumScheduledDecisionsPerYear: 52;
+  };
+  publishedCostTreatment: {
+    singleAssetTradingCostsIncluded: false;
+    managedAnnualExpenseRatioPct: 2;
+    buyAndHoldAnnualExpenseRatioPct: 0.6;
+    turnoverReported: false;
+  };
+  inputProvenance: {
+    exactSourceBytesSupplied: false;
+    independentlyHashablePublicInputs: false;
+    authorCreatedSyntheticPrehistories: true;
+    pointInTimeGdpVintagesSupplied: false;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -443,6 +489,7 @@ export interface TradeClawTermPremiumSourceAuditEvidence {
 
 export type TradeClawResearchSourceAuditEvidence =
   | TradeClawSourceAuditEvidence
+  | TradeClawRiskBasedAllocationSourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -520,6 +567,8 @@ const END_OF_MONTH_TREASURY_ID = 'predictable-end-of-month-treasury-returns';
 const BITCOIN_SEASONALITY_MAX_MIN_ID =
   'seasonality-trend-following-and-mean-reversion-in-bitcoin';
 const TRADING_TERM_PREMIUM_ID = 'trading-the-term-premium';
+const RISK_BASED_TACTICAL_ALLOCATION_ID =
+  'a-risk-based-approach-to-tactical-asset-allocation';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -564,6 +613,62 @@ const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   ],
   reason:
     'The primary paper already finds the contrarian rule unprofitable and the positive continuation rule statistically indistinguishable from random after spread-aware simulation; material rule and data ambiguities also prevent an exact independent replay.',
+};
+
+const TC260_RISK_BASED_ALLOCATION_SOURCE_AUDIT: TradeClawRiskBasedAllocationSourceAuditEvidence = {
+  taskId: 'TC-260',
+  auditDate: '2026-08-29',
+  researchPath: 'docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md',
+  researchSha256: '70dc3fcc90d895d8f518b657d86c5a1399adbd995fcb0bc0978516dddfa6782a',
+  disposition: 'no-go',
+  tradeClawBacktestRun: false,
+  primarySource: {
+    title: 'A Risk Based Approach to Tactical Asset Allocation',
+    authors: ['Stefano Colucci', 'Dario Brandolini'],
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1965423',
+    doi: 'https://doi.org/10.2139/ssrn.1965423',
+    documentUrl:
+      'https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID1966391_code1715697.pdf?abstractid=1965423',
+    documentSha256: 'fb43ff7f323218ea4ebe043fa7b9bbdbe2232a9b65b6b9c3461c1c4d98f2faba',
+    documentBytes: 492231,
+    documentPages: 27,
+    citedRiskModelUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1965377',
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    cadence: 'weekly',
+    expectedShortfallTargetPct: -6,
+    horizon: 'one-month',
+    tailProbabilityPct: 5,
+    decisionEveryMarketDays: 5,
+    defensiveSleeve: 'US-Treasuries-7-to-10-years-except-commodity-cash',
+    sourceFill: 'signal-day-close',
+    paperSample: '2000-01-01/2011-08-22',
+    maximumScheduledDecisionsPerYear: 52,
+  },
+  publishedCostTreatment: {
+    singleAssetTradingCostsIncluded: false,
+    managedAnnualExpenseRatioPct: 2,
+    buyAndHoldAnnualExpenseRatioPct: 0.6,
+    turnoverReported: false,
+  },
+  inputProvenance: {
+    exactSourceBytesSupplied: false,
+    independentlyHashablePublicInputs: false,
+    authorCreatedSyntheticPrehistories: true,
+    pointInTimeGdpVintagesSupplied: false,
+  },
+  blockers: [
+    'The allocation paper does not freeze the Filtered Bootstrap window, volatility filter, resampling, simulation, seed, horizon, missing-data, or sign conventions.',
+    'The source computes the risk estimate and fills at the same close, which is not a causal executable rule.',
+    'The Bloomberg, MSCI, RJ/CRB, and Merrill Lynch index histories and author-created prehistories are not supplied as immutable public bytes.',
+    'Modern public proxies would materially change histories, return construction, currencies, cash flows, and defensive sleeves.',
+    'GDP country mappings, releases, revisions, and point-in-time availability are not frozen.',
+    'A flat annual expense ratio does not reproduce turnover-linked fees, spreads, slippage, or impact.',
+    'The paper supplies no chronological folds, untouched holdout, or identically timed and costed public-data benchmark.',
+  ],
+  reason:
+    'An exact independent replay would require invented risk-model parameters, unavailable proprietary and synthetic inputs, repaired fill timing, and a new cost model; a public-proxy study would therefore be a materially new hypothesis.',
 };
 
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
@@ -1134,7 +1239,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
             ? TC258_BITCOIN_MAX_MIN_SOURCE_AUDIT
             : candidate.id === TRADING_TERM_PREMIUM_ID
               ? TC259_TERM_PREMIUM_SOURCE_AUDIT
-              : null;
+              : candidate.id === RISK_BASED_TACTICAL_ALLOCATION_ID
+                ? TC260_RISK_BASED_ALLOCATION_SOURCE_AUDIT
+                : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {

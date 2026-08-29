@@ -27,17 +27,18 @@ interface StateCycle {
 }
 
 describe('research-loop receipt ledger', () => {
-  it('retains the exact four receipts and exposes only the known historical collision', () => {
+  it('retains the exact five receipts and exposes only the known historical collision', () => {
     expect(RESEARCH_LOOP_RECEIPTS.map((receipt) => receipt.taskId)).toEqual([
       'TC-256',
       'TC-257',
       'TC-258',
       'TC-259',
+      'TC-260',
     ]);
     expect(RESEARCH_LOOP_RECEIPT_LEDGER_AUDIT).toEqual({
       status: 'historical-conflict',
-      receiptCount: 4,
-      uniqueWindowCount: 3,
+      receiptCount: 5,
+      uniqueWindowCount: 4,
       duplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
       expectedLegacyDuplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
       additionalDuplicateWindowIds: [],
@@ -58,7 +59,7 @@ describe('research-loop receipt ledger', () => {
 
   it('fails ledger integrity if another window acquires a duplicate receipt', () => {
     const extra = {
-      ...RESEARCH_LOOP_RECEIPTS.at(-1)!,
+      ...RESEARCH_LOOP_RECEIPTS[3],
       taskId: 'TC-999',
       candidateId: 'unexpected-second-receipt',
       recordedAt: '2026-08-29T12:48:00.000Z',
@@ -133,6 +134,18 @@ describe('research-loop receipt ledger', () => {
       nextAction:
         'Open at most one receipt for the current UTC window by screening the next lower-transition candidate; do not select, publish, or trade automatically.',
     });
+
+    expect(getResearchLoopReceiptSnapshot('2026-08-29T15:19:13.999Z')).toMatchObject({
+      currentWindowStatus: 'awaiting-receipt',
+      latestReceipt: { taskId: 'TC-259' },
+      currentWindowReceipts: [],
+    });
+
+    expect(getResearchLoopReceiptSnapshot('2026-08-29T15:19:14.000Z')).toMatchObject({
+      currentWindowStatus: 'complete',
+      latestReceipt: { taskId: 'TC-260' },
+      currentWindowReceipts: [{ taskId: 'TC-260' }],
+    });
   });
 
   it('binds the runtime ledger to the canonical STATE cycle receipts', () => {
@@ -140,7 +153,7 @@ describe('research-loop receipt ledger', () => {
       research_intake_desk_2026_08_29: Record<string, StateCycle>;
     };
     const desk = state.research_intake_desk_2026_08_29;
-    const cycles = [desk.cycle, desk.cycle_2, desk.cycle_3, desk.cycle_4];
+    const cycles = [desk.cycle, desk.cycle_2, desk.cycle_3, desk.cycle_4, desk.cycle_5];
 
     expect(
       RESEARCH_LOOP_RECEIPTS.map((receipt) => ({

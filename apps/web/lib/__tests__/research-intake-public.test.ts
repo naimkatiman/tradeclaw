@@ -34,8 +34,8 @@ describe('public research intake projection', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 56,
-        sourceAudited: 1,
+        discovered: 55,
+        sourceAudited: 2,
         preregistered: 0,
         replicated: 4,
         prospective: 0,
@@ -43,7 +43,7 @@ describe('public research intake projection', () => {
         failed: 3,
         inconclusive: 1,
         untested: 57,
-        sourceNoGo: 1,
+        sourceNoGo: 2,
       },
     });
     expect(payload.workflow).toHaveLength(5);
@@ -65,8 +65,8 @@ describe('public research intake projection', () => {
     }, {});
 
     expect(basisCounts).toEqual({
-      'upstream-gross-discovery-only': 56,
-      'tradeclaw-source-audit-only': 1,
+      'upstream-gross-discovery-only': 55,
+      'tradeclaw-source-audit-only': 2,
       'tradeclaw-replication-record': 4,
     });
     for (const record of payload.records) {
@@ -146,5 +146,19 @@ describe('public research intake projection', () => {
         },
       });
     }
+
+    const tc260 = recordByTask(buildResearchIntakePublicPayload(), 'TC-260');
+    expect(tc260).toMatchObject({
+      stage: 'source-audited',
+      verdict: 'not-tested',
+      costStatus: 'unassessed',
+      evidenceBasis: 'tradeclaw-source-audit-only',
+      tradeClawSourceAudit: {
+        taskId: 'TC-260',
+        disposition: 'no-go',
+        tradeClawBacktestRun: false,
+      },
+      tradeClawEvidence: null,
+    });
   });
 });

@@ -24,6 +24,10 @@ const priceOverreactionsAuditPath = resolve(
   root,
   'docs/research/2026-08-29-price-overreactions-source-audit.md',
 );
+const riskBasedAllocationAuditPath = resolve(
+  root,
+  'docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md',
+);
 const treasuryAuditPath = resolve(
   root,
   'docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md',
@@ -360,7 +364,7 @@ describe('systematic research intake', () => {
     const sourceAudited = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => record.tradeClawSourceAudit,
     );
-    expect(sourceAudited).toHaveLength(4);
+    expect(sourceAudited).toHaveLength(5);
     const noGo = sourceAudited.find(
       (record) => record.id === 'price-overreactions-in-the-cryptocurrency-market',
     );
@@ -381,7 +385,7 @@ describe('systematic research intake', () => {
     const untouched = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => !record.tradeClawEvidence && !record.tradeClawSourceAudit,
     );
-    expect(untouched).toHaveLength(56);
+    expect(untouched).toHaveLength(55);
     expect(untouched.every((record) => record.stage === 'discovered')).toBe(true);
     expect(untouched.every((record) => record.verdict === 'not-tested')).toBe(true);
     expect(untouched.every((record) => record.costStatus === 'unassessed')).toBe(true);
@@ -424,6 +428,54 @@ describe('systematic research intake', () => {
       conclusion: 'no-exploitable-profit',
     });
     expect(audit.blockers).toHaveLength(5);
+  });
+
+  it('binds the TC-260 no-go to its exact primary-paper and no-return receipt', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.id === 'a-risk-based-approach-to-tactical-asset-allocation',
+    );
+    const audit = record?.tradeClawSourceAudit;
+    if (!audit || audit.taskId !== 'TC-260') {
+      throw new Error('TC-260 risk-based allocation source audit is missing');
+    }
+
+    const canonicalAuditBytes = Buffer.from(
+      readFileSync(riskBasedAllocationAuditPath, 'utf8').replace(/\r\n/g, '\n'),
+      'utf8',
+    );
+    expect(createHash('sha256').update(canonicalAuditBytes).digest('hex')).toBe(
+      audit.researchSha256,
+    );
+    expect(audit).toMatchObject({
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      primarySource: {
+        ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1965423',
+        documentSha256: 'fb43ff7f323218ea4ebe043fa7b9bbdbe2232a9b65b6b9c3461c1c4d98f2faba',
+        redistributionRightsEstablished: false,
+      },
+      publishedRule: {
+        cadence: 'weekly',
+        expectedShortfallTargetPct: -6,
+        defensiveSleeve: 'US-Treasuries-7-to-10-years-except-commodity-cash',
+        sourceFill: 'signal-day-close',
+        paperSample: '2000-01-01/2011-08-22',
+      },
+      publishedCostTreatment: {
+        singleAssetTradingCostsIncluded: false,
+        managedAnnualExpenseRatioPct: 2,
+        buyAndHoldAnnualExpenseRatioPct: 0.6,
+        turnoverReported: false,
+      },
+    });
+    expect(audit.blockers.length).toBeGreaterThanOrEqual(6);
+    expect(record).toMatchObject({
+      stage: 'source-audited',
+      verdict: 'not-tested',
+      costStatus: 'unassessed',
+      marketingDisposition: 'none',
+      tradeClawEvidence: null,
+    });
   });
 
   it('binds the TC-257 inconclusive overlay to its QA-only artifact and receipts', () => {
@@ -750,8 +802,8 @@ describe('systematic research intake', () => {
   it('summarizes and filters by next-action evidence state rather than upstream return', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 56,
-      sourceAudited: 1,
+      discovered: 55,
+      sourceAudited: 2,
       preregistered: 0,
       replicated: 4,
       prospective: 0,
@@ -759,7 +811,7 @@ describe('systematic research intake', () => {
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 1,
+      sourceNoGo: 2,
     });
     expect(
       filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
@@ -792,7 +844,10 @@ describe('systematic research intake', () => {
         stage: 'source-audited',
         sourceAuditDisposition: 'no-go',
       }).map((record) => record.id),
-    ).toEqual(['price-overreactions-in-the-cryptocurrency-market']);
+    ).toEqual([
+      'price-overreactions-in-the-cryptocurrency-market',
+      'a-risk-based-approach-to-tactical-asset-allocation',
+    ]);
   });
 
   it('defines a strict cost-first progression with a separate prospective boundary', () => {

@@ -11,7 +11,7 @@ import {
 const root = resolve(__dirname, '../../../..');
 
 describe('research-loop marketing review handoff', () => {
-  it('binds every eligible draft to one chronological handoff without inventing TC-256 copy', () => {
+  it('binds every eligible draft to one chronological handoff without inventing no-go copy', () => {
     const eligibleDraftCandidateIds = SYSTEMATIC_RESEARCH_INTAKE.flatMap((record) =>
       buildMarketingReviewDraft(record) ? [record.id] : [],
     );
@@ -22,6 +22,9 @@ describe('research-loop marketing review handoff', () => {
       'TC-258',
       'TC-259',
     ]);
+    expect(RESEARCH_LOOP_MARKETING_HANDOFFS.some(
+      (handoff) => handoff.taskId === ('TC-256' as string) || handoff.taskId === ('TC-260' as string),
+    )).toBe(false);
     expect(
       RESEARCH_LOOP_MARKETING_HANDOFFS.map((handoff) => handoff.candidateId).sort(),
     ).toEqual([...eligibleDraftCandidateIds].sort());

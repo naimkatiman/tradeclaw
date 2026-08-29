@@ -137,18 +137,20 @@ describe('three-hour research and marketing loop', () => {
     expect(buildMarketingReviewDraft(untested)).toBeNull();
   });
 
-  it('does not turn a source-audit no-go into a TradeClaw result or marketing claim', () => {
-    const sourceNoGo = SYSTEMATIC_RESEARCH_INTAKE.find(
+  it('does not turn either source-audit no-go into a TradeClaw result or marketing claim', () => {
+    const sourceNoGos = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (candidate) => candidate.tradeClawSourceAudit?.disposition === 'no-go',
     );
-    if (!sourceNoGo) throw new Error('source-audit no-go is missing');
-    expect(sourceNoGo).toMatchObject({
-      stage: 'source-audited',
-      verdict: 'not-tested',
-      marketingDisposition: 'none',
-      tradeClawEvidence: null,
-    });
-    expect(buildMarketingReviewDraft(sourceNoGo)).toBeNull();
+    expect(sourceNoGos).toHaveLength(2);
+    for (const sourceNoGo of sourceNoGos) {
+      expect(sourceNoGo).toMatchObject({
+        stage: 'source-audited',
+        verdict: 'not-tested',
+        marketingDisposition: 'none',
+        tradeClawEvidence: null,
+      });
+      expect(buildMarketingReviewDraft(sourceNoGo)).toBeNull();
+    }
   });
 
   it('fails closed when a future evidence task has no explicit marketing branch', () => {

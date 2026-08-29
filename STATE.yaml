@@ -1,11 +1,143 @@
 project: tradeclaw
-updated: 2026-08-29T23:00:14+08:00
+updated: 2026-08-29T23:31:24+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+systematic_candidate_screen_2026_08_29_15z:
+  at: 2026-08-29T23:31:24+08:00
+  agent: TradeClaw PM agent
+  status: verified_source_audit_no_go_awaiting_local_commit
+  scope: Select at most one untouched pinned candidate for the new UTC window using reconstructibility, immutable public data, full-cost headroom, chronological falsification, and bounded verification rather than upstream performance or source order
+  base_commit: 61c121e6bca1debd875eb2900ab8d915456bf4eb
+  branch: agent/research-intake-desk-20260829
+  cycle_id: 2026-08-29T15:00:00.000Z/PT3H
+  started_at: 2026-08-29T15:02:14.525Z
+  ends_at: 2026-08-29T18:00:00.000Z
+  candidate_id: a-risk-based-approach-to-tactical-asset-allocation
+  task_id: TC-260
+  stage_before: discovered
+  stage_after: source-audited
+  receipt_created: true
+  return_calculated: false
+  library_search: No reusable preregistration, cost-screen, research-intake, or systematic-candidate-screen pattern exists in shared MemoryCore; reuse the repository's verified three-hour loop and prior source-audit/preregistration contracts
+  selection_policy:
+    - Never use upstream Sharpe, t-statistic, full-period return, or catalog position as a selection score
+    - Require a primary-source rule that does not depend on hidden vendor code or invented timing choices
+    - Require legally accessible append-stable or immutable inputs that can be independently hashed
+    - Prefer fewer-than-daily transitions and published gross headroom materially above the complete frozen friction model
+    - Require chronological folds, a genuinely untouched holdout where possible, and an identically timed/costed benchmark plus at least one external falsification market
+    - Keep implementation bounded enough for deterministic replay, focused tests, adjacent research tests, typecheck, lint, and the required production build
+  initial_shortlist:
+    - a-risk-based-approach-to-tactical-asset-allocation
+    - when-factor-timing-makes-sense
+    - rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation
+    - regime-aware-risk-management-in-concentrated-equity-portfolios-evidence-from-the-magnificent-seven
+  initial_findings:
+    - The 2019 factor-timing primary paper is theoretical and simulation-based; its perfect-foresight correlation experiment does not publish the catalog clone's ETF trading rule, so the clone cannot be treated as a source-defined empirical strategy
+    - Both 2026 gold-silver and Magnificent-Seven papers lack a meaningful post-publication holdout as of the pinned 2026-07-31 data horizon; any advance would need strong predeclared chronological and external-market falsification without pretending it is post-paper evidence
+    - The 2011 risk-based tactical-allocation paper has a long potential post-paper window and a weekly Expected-Shortfall overlay, but its exact filtered-bootstrap rule and proprietary Bloomberg index inputs still require primary-PDF and public-proxy feasibility audit
+  source_audit_progress:
+    factor_timing:
+      primary_url: https://ww3.math.ucla.edu/camreport/cam19-25.pdf
+      finding: The source is a theoretical simulation study whose single-factor result assumes perfect return-forecast foresight and whose multi-factor result samples correlation matrices; it does not define the catalog clone's empirical weekly ETF rule
+      screen: fail_source_defined_empirical_rule
+    risk_based_tactical_allocation:
+      primary_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1965423
+      source_pdf_sha256: fb43ff7f323218ea4ebe043fa7b9bbdbe2232a9b65b6b9c3461c1c4d98f2faba
+      source_pdf_bytes: 492231
+      source_pages: 27
+      exact_source_rule: Re-estimate one-month five-percent Expected Shortfall every five market days; use a negative six-percent ES target, a VaR-ratio tail correction, and allocate the complement to seven-to-ten-year US Treasuries except commodity cash
+      timing_issue: The paper executes entries and exits at the same day's close as the signal, so a causal replication requires a separately declared next-close control and cannot silently reproduce the source timing
+      method_issue: The allocation paper names Filtered Bootstrap but does not specify its implementation locally; it delegates the estimator to cited papers, including SSRN abstract 1965377
+      input_issue: The complete source universe and its stitched history depend on Bloomberg, MSCI, RJ/CRB, Merrill Lynch, GDP data, and author-created synthetic proxies that are not supplied as immutable public inputs
+      cost_issue: Single-asset tests exclude taxes, commissions, and slippage; the portfolio applies a fixed two-percent annual total-expense ratio rather than a reproducible turnover-linked fee/slippage model
+      screen: provisional_fail_exact_public_replication_pending_final_candidate_comparison
+    source_access:
+      direct_http: SSRN delivery URLs returned HTTP 403 to curl
+      browser_fallback: SSRN abstract and primary PDF became readable after its security check; the primary PDF was retrieved only to an ignored local audit folder and will not be committed
+      cited_model_paper: The SSRN abstract confirms a Monte Carlo Filtered Bootstrap comparison and a 250-observation regulatory test, but its PDF delivery remains unavailable; the allocation paper still does not state the estimator parameters needed for an exact implementation
+  selection_matrix:
+    a-risk-based-approach-to-tactical-asset-allocation:
+      rule_reconstructible: false
+      immutable_public_data: false
+      cost_headroom_testable: false
+      chronological_falsification: true
+      bounded_implementation: false
+      decision: select_for_source_audit_no_go
+    when-factor-timing-makes-sense:
+      rule_reconstructible: false
+      immutable_public_data: false
+      cost_headroom_testable: false
+      chronological_falsification: false
+      bounded_implementation: false
+      decision: leave_discovered_primary_paper_does_not_define_catalog_clone
+    rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation:
+      rule_reconstructible: hold
+      immutable_public_data: hold
+      cost_headroom_testable: hold
+      chronological_falsification: false
+      bounded_implementation: true
+      decision: leave_discovered_no_meaningful_post_publication_holdout_and_full_rule_not_source_audited
+    regime-aware-risk-management-in-concentrated-equity-portfolios-evidence-from-the-magnificent-seven:
+      rule_reconstructible: hold
+      immutable_public_data: true
+      cost_headroom_testable: hold
+      chronological_falsification: false
+      bounded_implementation: true
+      decision: leave_discovered_no_meaningful_post_publication_holdout
+  selection_decision: Select the 2011 risk-based tactical-allocation candidate because it offered the shortlist's strongest potential falsification horizon, then close it at source audit because an exact independent replay would require invented Filtered-Bootstrap parameters, proprietary and author-stitched index histories, same-close lookahead timing, and a new cost model not present in the paper
+  source_audit_path: docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md
+  source_audit_sha256: 70dc3fcc90d895d8f518b657d86c5a1399adbd995fcb0bc0978516dddfa6782a
+  source_audit_disposition: no-go
+  preregistration_created: false
+  result_artifact_created: false
+  marketing_draft: none
+  red_evidence: PASS - four focused suites failed only at the intended absent TC-260 boundaries; the receipt ledger still had four entries, the intake and public/CSV projections still had one source-audit no-go and 56 untouched discoveries, STATE had no cycle_5, and no TC-260 overlay existed
+  focused_verification: PASS - the four receipt, intake, public JSON, and public CSV suites pass 25/25 with the exact TC-260 source hash, receipt time, no-return boundary, two no-go records, and 55 untouched discoveries
+  adjacent_verification: PASS - eight receipt, intake, public JSON/CSV, research-loop, no-draft marketing, protected-admin, and README suites pass 57/57
+  catalog_summary_after:
+    total: 61
+    discovered: 55
+    source_audited: 2
+    replicated: 4
+    failed: 3
+    inconclusive: 1
+    untested: 57
+    source_no_go: 2
+  receipt_ledger_after:
+    receipts: 5
+    unique_windows: 4
+    current_window_status: complete
+    current_window_receipts: 1
+    historical_conflict_unchanged: 2026-08-29T06:00:00.000Z/PT3H
+  marketing_review_after: Four existing human-review drafts remain unchanged; TC-256 and TC-260 have no draft and no publication or trading authority
+  payload_audit:
+    public_json_bytes: 59873
+    public_json_sha256: ade593cd52274f7386cb4a505c2e8bf2abd7836685c927f0dfba85a0f0546dc6
+    public_csv_bytes: 36725
+    public_csv_sha256: f51787d97c5c21aef4751135899bc0e1c310155cde7c07c7961a2d332c6f54c6
+    public_csv_physical_lines: 62
+  payload_audit_repair: Two inline tsx audit attempts lost JavaScript quote characters at the PowerShell native-command boundary and failed before importing project code; both outputs are discarded, and the same read-only audit passed from an ignored temporary TypeScript file that was deleted immediately afterward
+  typecheck_verification: PASS - signals build and web TypeScript completed without errors
+  changed_file_lint_verification: PASS - every changed TypeScript file has zero lint findings
+  source_verification: PASS - the independent source verifier reconstructed all 61 candidates at exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs discovery-only treatment
+  repository_test_verification: PASS - all 260 runnable Jest suites and 2,012 tests pass with 3 suites and 26 tests skipped; forceExit closed the repository's inherited open handle after the complete green summary
+  lint_verification: PASS - full web lint completed with zero errors and the same 21 inherited warnings; no warning points to this increment
+  build_verification: PASS - the required root production build compiled signals, trading-agents, and Next.js and generated all 327 pages; protected admin routes remain dynamic and public intake JSON/CSV remain static one-hour exports, with only inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings
+  state_and_hash_verification: PASS - STATE parses, the canonical 7,154-byte source-audit text hashes to 70dc3fcc, the 492,231-byte 27-page primary PDF hashes to fb43ff7f, and diff whitespace passes
+  scope_verification: PASS - exactly 14 tracked paths and the one expected source-audit document are changed; Docker Compose, manifests, lockfiles, source catalog data, migrations, protected/public visual pages, signals, strategies, execution, database, auth, billing, and runtime surfaces have zero diff
+  precommit_verification: PASS - after the final STATE closure, the eight exact receipt, intake, public JSON/CSV, no-draft marketing, protected-admin, and README suites pass 57/57; STATE-to-receipt hash and false-authority checks pass; diff whitespace passes
+  primary_pdf_committed: false
+  admin_visual_v0_changed: false
+  public_visual_structure_changed: false
+  current_step: Create the verified local implementation commit, record its exact hash in STATE, create one state-only closure commit, and save shared MemoryCore
+  next_action: Leave the verified no-go shelved, preserve the completed 15:00Z window, and wait for the next exact three-hour boundary before screening another candidate
+  external_actions: none
+  safety: Exactly one candidate was selected and one no-go receipt was created in the 15:00Z window; no preregistration, return, result artifact, marketing draft, UI, runtime, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 admin_research_review_csv_export_2026_08_29:
   at: 2026-08-29T22:47:24+08:00
@@ -913,6 +1045,62 @@ research_intake_desk_2026_08_29:
     publish_approved: false
     external_actions: none
     next_action: Keep the FAIL shelved and wait for the exact 15:00Z boundary before opening the next lower-transition candidate; do not publish or change runtime authority
+  cycle_5:
+    id: 2026-08-29T15:00:00.000Z/PT3H
+    recorded_at: 2026-08-29T15:19:14.000Z
+    task_id: TC-260
+    started_at: 2026-08-29T15:00:00.000Z
+    ends_at: 2026-08-29T18:00:00.000Z
+    candidate_id: a-risk-based-approach-to-tactical-asset-allocation
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    changed_files:
+      - apps/web/lib/research-intake.ts
+      - apps/web/lib/research-loop-receipts.ts
+      - apps/web/lib/research-loop-marketing.ts
+      - apps/web/lib/__tests__/research-intake.test.ts
+      - apps/web/lib/__tests__/research-loop-receipts.test.ts
+      - apps/web/lib/__tests__/research-intake-public.test.ts
+      - apps/web/lib/__tests__/research-intake-csv.test.ts
+      - apps/web/lib/__tests__/research-loop.test.ts
+      - apps/web/lib/__tests__/research-loop-marketing.test.ts
+      - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+      - apps/web/app/__tests__/readme-research-intake-discoverability.test.ts
+      - docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md
+      - docs/plans/2026-08-29-three-hour-research-marketing-loop.md
+      - README.md
+      - STATE.yaml
+    source_audit_sha256: 70dc3fcc90d895d8f518b657d86c5a1399adbd995fcb0bc0978516dddfa6782a
+    source_pdf_sha256: fb43ff7f323218ea4ebe043fa7b9bbdbe2232a9b65b6b9c3461c1c4d98f2faba
+    verification:
+      - intentional absent-overlay RED across four focused suites
+      - focused receipt, intake, public JSON, and public CSV tests 25/25
+      - adjacent loop, no-draft marketing, protected admin, and README tests 57/57
+      - signals build and web TypeScript passed
+      - changed-file ESLint passed with zero findings
+      - pinned source reconstruction passed 61/61
+      - deterministic public JSON 59,873 bytes at SHA-256 ade593cd and CSV 36,725 bytes at SHA-256 f51787d9 across 62 lines
+      - repository Jest passed 260 runnable suites and 2,012 tests with 3 suites and 26 tests skipped
+      - full lint passed with zero errors and 21 inherited warnings
+      - required root production build generated 327/327 pages
+      - STATE, canonical source-audit hash, primary-PDF hash, and diff whitespace passed
+      - exact path audit found 14 intended tracked changes plus one expected audit document and zero forbidden-surface diff
+      - final receipt, intake, public JSON/CSV, no-draft marketing, protected admin, README, STATE-hash, authority, and diff set passed 57/57 plus structural checks
+    evidence_paths:
+      - docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    next_action: Archive the exact-specification no-go and screen another candidate whose complete rule, public source bytes, causal fills, full costs, folds, and holdout can be frozen before returns
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00

@@ -5,7 +5,7 @@ export const EXPECTED_LEGACY_DUPLICATE_WINDOW_IDS = [
   '2026-08-29T06:00:00.000Z/PT3H',
 ] as const;
 
-export type ResearchLoopReceiptTaskId = 'TC-256' | 'TC-257' | 'TC-258' | 'TC-259';
+export type ResearchLoopReceiptTaskId = 'TC-256' | 'TC-257' | 'TC-258' | 'TC-259' | 'TC-260';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -150,6 +150,26 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Keep the FAIL shelved and wait for the exact 15:00Z boundary before opening the next lower-transition candidate; do not publish or change runtime authority',
+  },
+  {
+    cycleId: '2026-08-29T15:00:00.000Z/PT3H',
+    recordedAt: '2026-08-29T15:19:14.000Z',
+    taskId: 'TC-260',
+    candidateId: 'a-risk-based-approach-to-tactical-asset-allocation',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-specification no-go and screen another candidate whose complete rule, public source bytes, causal fills, full costs, folds, and holdout can be frozen before returns',
   },
 ] as const;
 
