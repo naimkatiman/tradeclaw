@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T21:39:13+08:00
+updated: 2026-08-29T21:40:35+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -107,11 +107,12 @@ research_loop_receipt_projection_2026_08_29:
   safety: No UI, source data, return, artifact, strategy, signal, allocation, broadcast, execution, billing, publication, push, merge, deployment, database, Docker, dependency, or auth state changed during the audit
 
 research_loop_marketing_review_queue_projection_2026_08_29:
-  at: 2026-08-29T21:39:13+08:00
+  at: 2026-08-29T21:40:35+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_commit
+  status: complete_local_verified_memory_saved
   scope: Give the protected research-intake read model one filter-independent, observation-time-consistent handoff of every server-authored marketing draft that is actually available for human review
   base_commit: ac29dc716b7269ff2641c2c6737516195ffb48b9
+  implementation_commit: 75f6774ed2f1fdae232d2c3651469ea3512c5cd2
   branch: agent/research-intake-desk-20260829
   finding: Candidate-level marketingReviewDraft values are returned only inside the filtered and paginated records collection, so an admin client must search or page through the catalog to discover review-ready copy and can accidentally miss a completed evidence handoff
   acceptance_gates:
@@ -149,10 +150,12 @@ research_loop_marketing_review_queue_projection_2026_08_29:
   closing_build_refresh: PASS - the same required root build passed again against the exact final production and test tree and generated 325/325 pages
   precommit_verification: PASS - web typecheck, STATE YAML parse, git diff check, and expected-path worktree audit passed; no build-generated tracked file appeared
   closure_verification: PASS - after the closing build, the four direct handoff-ledger contracts passed again, STATE parsed, diff checks passed, and only the six expected implementation, test, documentation, and state paths remained changed
-  current_step: Create the local implementation commit, then record its exact hash in STATE and shared MemoryCore before a state-only closure commit
-  next_action: Implement only the protected server-side projection, then run focused, adjacent, source, research, full-suite, typecheck, lint, parse, diff, and production-build verification
+  verification: PASS - focused handoff and route tests passed 21/21; adjacent protected intake tests passed 48/48; pinned source reconstruction passed 61/61; all research tests passed 213/213; repository Jest passed 252 suites and 1,988 tests; typecheck passed; lint had zero errors and 21 inherited warnings; YAML, diff, and path checks passed; both required production builds generated 325/325 pages
+  memory_update: Saved the filter-independent handoff contract, TC-255 pre-loop provenance, exact verification evidence, implementation hash, safety boundary, and next-window gate to shared current-session and TradeClaw project memory
+  current_step: Implementation committed locally and shared MemoryCore updated; wait until the exact 2026-08-29T15:00:00.000Z boundary before opening another research receipt
+  next_action: At or after 2026-08-29T15:00:00.000Z, open at most one new receipt by screening the next lower-transition catalog candidate; do not select, publish, post, or trade automatically
   external_actions: none
-  safety: No candidate, source data, return, artifact, outbound draft, UI, database, signal, allocation, broadcast, execution, billing, publication, push, merge, deployment, Docker, dependency, or auth state changed while freezing the acceptance gates
+  safety: The verified protected read-model increment was committed locally at 75f6774ed2f1fdae232d2c3651469ea3512c5cd2; no candidate, source data, return, artifact, outbound draft, UI, database, signal, allocation, broadcast, execution, billing, publication, push, merge, deployment, Docker, dependency, or auth state changed
 
 research_intake_marketing_handoff_projection_2026_08_29:
   at: 2026-08-29T19:18:24+08:00
