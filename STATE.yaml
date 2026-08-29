@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T04:19:31+08:00
+updated: 2026-08-30T04:20:06+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 admin_research_catalog_record_links_2026_08_30:
-  at: 2026-08-30T04:19:31+08:00
+  at: 2026-08-30T04:20:06+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_implementation_commit
+  status: verified_protected_admin_catalog_record_links_committed_local_closing_state
   scope: Let an authenticated admin open the protected or public detail for any returned catalog candidate without constructing candidate URLs client-side
   base_commit: e114f06c7a03248a307b39b314ccfe95ff0b1c06
+  implementation_commit: ce3cdcbfe2941c24295f0e2ae6e5f52f04220910
   branch: agent/research-intake-desk-20260829
   parent_task: TC-256
   current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
@@ -169,8 +170,8 @@ admin_research_catalog_record_links_2026_08_30:
   publish_approved: false
   trading_approved: false
   external_actions: none
-  current_step: Stage the exact five frozen paths and create the local implementation commit
-  next_action: Record the implementation hash in STATE, create a state-only closure commit, save MemoryCore, and leave the branch clean until the 21:00Z gate
+  current_step: Create the state-only closure commit and save the verified outcome to shared MemoryCore
+  next_action: Leave the isolated branch clean and preserve TC-261 as the sole 18:00Z receipt until the exact 21:00Z rollover; do not push, deploy, publish, or activate trading
   safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_filter_actions_2026_08_30:
