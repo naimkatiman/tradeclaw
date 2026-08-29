@@ -8,11 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_public_discovery_context_2026_08_30:
-  at: 2026-08-30T06:55:08+08:00
+  at: 2026-08-30T06:56:30+08:00
   agent: TradeClaw PM agent
-  status: verified_public_discovery_context_ready_to_commit
+  status: verified_public_discovery_context_committed_local_closing_state
   scope: Make every public research-intake JSON response self-describing, directly traversable to exact candidate evidence, and explicit about whole-catalog evidence states without changing source order or enabling public filtering
   base_commit: b310fb516f08556752ae8cf6e8f5e460a9a0d2ba
+  implementation_commit: 3dc600cd679d767f0c392f8607ec692c0215070d
+  committed_at: 2026-08-29T22:56:23.0000000Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-262
   time_mode: night
@@ -21,7 +23,7 @@ research_public_discovery_context_2026_08_30:
   current_cycle_receipt: TC-262
   new_research_receipt_created: false
   next_rollover_at: 2026-08-30T00:00:00.000Z
-  gate_observed_at: 2026-08-29T22:55:08.6129234Z
+  gate_observed_at: 2026-08-29T22:56:30.1441191Z
   gate_decision: The 00:00Z receipt gate remains closed; use the completed window for one bounded nonvisual public read-model improvement and create no research or marketing state
   library_search: No shared MemoryCore pattern exists for a resource map, candidate links, self-describing API, or evidence-state summary; reuse the repository's protected resource-map/link pattern and shared evidence classifier
   problem: >-
@@ -159,8 +161,8 @@ research_public_discovery_context_2026_08_30:
     candidate_navigation: 2240 bytes / 297b72af2010df90f32a58cdce9c3916b6ec59bf0b66d3cafb1e847ba211eb24
     public_read_model: 7481 bytes / 75043b48ef9ee7bc708e0d41c9aa760f12a8c101e1e2486cbfca102840ed970a
   state_and_scope_verification: >-
-    PASS - STATE.yaml is ready for final parse, `git diff --check` is clean, and
-    the worktree has exactly the frozen ten-path manifest: STATE, four read-model
+    PASS - STATE.yaml parses, `git diff --check` is clean, and the implementation
+    commit contains exactly the frozen ten-path manifest: STATE, four read-model
     or schema files, one new focused contract, and four updated adjacent
     contracts. No rendered UI, raw evidence, receipt, marketing, CSV, auth,
     Docker, manifest, dependency, database, strategy, signal, allocation,
@@ -176,10 +178,10 @@ research_public_discovery_context_2026_08_30:
     public_csv_bytes_changed: false
     current_window_receipt_unchanged: TC-262
     gate_closed_at_audit: true
-    seconds_until_gate_at_audit: 3891
+    seconds_until_gate_at_audit: 3809
     next_receipt_gate_remains: 2026-08-30T00:00:00.000Z
-  current_step: Create the verified local implementation commit without pushing
-  next_action: Persist the implementation receipt in a STATE-only closure, save shared MemoryCore, and prove a clean worktree
+  current_step: Persist this implementation receipt in a STATE-only local closure without pushing
+  next_action: Save shared MemoryCore, prove the closure head and clean worktree, and keep the recurring goal active behind the 00:00Z gate
   marketing_handoff_created: false
   publish_approved: false
   trading_approved: false
