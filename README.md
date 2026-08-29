@@ -204,6 +204,8 @@ Gate-approved signal → apps/web/lib/execution/executor.ts
 
 No key required on the public research routes. Cache on your side; responses already carry short `s-maxage` headers.
 
+Research JSON is self-describing: use `resources` for sibling endpoints and each record's `links.candidate` for exact detail. Every evidence-state summary includes `plainLanguageSummary`, generated from the same classifier counts in `statuses`; it adds convenience copy, not evidence or authority.
+
 ```bash
 # All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
 curl https://tradeclaw.win/api/research/intake

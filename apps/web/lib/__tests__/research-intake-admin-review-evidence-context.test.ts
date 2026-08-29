@@ -34,6 +34,7 @@ interface EvidenceStateSummaryView {
   withTradeClawRecord: number;
   performanceGatesEvaluated: number;
   performanceGatesNotEvaluated: number;
+  plainLanguageSummary: string;
   statuses: readonly { performanceEvidenceStatus: string; count: number }[];
   grantsPublicationAuthority: false;
   grantsTradingAuthority: false;
@@ -75,6 +76,8 @@ describe('protected marketing-review evidence context', () => {
       withTradeClawRecord: 4,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 1,
+      plainLanguageSummary:
+        '4 candidates: 1 QA-only record with no performance result and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 1 candidate.',
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     });
@@ -86,6 +89,8 @@ describe('protected marketing-review evidence context', () => {
       withTradeClawRecord: 0,
       performanceGatesEvaluated: 0,
       performanceGatesNotEvaluated: 0,
+      plainLanguageSummary:
+        'No candidates are in this view. No performance gates were evaluated.',
     });
     expect(emptyQueue.evidenceStateSummary?.statuses.map((status) => status.count)).toEqual([
       0, 0, 0, 0, 0, 0,
@@ -150,7 +155,7 @@ describe('protected marketing-review evidence context', () => {
     }
   });
 
-  it('keeps every unrelated public and protected JSON projection byte-identical', () => {
+  it('freezes every intentional shared-summary JSON receipt and the untouched candidate', () => {
     expect({
       protectedCatalog: fingerprint(buildResearchIntakeAdminPayload(
         new URLSearchParams(),
@@ -161,33 +166,38 @@ describe('protected marketing-review evidence context', () => {
         OBSERVED_AT,
       )),
       protectedEvidence: fingerprint(buildResearchIntakeAdminEvidencePayload(OBSERVED_AT)),
+      protectedReview: fingerprint(buildResearchIntakeAdminReviewPayload(OBSERVED_AT)),
       publicCatalog: fingerprint(buildResearchIntakePublicPayload()),
       publicEvidence: fingerprint(buildResearchIntakePublicEvidencePayload()),
       publicCandidate: fingerprint(buildResearchIntakePublicCandidatePayload(TC260_CANDIDATE_ID)),
     }).toEqual({
       protectedCatalog: {
-        bytes: 72_736,
-        sha256: '2a2c221a1a4571d4d4e16a92a3766bd28bf816cabd77cfcf145863158386d799',
+        bytes: 73_264,
+        sha256: '2985e40077e7cbe64fc22afcea84ef4985c65c8968c2319b05d0e544b0a73ca0',
       },
       protectedCandidate: {
         bytes: 10_396,
         sha256: 'e423783f1ee6ff50d9c9309369de6db0269cc4a2b0388566a6f2b7e0bce021ba',
       },
       protectedEvidence: {
-        bytes: 67_037,
-        sha256: '458bdc5332343c957cb88d34bec06c461b4b09376382208e3f2548b06d5d9ae8',
+        bytes: 67_271,
+        sha256: '132df89372e82d3dfc82e0f8a41e43d629c08c3c4287f4fb6ada356faac7cd0c',
+      },
+      protectedReview: {
+        bytes: 24_904,
+        sha256: '9667ea7ca3b01d85ef0df5b03e7813c09f4eb91779cc81ad4ded8502b5bd0979',
       },
       publicCatalog: {
-        bytes: 99_480,
-        sha256: '461274b219b635308a0863cd537eafde41744cb888e07b054203b0ddfdc9c51a',
+        bytes: 99_744,
+        sha256: '445166bc45322718cc46cc5acc15ed202fabec3faf0d4f7d4886190f112e84cb',
       },
       publicEvidence: {
-        bytes: 41_797,
-        sha256: '747b63bbf052437fe8cec9bc322cd8f59bb2b892644894419381426ff92d40b4',
+        bytes: 42_295,
+        sha256: '7362469bcc23c9b6a9ebb75905a2cd184472eb22c7d053558d1206b8d7466b79',
       },
       publicCandidate: {
-        bytes: 8_688,
-        sha256: '1525f5cf551aea663b53a9256fb099c3f808d81623aa502a6e62f137a8cdec6f',
+        bytes: 8_952,
+        sha256: 'ee3554123ea0f3beba4f6aad21c275657c9f43f3cae8b3fd793bff01f8256696',
       },
     });
   });

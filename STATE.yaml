@@ -1,11 +1,179 @@
 project: tradeclaw
-updated: 2026-08-30T07:11:08+08:00
+updated: 2026-08-30T07:31:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_evidence_summary_interpretation_2026_08_30:
+  at: 2026-08-30T07:31:00+08:00
+  agent: TradeClaw PM agent
+  status: ready_to_commit
+  scope: Give every public and authenticated evidence-state summary one deterministic presentation-ready plain-language interpretation without changing its counts, ordering, authority, or source records
+  base_commit: f06c39d425ccd0676bd245f888028dc4d5c17970
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-262
+  time_mode: night
+  current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-262
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T00:00:00.000Z
+  gate_observed_at: 2026-08-29T23:30:23.0705870Z
+  gate_decision: The 00:00Z receipt gate remains closed by 1776 seconds; improve only derived read-model interpretation and create no research or marketing state
+  library_search: No shared MemoryCore human-readable evidence-summary, count-summary, pluralization, or presentation-ready interpretation pattern exists; extend TradeClaw's existing shared classifier locally
+  problem: >-
+    Every summary exposes exact ordered counts and labels, but each public or admin
+    client must still omit zero states, pluralize six categories, join them into a
+    sentence, and explain evaluated versus unevaluated gates. That duplicates
+    evidence logic and makes empty, filtered, catalog, evidence, and review views
+    harder to present consistently.
+  decision: >-
+    Add one deterministic `plainLanguageSummary` to the shared evidence-state
+    summary. Generate it from the same counts in stable status order, omit zero
+    states, preserve explicit QA/source-audit distinctions, handle singular,
+    plural, all-evaluated, none-evaluated, and empty scopes, and document it in
+    public OpenAPI plus the README API guide.
+  frozen_copy:
+    catalog_61: '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.'
+    evidence_8: '8 candidates: 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 5 candidates.'
+    marketing_review_4: '4 candidates: 1 QA-only record with no performance result and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 1 candidate.'
+    qa_only_1: '1 candidate: 1 QA-only record with no performance result. No performance gates were evaluated.'
+    crypto_modeled_fail_2: '2 candidates: 2 modeled historical failures. Performance gates were evaluated for all 2 candidates.'
+    empty_0: 'No candidates are in this view. No performance gates were evaluated.'
+  frozen_field_contract:
+    field: plainLanguageSummary
+    type: string
+    required: true
+    source: shared evidence-state counts only
+    zero_count_states_in_sentence: false
+    status_order_preserved: true
+    counts_and_status_array_changed: false
+    authority_changed: false
+  frozen_baseline_receipts:
+    public_catalog_before: 99480 bytes / 461274b219b635308a0863cd537eafde41744cb888e07b054203b0ddfdc9c51a
+    public_evidence_before: 41797 bytes / 747b63bbf052437fe8cec9bc322cd8f59bb2b892644894419381426ff92d40b4
+    public_candidate_before: 8688 bytes / 1525f5cf551aea663b53a9256fb099c3f808d81623aa502a6e62f137a8cdec6f
+    protected_catalog_before: 72736 bytes / 2a2c221a1a4571d4d4e16a92a3766bd28bf816cabd77cfcf145863158386d799
+    protected_evidence_before: 67037 bytes / 458bdc5332343c957cb88d34bec06c461b4b09376382208e3f2548b06d5d9ae8
+    protected_review_before: 24701 bytes / 5b41d72a5fe9daf29982141c6b8536ac8df1e6e9aee81948bef8e08142b49967
+    protected_candidate_unchanged: 10396 bytes / e423783f1ee6ff50d9c9309369de6db0269cc4a2b0388566a6f2b7e0bce021ba
+    public_catalog_csv_unchanged: 36922 bytes / 7b76a4a2c5850e4711e34d5d61dbaeee75c983ea39e264b0c90fc18e58d8b43f
+    public_evidence_csv_unchanged: 5944 bytes / 4ee1cc89f6bae3ce59be57a9e835fc4ed1c8c1c0b824c6e0d0dc176ac533a0fc
+    protected_evidence_csv_unchanged: 15405 bytes / 5f144161ba0a20f2d342ee675775d03b8b76d2cd37afb074f08f5299d12a638b
+    protected_review_csv_unchanged: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  audited_json_receipts_after:
+    public_catalog: 99744 bytes / 445166bc45322718cc46cc5acc15ed202fabec3faf0d4f7d4886190f112e84cb
+    public_evidence: 42295 bytes / 7362469bcc23c9b6a9ebb75905a2cd184472eb22c7d053558d1206b8d7466b79
+    public_candidate: 8952 bytes / ee3554123ea0f3beba4f6aad21c275657c9f43f3cae8b3fd793bff01f8256696
+    protected_catalog: 73264 bytes / 2985e40077e7cbe64fc22afcea84ef4985c65c8968c2319b05d0e544b0a73ca0
+    protected_complete_catalog: 140578 bytes / 28c18883b407c17b7eb2aa749046bdc28f33963dac5096d076ff40e0dd482b7d
+    protected_no_matches_catalog: 26020 bytes / 1e080b477f2d0290211cc331c50b97522cf87786ef4be9dfc6adf33b44fd4aaf
+    protected_out_of_range_catalog: 25654 bytes / 2a9a1e3ff181bf522158e49ae66f73f6bb1919fed105e0967f3e70ea616a77e2
+    protected_evidence: 67271 bytes / 132df89372e82d3dfc82e0f8a41e43d629c08c3c4287f4fb6ada356faac7cd0c
+    protected_review: 24904 bytes / 9667ea7ca3b01d85ef0df5b03e7813c09f4eb91779cc81ad4ded8502b5bd0979
+    protected_candidate_unchanged: 10396 bytes / e423783f1ee6ff50d9c9309369de6db0269cc4a2b0388566a6f2b7e0bce021ba
+  receipt_audit: >-
+    PASS - every moved receipt was serialized directly after implementation. The
+    only additions are shared evidence-summary sentences; protected candidate JSON
+    remains byte-identical, and the focused boundary already proved all four CSV
+    exports byte-identical.
+  adjacent_green_verification: >-
+    PASS - 14 focused and adjacent suites / 70 tests. Exact interpretations now
+    cross public catalog, public candidate, public/protected evidence, protected
+    catalog filters and empty states, and protected marketing review; every audited
+    JSON receipt, OpenAPI boundary, README contract, and unchanged CSV boundary
+    passes.
+  static_verification: >-
+    PASS - changed-file ESLint through the apps/web workspace, full web TypeScript
+    typecheck after the signals build, STATE.yaml parse, git diff whitespace check,
+    and the canonical research-intake source verifier all pass. The verifier still
+    reports the pinned upstream commit, 61 candidates, exact asset-class counts,
+    gross-of-trading-costs basis, and discovery-only treatment. An initial direct
+    root ESLint invocation found no root config and was corrected through the
+    workspace script; it was an invocation error, not a code diagnostic.
+  repository_verification: >-
+    PASS - repository-wide lint completed with 0 errors and the same 21
+    pre-existing warnings. Jest reported 290 runnable suites / 2,148 passing
+    tests, with 3 suites / 26 tests intentionally skipped and 1 snapshot passing.
+    After reporting completion, the runner emitted its known open-handle warning
+    and was terminated manually; no suite or test failed.
+  build_verification: >-
+    PASS - mandatory npm run build completed for signals, trading-agents, and the
+    Next.js production app. Compilation succeeded and all 329/329 static pages
+    generated. Only the existing middleware deprecation, broad NFT trace, edge
+    runtime, and url.parse deprecation warnings appeared.
+  closure_audit:
+    branch: agent/research-intake-desk-20260829
+    head_before_commit: f06c39d425ccd0676bd245f888028dc4d5c17970
+    expected_changed_paths: 18
+    actual_changed_paths: 18
+    missing_paths: []
+    unexpected_paths: []
+    diff_check: pass
+    yaml_parse: pass
+    receipt_gate_open: false
+    seconds_until_receipt_gate: 1776
+    new_receipt_created: false
+    public_or_external_action: none
+  frozen_boundaries:
+    public_summary_json_changed: true
+    protected_summary_json_changed: true
+    public_openapi_changed: true
+    readme_api_guide_changed: true
+    csv_changed: false
+    source_records_or_counts_changed: false
+    receipts_handoffs_or_drafts_changed: false
+    auth_or_route_semantics_changed: false
+    rendered_ui_changed: false
+    research_or_trading_state_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake-evidence-state.ts
+    - apps/web/lib/openapi.ts
+    - apps/web/lib/__tests__/research-intake-evidence-summary-interpretation.test.ts
+    - apps/web/lib/__tests__/research-intake-evidence-state-summary.test.ts
+    - apps/web/lib/__tests__/research-intake-public-discovery-context.test.ts
+    - apps/web/lib/__tests__/research-intake-public-candidate.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence-status-filter.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-review-evidence-context.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-review.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-facets.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-filter-navigation.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-result-view.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+    - apps/web/app/__tests__/systematic-intake-publication-boundary.test.ts
+    - apps/web/app/__tests__/readme-research-intake-discoverability.test.ts
+  red_verification: >-
+    PASS - the focused suite executed six assertions. Five failed for the exact
+    missing behavior: catalog/evidence copy, review/singular/all-evaluated/empty
+    grammar, public/admin parity, required OpenAPI documentation, and README
+    discoverability. The sixth passed and froze all public/protected CSV exports
+    byte-for-byte. No source, count, receipt, authority, or unrelated boundary
+    failed.
+  focused_green_verification: >-
+    PASS - 1 suite / 6 tests. The frozen catalog, evidence, review, singular,
+    all-evaluated, and empty copy is exact; public/protected same-scope summaries
+    match; OpenAPI and README discovery pass; and all public/protected CSV exports
+    remain byte-identical.
+  adjacent_red_verification: >-
+    EXPECTED RED - 13 suites / 64 tests produced 7 failing suites and 9 failing
+    assertions, limited to the new required summary field and deterministic JSON
+    fingerprints containing it. The other 55 assertions passed, including query,
+    facet, filter-navigation, publication-boundary, review semantics, README, and
+    evidence-status-filter boundaries. No CSV, source, count, authority, route,
+    or receipt expectation moved.
+  current_step: Create the local implementation commit from the exact audited 18-file scope
+  next_action: Record the implementation hash in STATE.yaml, create a state-only closure commit, then save shared MemoryCore
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: No candidate source, source audit, preregistration, result, receipt, marketing handoff or draft, publication, posting, visual UI, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state change is authorized
 
 research_admin_marketing_evidence_context_2026_08_30:
   at: 2026-08-30T07:11:08+08:00

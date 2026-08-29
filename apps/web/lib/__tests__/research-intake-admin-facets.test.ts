@@ -117,8 +117,11 @@ describe('protected research catalog filter facets', () => {
   });
 
   it('returns every query-contract option in stable order with exact global counts', () => {
-    const facets = readFilterFacets(
-      buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT),
+    const payload = buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT);
+    const facets = readFilterFacets(payload);
+
+    expect(payload.catalogEvidenceStateSummary.plainLanguageSummary).toBe(
+      '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
 
     expect(withoutOptionHrefs(facets?.dimensions.assetClass)).toEqual({
@@ -237,10 +240,15 @@ describe('protected research catalog filter facets', () => {
   });
 
   it('applies q to every count and includes zero-count options', () => {
-    const facets = readFilterFacets(buildResearchIntakeAdminPayload(
+    const payload = buildResearchIntakeAdminPayload(
       new URLSearchParams('q=bitcoin&assetClass=Cryptocurrencies&verdict=fail'),
       OBSERVED_AT,
-    ));
+    );
+    const facets = readFilterFacets(payload);
+
+    expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
+      '2 candidates: 2 modeled historical failures. Performance gates were evaluated for all 2 candidates.',
+    );
 
     expect(facets?.dimensions.verdict.options.map(({ value, count }) => ({ value, count })))
       .toEqual([

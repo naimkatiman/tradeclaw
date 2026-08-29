@@ -43,6 +43,9 @@ describe('protected research catalog result view', () => {
   it('authors the visible one-based result range for the default page', () => {
     const payload = buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT);
 
+    expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
+      '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+    );
     expect(resultView(payload)).toEqual({
       status: 'showing-results',
       summary: 'Showing 1–25 of 61 candidates.',
@@ -61,6 +64,9 @@ describe('protected research catalog result view', () => {
       OBSERVED_AT,
     );
 
+    expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
+      '12 candidates: 11 not tested by TradeClaw and 1 source-audit-only record. No performance gates were evaluated.',
+    );
     expect(resultView(payload)).toEqual({
       status: 'showing-results',
       summary: 'Showing 4–6 of 12 candidates.',
@@ -79,6 +85,9 @@ describe('protected research catalog result view', () => {
       OBSERVED_AT,
     );
 
+    expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
+      'No candidates are in this view. No performance gates were evaluated.',
+    );
     expect(resultView(payload)).toEqual({
       status: 'no-matches',
       summary: 'No candidates match the current filters.',
@@ -108,6 +117,9 @@ describe('protected research catalog result view', () => {
         last: '/api/admin/research-intake?assetClass=Equities&page=4&limit=3',
       },
     });
+    expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
+      '12 candidates: 11 not tested by TradeClaw and 1 source-audit-only record. No performance gates were evaluated.',
+    );
     expect(resultView(payload)).toEqual({
       status: 'page-out-of-range',
       summary: 'Page 99 is outside the 4 available pages.',
@@ -163,12 +175,12 @@ describe('protected research catalog result view', () => {
         sha256: '8b6a57c2f009b530e4837352e72f51caca318a486890ca5bbc951adcf5ad1d07',
       },
       noMatchesCatalog: {
-        bytes: 25_662,
-        sha256: '7e0d3a5adc36b4c22d55f0a4ac0ac20ed4a0bed408640621c6138f9075d19af9',
+        bytes: 26_020,
+        sha256: '1e080b477f2d0290211cc331c50b97522cf87786ef4be9dfc6adf33b44fd4aaf',
       },
       outOfRangeCatalog: {
-        bytes: 25_254,
-        sha256: 'd9307b3408599d342ad19992c2dfbac2c70d5f525e5cefa13bea1a3e2d581c15',
+        bytes: 25_654,
+        sha256: '2a9a1e3ff181bf522158e49ae66f73f6bb1919fed105e0967f3e70ea616a77e2',
       },
     });
   });

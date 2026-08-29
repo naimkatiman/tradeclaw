@@ -104,6 +104,13 @@ describe('systematic research intake public boundary', () => {
         next?: { nullable?: boolean };
       };
     };
+    const evidenceStateSummarySchema = spec.components.schemas
+      .ResearchIntakeEvidenceStateSummary as {
+        required?: string[];
+        properties?: {
+          plainLanguageSummary?: { type?: string; description?: string };
+        };
+      };
     const summaryExamples = responseSchema.properties?.catalogSummary?.properties;
 
     expect(spec.tags).toContainEqual(expect.objectContaining({ name: 'Research' }));
@@ -151,6 +158,11 @@ describe('systematic research intake public boundary', () => {
     expect(candidateNavigationSchema.properties?.order?.enum).toEqual(['pinned-source-order']);
     expect(candidateNavigationSchema.properties?.previous?.nullable).toBe(true);
     expect(candidateNavigationSchema.properties?.next?.nullable).toBe(true);
+    expect(evidenceStateSummarySchema.required).toContain('plainLanguageSummary');
+    expect(evidenceStateSummarySchema.properties?.plainLanguageSummary).toMatchObject({
+      type: 'string',
+      description: expect.stringMatching(/same ordered counts.*no evidence or authority/i),
+    });
     const navigationSchemaJson = JSON.stringify(candidateNavigationSchema);
     expect(Buffer.byteLength(navigationSchemaJson, 'utf8')).toBe(815);
     expect(createHash('sha256').update(navigationSchemaJson).digest('hex')).toBe(

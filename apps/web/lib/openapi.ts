@@ -349,6 +349,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "withTradeClawRecord",
             "performanceGatesEvaluated",
             "performanceGatesNotEvaluated",
+            "plainLanguageSummary",
             "statuses",
             "grantsPublicationAuthority",
             "grantsTradingAuthority",
@@ -358,6 +359,11 @@ export function buildOpenApiSpec(): OpenApiSpec {
             withTradeClawRecord: { type: "integer", minimum: 0 },
             performanceGatesEvaluated: { type: "integer", minimum: 0 },
             performanceGatesNotEvaluated: { type: "integer", minimum: 0 },
+            plainLanguageSummary: {
+              type: "string",
+              description:
+                "Presentation-ready interpretation generated from the same ordered counts; it adds no evidence or authority.",
+            },
             statuses: {
               type: "array",
               minItems: 6,

@@ -18,6 +18,8 @@ const STATUS_VALUES = [
 
 const STATUS_COUNTS = [61, 53, 4, 1, 0, 3, 0] as const;
 const CLASSIFIER_COUNTS = STATUS_COUNTS.slice(1);
+const CATALOG_PLAIN_LANGUAGE_SUMMARY =
+  '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.';
 
 interface EvidenceStatusOption {
   value: string;
@@ -55,6 +57,7 @@ interface EvidenceStatusView {
     withTradeClawRecord: number;
     performanceGatesEvaluated: number;
     performanceGatesNotEvaluated: number;
+    plainLanguageSummary: string;
     statuses: Array<{ performanceEvidenceStatus: string; count: number }>;
   };
   filteredEvidenceStateSummary?: EvidenceStatusView['catalogEvidenceStateSummary'];
@@ -172,6 +175,7 @@ describe('protected research catalog evidence-status filter', () => {
       withTradeClawRecord: 8,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 58,
+      plainLanguageSummary: CATALOG_PLAIN_LANGUAGE_SUMMARY,
     });
     expect(statusCounts(payload.catalogEvidenceStateSummary)).toEqual(CLASSIFIER_COUNTS);
     expect(payload.filteredEvidenceStateSummary).toEqual(
@@ -199,6 +203,9 @@ describe('protected research catalog evidence-status filter', () => {
     expect(statusCounts(qaOnly.filteredEvidenceStateSummary)).toEqual([
       0, 0, 1, 0, 0, 0,
     ]);
+    expect(qaOnly.filteredEvidenceStateSummary?.plainLanguageSummary).toBe(
+      '1 candidate: 1 QA-only record with no performance result. No performance gates were evaluated.',
+    );
     expect(qaOnly.filterNavigation).toMatchObject({
       activeFilterCount: 1,
       clearAllHref: '/api/admin/research-intake?page=1&limit=100',
@@ -216,6 +223,9 @@ describe('protected research catalog evidence-status filter', () => {
     );
     expect(modeledInconclusive.pagination.totalRecords).toBe(0);
     expect(modeledInconclusive.records).toEqual([]);
+    expect(modeledInconclusive.filteredEvidenceStateSummary?.plainLanguageSummary).toBe(
+      'No candidates are in this view. No performance gates were evaluated.',
+    );
     expect(modeledInconclusive.resultView).toMatchObject({
       status: 'no-matches',
       recoveryAction: {
@@ -238,6 +248,9 @@ describe('protected research catalog evidence-status filter', () => {
     expect(statusCounts(payload.filteredEvidenceStateSummary)).toEqual([
       0, 0, 0, 0, 2, 0,
     ]);
+    expect(payload.filteredEvidenceStateSummary?.plainLanguageSummary).toBe(
+      '2 candidates: 2 modeled historical failures. Performance gates were evaluated for all 2 candidates.',
+    );
     expect(
       payload.filterFacets.dimensions.evidenceStatus?.options.map((option) => option.count),
     ).toEqual([8, 4, 2, 0, 0, 2, 0]);

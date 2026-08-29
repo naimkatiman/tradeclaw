@@ -35,6 +35,10 @@ describe('README systematic-research intake discoverability', () => {
     const api = readmeSection('## API', '## Notifications');
 
     expect(api).toMatch(/No key required on the public research routes/i);
+    expect(api).toMatch(
+      /resources[\s\S]*links\.candidate[\s\S]*plainLanguageSummary[\s\S]*same classifier counts/i,
+    );
+    expect(api).toMatch(/convenience copy, not evidence or authority/i);
     expect(api).toContain("curl https://tradeclaw.win/api/research/intake");
     expect(api).toMatch(
       /all 61 pinned discovery candidates[\s\S]*completed TradeClaw evidence overlays/i,

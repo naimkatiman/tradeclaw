@@ -9,6 +9,8 @@ const EXPECTED_EVIDENCE_STATE_SUMMARY = {
   withTradeClawRecord: 8,
   performanceGatesEvaluated: 3,
   performanceGatesNotEvaluated: 5,
+  plainLanguageSummary:
+    '8 candidates: 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 5 candidates.',
   statuses: [
     {
       performanceEvidenceStatus: 'not-tested',
@@ -93,6 +95,7 @@ describe('research intake evidence-state summary', () => {
           ResearchIntakeEvidenceStateSummary: {
             required: string[];
             properties: {
+              plainLanguageSummary: { type: string; description: string };
               statuses: {
                 minItems: number;
                 maxItems: number;
@@ -117,6 +120,15 @@ describe('research intake evidence-state summary', () => {
     expect(schemas.ResearchIntakeEvidenceStateSummary.properties.statuses).toMatchObject({
       minItems: 6,
       maxItems: 6,
+    });
+    expect(schemas.ResearchIntakeEvidenceStateSummary.required).toContain(
+      'plainLanguageSummary',
+    );
+    expect(
+      schemas.ResearchIntakeEvidenceStateSummary.properties.plainLanguageSummary,
+    ).toMatchObject({
+      type: 'string',
+      description: expect.stringMatching(/same ordered counts.*no evidence or authority/i),
     });
     expect(
       schemas.ResearchIntakeEvidenceStateSummary.properties.statuses.items.properties

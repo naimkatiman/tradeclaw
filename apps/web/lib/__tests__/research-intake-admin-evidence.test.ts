@@ -50,6 +50,13 @@ describe('protected research evidence desk projection', () => {
         untested: 4,
         sourceNoGo: 4,
       },
+      evidenceStateSummary: {
+        totalCandidates: 8,
+        performanceGatesEvaluated: 3,
+        performanceGatesNotEvaluated: 5,
+        plainLanguageSummary:
+          '8 candidates: 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 5 candidates.',
+      },
     });
     expect(payload.selectionPolicy).toMatch(/gross discovery metadata/i);
     expect(payload.workflow).toHaveLength(5);
@@ -288,9 +295,9 @@ describe('protected research evidence desk projection', () => {
     const second = JSON.stringify(buildResearchIntakeAdminEvidencePayload(AUDIT_AT));
 
     expect(second).toBe(first);
-    expect(Buffer.byteLength(first, 'utf8')).toBe(67_037);
+    expect(Buffer.byteLength(first, 'utf8')).toBe(67_271);
     expect(createHash('sha256').update(first).digest('hex')).toBe(
-      '458bdc5332343c957cb88d34bec06c461b4b09376382208e3f2548b06d5d9ae8',
+      '132df89372e82d3dfc82e0f8a41e43d629c08c3c4287f4fb6ada356faac7cd0c',
     );
   });
 });

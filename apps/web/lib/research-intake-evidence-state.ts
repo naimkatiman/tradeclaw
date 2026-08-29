@@ -42,6 +42,7 @@ export interface ResearchIntakeEvidenceStateSummary {
   withTradeClawRecord: number;
   performanceGatesEvaluated: number;
   performanceGatesNotEvaluated: number;
+  plainLanguageSummary: string;
   statuses: readonly ResearchIntakeEvidenceStateSummaryItem[];
   grantsPublicationAuthority: false;
   grantsTradingAuthority: false;
@@ -84,6 +85,78 @@ export const RESEARCH_INTAKE_EVIDENCE_STATUS_COPY: Readonly<
       'A modeled historical TradeClaw replication was inconclusive under its frozen gates; this is not live performance.',
   }),
 });
+
+const RESEARCH_INTAKE_EVIDENCE_SUMMARY_NOUNS: Readonly<
+  Record<
+    ResearchIntakePerformanceEvidenceStatus,
+    Readonly<{ singular: string; plural: string }>
+  >
+> = Object.freeze({
+  'not-tested': Object.freeze({
+    singular: 'not tested by TradeClaw',
+    plural: 'not tested by TradeClaw',
+  }),
+  'source-audit-only-no-local-backtest': Object.freeze({
+    singular: 'source-audit-only record',
+    plural: 'source-audit-only records',
+  }),
+  'qa-only-no-performance-result': Object.freeze({
+    singular: 'QA-only record with no performance result',
+    plural: 'QA-only records with no performance result',
+  }),
+  'modeled-historical-pass': Object.freeze({
+    singular: 'modeled historical pass',
+    plural: 'modeled historical passes',
+  }),
+  'modeled-historical-fail': Object.freeze({
+    singular: 'modeled historical failure',
+    plural: 'modeled historical failures',
+  }),
+  'modeled-historical-inconclusive': Object.freeze({
+    singular: 'modeled historical inconclusive result',
+    plural: 'modeled historical inconclusive results',
+  }),
+});
+
+function joinEvidenceSummaryParts(parts: readonly string[]): string {
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0];
+  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
+  return `${parts.slice(0, -1).join(', ')}, and ${parts.at(-1)}`;
+}
+
+function candidateNoun(count: number): 'candidate' | 'candidates' {
+  return count === 1 ? 'candidate' : 'candidates';
+}
+
+function buildPlainLanguageEvidenceSummary(
+  totalCandidates: number,
+  performanceGatesEvaluated: number,
+  counts: Readonly<Record<ResearchIntakePerformanceEvidenceStatus, number>>,
+): string {
+  const performanceGatesNotEvaluated = totalCandidates - performanceGatesEvaluated;
+  const scope = totalCandidates === 0
+    ? 'No candidates are in this view.'
+    : `${totalCandidates} ${candidateNoun(totalCandidates)}: ${joinEvidenceSummaryParts(
+      RESEARCH_INTAKE_EVIDENCE_STATUS_ORDER.flatMap((status) => {
+        const count = counts[status];
+        if (count === 0) return [];
+        const nouns = RESEARCH_INTAKE_EVIDENCE_SUMMARY_NOUNS[status];
+        return [`${count} ${count === 1 ? nouns.singular : nouns.plural}`];
+      }),
+    )}.`;
+  const gates = performanceGatesEvaluated === 0
+    ? 'No performance gates were evaluated.'
+    : performanceGatesNotEvaluated === 0
+      ? `Performance gates were evaluated for all ${totalCandidates} ${candidateNoun(totalCandidates)}.`
+      : `Performance gates were evaluated for ${performanceGatesEvaluated} ${candidateNoun(
+        performanceGatesEvaluated,
+      )} and not evaluated for ${performanceGatesNotEvaluated} ${candidateNoun(
+        performanceGatesNotEvaluated,
+      )}.`;
+
+  return `${scope} ${gates}`;
+}
 
 function performanceEvidenceStatus(
   record: ResearchIntakeRecord,
@@ -157,6 +230,11 @@ export function summarizeResearchIntakeEvidenceStates(
     withTradeClawRecord: records.length - counts['not-tested'],
     performanceGatesEvaluated,
     performanceGatesNotEvaluated: records.length - performanceGatesEvaluated,
+    plainLanguageSummary: buildPlainLanguageEvidenceSummary(
+      records.length,
+      performanceGatesEvaluated,
+      counts,
+    ),
     statuses: RESEARCH_INTAKE_EVIDENCE_STATUS_ORDER.map((status) => ({
       performanceEvidenceStatus: status,
       label: RESEARCH_INTAKE_EVIDENCE_STATUS_COPY[status].label,

@@ -41,6 +41,8 @@ describe('protected research marketing-review JSON projection', () => {
           withTradeClawRecord: 4,
           performanceGatesEvaluated: 3,
           performanceGatesNotEvaluated: 1,
+          plainLanguageSummary:
+            '4 candidates: 1 QA-only record with no performance result and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 1 candidate.',
         },
         latestItem: {
           queuePosition: 4,
@@ -190,6 +192,8 @@ describe('protected research marketing-review JSON projection', () => {
         withTradeClawRecord: 0,
         performanceGatesEvaluated: 0,
         performanceGatesNotEvaluated: 0,
+        plainLanguageSummary:
+          'No candidates are in this view. No performance gates were evaluated.',
       },
       latestItem: null,
       currentWindowItems: [],

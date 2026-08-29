@@ -70,8 +70,11 @@ function optionHref(
 
 describe('protected research catalog filter navigation', () => {
   it('publishes one deeply frozen canonical action contract and a quiet default state', () => {
-    const navigation = readFilterNavigation(
-      buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT),
+    const payload = buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT);
+    const navigation = readFilterNavigation(payload);
+
+    expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
+      '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
 
     expect(navigation).toEqual({
@@ -100,12 +103,17 @@ describe('protected research catalog filter navigation', () => {
   });
 
   it('authors labeled active filters and remove-one links in canonical order', () => {
-    const navigation = readFilterNavigation(buildResearchIntakeAdminPayload(
+    const payload = buildResearchIntakeAdminPayload(
       new URLSearchParams(
         'q=bitcoin&assetClass=Cryptocurrencies&verdict=fail&page=2&limit=3',
       ),
       OBSERVED_AT,
-    ));
+    );
+    const navigation = readFilterNavigation(payload);
+
+    expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
+      '2 candidates: 2 modeled historical failures. Performance gates were evaluated for all 2 candidates.',
+    );
 
     expect(navigation).toEqual({
       contract: expect.any(Object),

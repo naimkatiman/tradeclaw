@@ -12,6 +12,10 @@ import {
 
 const DETERMINISTIC_AT = '2026-08-29T15:59:59.999Z';
 const CANDIDATE_ID = 'a-risk-based-approach-to-tactical-asset-allocation';
+const CATALOG_PLAIN_LANGUAGE_SUMMARY =
+  '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.';
+const EVIDENCE_PLAIN_LANGUAGE_SUMMARY =
+  '8 candidates: 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 5 candidates.';
 
 const EXPECTED_RESOURCES = {
   catalog: '/api/research/intake',
@@ -32,6 +36,7 @@ interface PublicContextView {
     withTradeClawRecord: number;
     performanceGatesEvaluated: number;
     performanceGatesNotEvaluated: number;
+    plainLanguageSummary: string;
     statuses: Array<{ performanceEvidenceStatus: string; count: number }>;
   };
 }
@@ -78,6 +83,7 @@ describe('public research-intake discovery context', () => {
       withTradeClawRecord: 8,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 58,
+      plainLanguageSummary: CATALOG_PLAIN_LANGUAGE_SUMMARY,
     });
     expect(catalogSummary?.statuses.map(({ performanceEvidenceStatus, count }) => ({
       performanceEvidenceStatus,
@@ -96,6 +102,7 @@ describe('public research-intake discovery context', () => {
       totalCandidates: 8,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 5,
+      plainLanguageSummary: EVIDENCE_PLAIN_LANGUAGE_SUMMARY,
     });
     expect(evidence.evidenceStateSummary.statuses.map((status) => status.count)).toEqual([
       0, 4, 1, 0, 3, 0,
@@ -193,35 +200,35 @@ describe('public research-intake discovery context', () => {
         sha256: 'eb851f022c0a21e501831ceab58481e0462227234aeaef7821104cb37cd238a2',
       },
       catalogEvidenceStateSummary: {
-        bytes: 1_736,
-        sha256: '758abb68de7202e1be7dbfd8ec2d4425a40632be2a105d0981da6050d6632838',
+        bytes: 2_000,
+        sha256: 'bcdc3fa1b214b8ea408193b280f08428f1e4effc13b4d5a472e823b3a2235179',
       },
       recordLinks: {
         bytes: 11_335,
         sha256: '6b4721b769db3cb6bd033c6b8d9d01c850db1f387ebdf33446fd14dccca0a06c',
       },
       catalog: {
-        bytes: 99_480,
-        sha256: '461274b219b635308a0863cd537eafde41744cb888e07b054203b0ddfdc9c51a',
+        bytes: 99_744,
+        sha256: '445166bc45322718cc46cc5acc15ed202fabec3faf0d4f7d4886190f112e84cb',
       },
       evidence: {
-        bytes: 41_797,
-        sha256: '747b63bbf052437fe8cec9bc322cd8f59bb2b892644894419381426ff92d40b4',
+        bytes: 42_295,
+        sha256: '7362469bcc23c9b6a9ebb75905a2cd184472eb22c7d053558d1206b8d7466b79',
       },
     });
   });
 
-  it('keeps protected catalog and evidence payload receipts byte-identical', () => {
+  it('freezes the intentional protected catalog and evidence summary movement', () => {
     expect(fingerprint(buildResearchIntakeAdminPayload(
       new URLSearchParams(),
       DETERMINISTIC_AT,
     ))).toEqual({
-      bytes: 72_736,
-      sha256: '2a2c221a1a4571d4d4e16a92a3766bd28bf816cabd77cfcf145863158386d799',
+      bytes: 73_264,
+      sha256: '2985e40077e7cbe64fc22afcea84ef4985c65c8968c2319b05d0e544b0a73ca0',
     });
     expect(fingerprint(buildResearchIntakeAdminEvidencePayload(DETERMINISTIC_AT))).toEqual({
-      bytes: 67_037,
-      sha256: '458bdc5332343c957cb88d34bec06c461b4b09376382208e3f2548b06d5d9ae8',
+      bytes: 67_271,
+      sha256: '132df89372e82d3dfc82e0f8a41e43d629c08c3c4287f4fb6ada356faac7cd0c',
     });
   });
 });
