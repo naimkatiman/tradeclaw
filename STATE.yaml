@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T05:28:57+08:00
+updated: 2026-08-30T05:30:25+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,13 +10,16 @@ description: >
 most_diversified_portfolio_source_screen_2026_08_30:
   at: 2026-08-30T05:04:42+08:00
   agent: TradeClaw PM agent
-  status: all_verification_green_preparing_local_implementation_commit
+  status: verified_source_audit_no_go_committed_local_waiting_for_next_boundary
   scope: Select and audit at most one untouched candidate for the new UTC window using primary-rule reconstructibility, public immutable data, complete costs, chronological falsification, and bounded verification rather than upstream performance or catalog order
   base_commit: 0787a586dde1d7950723e0fe6e852a7c092db7d4
+  implementation_commit: fc2903b3e53123816845d469a68af048469529e8
   branch: agent/research-intake-desk-20260829
   task_id: TC-262
   cycle_id: 2026-08-29T21:00:00.000Z/PT3H
   started_at: 2026-08-29T21:01:00.2866180Z
+  committed_at: 2026-08-29T21:30:25.022Z
+  closure_gate_observed_at: 2026-08-29T21:30:25.022Z
   ends_at: 2026-08-30T00:00:00.000Z
   candidate_id: properties-of-the-most-diversified-portfolio
   candidate_title: Properties of the Most Diversified Portfolio
@@ -119,8 +122,9 @@ most_diversified_portfolio_source_screen_2026_08_30:
     jest: PASS - 284 runnable suites / 2118 tests / 1 snapshot; 3 suites and 26 tests skipped; known open-handle forced-exit warning only
     lint: PASS - zero errors and 21 inherited warnings
     production_build: PASS - signals and trading-agents compiled and Next.js generated 329/329 pages; inherited warnings only
-  current_step: Re-run the final state-bound contracts and exact manifest checks, then create the local implementation commit
-  next_action: Integrate exactly one TC-262 no-go receipt and public/protected evidence overlay without calculating returns or changing marketing, UI, runtime, or trading authority
+  final_state_bound_verification: PASS - 8 suites / 51 assertions immediately before the local implementation commit
+  current_step: Cycle closed locally with one TC-262 source-audit no-go receipt and no external action; wait for the exact next UTC boundary
+  next_action: Preserve TC-262 as the sole 21:00Z receipt; begin the next source-intake decision no earlier than 2026-08-30T00:00:00.000Z
   visual_ui_changed: false
   publish_approved: false
   trading_approved: false
@@ -3298,6 +3302,7 @@ research_intake_desk_2026_08_29:
     id: 2026-08-29T21:00:00.000Z/PT3H
     recorded_at: 2026-08-29T21:09:39.110Z
     task_id: TC-262
+    implementation_commit: fc2903b3e53123816845d469a68af048469529e8
     started_at: 2026-08-29T21:00:00.000Z
     ends_at: 2026-08-30T00:00:00.000Z
     candidate_id: properties-of-the-most-diversified-portfolio
