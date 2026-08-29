@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T04:56:27+08:00
+updated: 2026-08-30T04:57:29+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,10 @@ description: >
 research_candidate_detail_navigation_2026_08_30:
   at: 2026-08-30T04:44:16+08:00
   agent: TradeClaw PM agent
-  status: verified_shared_candidate_detail_navigation_ready_for_local_commit
+  status: verified_shared_candidate_detail_navigation_committed_local_closing_state
   scope: Let public users and authenticated admins return from an exact candidate to the correct catalog or move through pinned source order without guessing IDs or URLs
   base_commit: 9bb94bfe2b7f3a506bb10bf7b7ae275af803f5cc
+  implementation_commit: 065d54b0817865c501c3d4f6ff2b5c57cfba5c23
   branch: agent/research-intake-desk-20260829
   parent_task: TC-256
   current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
@@ -21,6 +22,7 @@ research_candidate_detail_navigation_2026_08_30:
   new_research_receipt_created: false
   next_rollover_at: 2026-08-29T21:00:00.000Z
   gate_observed_at: 2026-08-29T20:44:16.337Z
+  closure_gate_observed_at: 2026-08-29T20:57:29.1086273Z
   gate_decision: The 21:00Z receipt gate is closed; continue same-window public/admin product completion without creating research or marketing state
   problem: >-
     Exact public and protected candidate responses expose the record and catalog
@@ -148,8 +150,8 @@ research_candidate_detail_navigation_2026_08_30:
   publish_approved: false
   trading_approved: false
   external_actions: none
-  current_step: Stage the exact ten-file manifest and create the local implementation commit
-  next_action: Record the implementation hash in STATE.yaml, rerun state-bound closure checks, create a state-only closure commit, and prove a clean tree
+  current_step: Rerun state-bound closure checks, create the local STATE-only closure commit, and prove a clean tree
+  next_action: Keep the recurring goal active; at or after the 21:00Z gate open at most one new cost-first source receipt before selecting further product or marketing work
   safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_catalog_result_view_2026_08_30:
