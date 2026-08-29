@@ -1,4 +1,5 @@
 import {
+  buildResearchIntakePublicEvidencePayload,
   buildResearchIntakePublicPayload,
   type ResearchIntakePublicPayload,
   type ResearchIntakePublicRecord,
@@ -180,4 +181,10 @@ export function researchIntakeCsvRowsToString(
 
 export function buildResearchIntakeCsv(): string {
   return researchIntakeCsvRowsToString(buildResearchIntakeCsvRows());
+}
+
+export function buildResearchIntakeEvidenceCsv(): string {
+  return researchIntakeCsvRowsToString(
+    buildResearchIntakeCsvRows(buildResearchIntakePublicEvidencePayload()),
+  );
 }

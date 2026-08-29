@@ -211,6 +211,9 @@ curl https://tradeclaw.win/api/research/intake
 # All six examined candidates, including failures, no-go audits, and the inconclusive run
 curl https://tradeclaw.win/api/research/intake/evidence
 
+# Six-row evidence spreadsheet: failures, no-go audits, and the inconclusive run
+curl https://tradeclaw.win/api/research/intake/evidence.csv -o tradeclaw-systematic-research-evidence-2026-08-29.csv
+
 # One canonical candidate, with its complete safe evidence overlay
 curl https://tradeclaw.win/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation
 

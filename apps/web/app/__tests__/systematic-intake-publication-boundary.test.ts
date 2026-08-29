@@ -70,6 +70,7 @@ describe('systematic research intake public boundary', () => {
     };
     const operation = spec.paths['/api/research/intake']?.get;
     const evidenceOperation = spec.paths['/api/research/intake/evidence']?.get;
+    const evidenceCsvOperation = spec.paths['/api/research/intake/evidence.csv']?.get;
     const candidateOperation = spec.paths['/api/research/intake/{candidateId}']?.get;
     const csvOperation = spec.paths['/api/research/intake.csv']?.get;
     const responseSchema = spec.components.schemas.ResearchIntakeResponse as {
@@ -96,6 +97,12 @@ describe('systematic research intake public boundary', () => {
       /all six.*source-audit or replication.*source order.*failures.*no-go.*inconclusive/i,
     );
     expect(evidenceOperation?.responses).toHaveProperty('200');
+    expect(evidenceCsvOperation).toBeDefined();
+    expect(evidenceCsvOperation?.security).toEqual([]);
+    expect(evidenceCsvOperation?.description).toMatch(
+      /all six.*25-column.*source order.*failures.*no-go.*inconclusive.*no API key/i,
+    );
+    expect(evidenceCsvOperation?.responses).toHaveProperty('200');
     expect(candidateOperation).toBeDefined();
     expect(candidateOperation?.security).toEqual([]);
     expect(candidateOperation?.description).toMatch(/one canonical candidate.*exact.*case-sensitive/i);

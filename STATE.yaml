@@ -1,11 +1,190 @@
 project: tradeclaw
-updated: 2026-08-30T00:57:09+08:00
+updated: 2026-08-30T01:14:12+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+public_research_evidence_csv_2026_08_29:
+  at: 2026-08-30T01:14:12+08:00
+  agent: TradeClaw PM agent
+  status: verified_precommit_ready_to_commit
+  scope: Give a non-technical public reviewer one spreadsheet-ready download of every awesome-systematic-trading candidate TradeClaw has examined, without transforming JSON, downloading 55 untouched discoveries, or enabling favorable-result selection
+  base_commit: bf4bec9d0908950c0052b1201fc04a59d6d112de
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-260
+  next_rollover_at: 2026-08-29T18:00:00.000Z
+  new_research_receipt_created: false
+  return_calculated: false
+  finding: >-
+    Public users can retrieve the complete six-record evidence index as nested
+    JSON, but spreadsheet users must still download the 36,725-byte 61-row
+    catalog or write a JSON transformation before reviewing the records
+    TradeClaw has actually examined.
+  library_search: >-
+    No reusable evidence-only CSV, adverse-inclusive research export, or
+    spreadsheet evidence-index pattern exists in shared MemoryCore; reuse
+    TradeClaw's fixed 25-column claim-safe CSV projection, formula escaping,
+    pinned source order, source receipt, one-hour public cache, and false
+    publication/trading controls.
+  acceptance_gates:
+    - GET /api/research/intake/evidence.csv returns all and only the six records in GET /api/research/intake/evidence; it is a complete overlay set, not a favorable, publication-ready, or performance-ranked subset
+    - The rows preserve pinned source order with task IDs TC-259, TC-257, TC-255, TC-258, TC-256, TC-260 and original one-based sourceOrder values 22, 24, 32, 34, 37, 61
+    - The export reuses the exact 25-column public CSV schema and serializer, including pinned repository/commit/README hash/snapshot metadata, gross/discovery-only labels, canonical evidence paths, and false publication/trading authority on every row
+    - The body is exactly one header plus six CRLF-terminated logical rows with no blank or metadata preamble; each parsed row has exactly 25 columns and the header is byte-identical to the complete public CSV header
+    - Performance evidence statuses stay exactly three modeled-historical-fail, one qa-only-no-performance-result, and two source-audit-only-no-local-backtest; there are zero modeled passes and zero untouched not-tested discoveries
+    - TC-256 and TC-260 remain source-audit-only no-local-backtest rows, TC-257 remains QA-only with no performance result, and TC-255/258/259 remain modeled historical failures
+    - Text cells retain the existing formula-injection defense and CSV quote/CRLF escaping while genuine negative numeric metrics remain numeric
+    - Success uses text/csv UTF-8, nosniff, a deterministic snapshot-dated evidence filename, one-hour public CDN caching, no Cookie or Authorization variance, and no CORS grant; query parameters have no filter/sort/pagination meaning and only GET is exposed
+    - OpenAPI documents the exact six-row adverse-inclusive evidence download, source ordering, 25-column schema relationship, no-key access, filename, and false authority; every local JSON reference remains resolvable
+    - README provides one copy-paste evidence CSV command beside the complete evidence JSON and describes failures, no-go audits, and the inconclusive run without presenting a favorable subset
+    - Existing evidence JSON, full public JSON, public candidate detail, full public CSV, whole-admin JSON, admin candidate detail, admin review JSON, protected review CSV, receipt ledger, and marketing handoff ledger remain byte-identical at the fixed audit instant
+    - No public or protected visual page, candidate stage/result/receipt/handoff, source data, research return, strategy, runtime authority, Docker, dependency, database, auth semantics, billing, execution, or external state changes
+    - Intentional RED, focused and adjacent tests, independent CSV parse, deterministic payload/hash/OpenAPI/state/scope audits, typecheck, lint, repository tests, and the required npm run build pass before local commits
+  baseline_audit_at: 2026-08-29T15:59:59.999Z
+  design_probe:
+    projected_evidence_csv_bytes: 4492
+    projected_evidence_csv_sha256: 663f5dd0b2d94205827423ee682316f6ffeb7d42a024fc7729e43f56c330286e
+    projected_physical_lines: 7
+    projected_columns: 25
+    projected_task_ids_in_source_order: TC-259, TC-257, TC-255, TC-258, TC-256, TC-260
+    projected_source_orders: 22, 24, 32, 34, 37, 61
+  baseline_payloads:
+    evidence_json_bytes: 24949
+    evidence_json_sha256: 54fed8532a5fdd881435083213f99ce2b2bf0167dafa98d542fa959436a92826
+    full_public_json_bytes: 59873
+    full_public_json_sha256: ade593cd52274f7386cb4a505c2e8bf2abd7836685c927f0dfba85a0f0546dc6
+    tc260_public_candidate_json_bytes: 5770
+    tc260_public_candidate_json_sha256: adba3fd308fcaac7cea5aebf078640b9ef98f8e8c1e290cb2b9d3fad83b51b3d
+    full_public_csv_bytes: 36725
+    full_public_csv_sha256: f51787d97c5c21aef4751135899bc0e1c310155cde7c07c7961a2d332c6f54c6
+    full_admin_json_bytes: 42354
+    full_admin_json_sha256: 0cd758e2cb630ada326fdaefaacf6585b71ab102f663f3c8df6638a9db10b300
+    tc260_admin_candidate_json_bytes: 9230
+    tc260_admin_candidate_json_sha256: df2a11b661c4821b1148a9ff1e2bef2af0331b2fdea95a9b966dfe7f806a6296
+    admin_review_json_bytes: 20006
+    admin_review_json_sha256: 316301ff0ffb9762ba4a7150a901b3334c01b69771a2eafe2a229235bbc82c30
+    protected_review_csv_bytes: 6350
+    protected_review_csv_sha256: 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    receipt_task_ids: TC-256, TC-257, TC-258, TC-259, TC-260
+    marketing_handoff_task_ids: TC-255, TC-257, TC-258, TC-259
+  red_evidence: >-
+    PASS - all four focused suites fail only at the frozen absent seams: two
+    builder assertions reach the missing buildResearchIntakeEvidenceCsv export,
+    the route suite stops at the missing evidence.csv route module, the OpenAPI
+    boundary reaches the absent evidence CSV operation, and the README boundary
+    reaches the missing copy-paste command; five surrounding assertions remain
+    green, including the already-available safe six-row input projection.
+  implementation: >-
+    Added a buildResearchIntakeEvidenceCsv projection that feeds the complete
+    public evidence payload through the existing fixed 25-column builder and
+    serializer, exposed it through a static API-key-free evidence.csv route, and
+    added the exact adverse-inclusive OpenAPI and README handoff.
+  focused_verification: >-
+    PASS - the evidence CSV builder, route, OpenAPI publication-boundary, and
+    README discoverability suites pass 12/12; exact overlay completeness,
+    source/task order, statuses, provenance, safe evidence paths, false authority,
+    shared schema/serializer, deterministic rows, headers, cache policy, query
+    independence, GET-only behavior, and protected-field exclusion are covered.
+  deterministic_audit_first_iteration: >-
+    Product serialization and all frozen hashes passed, but the independent
+    PowerShell verifier initially counted CR and LF as separate delimiters and
+    inspected the property-collection wrapper, reporting 13 segments and one
+    property. The verifier was corrected to split on CRLF and measure each row's
+    actual PSObject properties; no product code or expected payload changed.
+  deterministic_replay_verification: >-
+    PASS - two independent serializations are byte-identical at 4,492 bytes and
+    SHA-256 663f5dd0b2d94205827423ee682316f6ffeb7d42a024fc7729e43f56c330286e;
+    an independent ConvertFrom-Csv parse proves 6 rows, 7 physical lines, 25
+    properties per row, task/source order TC-259/22, TC-257/24, TC-255/32,
+    TC-258/34, TC-256/37, TC-260/61, exact adverse statuses, and false authority.
+  baseline_replay_verification: >-
+    PASS - evidence JSON remains 24,949 bytes/54fed853, full public JSON
+    59,873/ade593cd, TC-260 public detail 5,770/adba3fd3, full public CSV
+    36,725/f51787d9, full admin JSON 42,354/0cd758e2, TC-260 admin detail
+    9,230/df2a11b6, admin review JSON 20,006/316301ff, and protected review CSV
+    6,350/3ce2d5eb; receipt and handoff task-ID ledgers are unchanged.
+  adjacent_verification: >-
+    PASS - STATE parses and all 26 adjacent suites and 114 tests pass, covering
+    complete public/protected intake and candidate surfaces, full/evidence/review
+    CSV exports, auth boundaries, receipt ledger, three-hour loop, marketing
+    handoffs, OpenAPI publication boundaries, README discovery, and exact STATE
+    bindings.
+  typecheck_verification: >-
+    PASS - the signals package build and web TypeScript no-emit check complete
+    without errors.
+  changed_file_lint_verification: >-
+    PASS - all seven changed TypeScript files complete the authoritative web
+    workspace ESLint configuration with zero findings.
+  lint_verification: >-
+    PASS - full web lint completes with zero errors and the same 21 inherited
+    warnings; no warning points to this increment.
+  source_verification: >-
+    PASS - the independent source verifier reconstructs all 61 candidates at
+    exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs
+    discovery-only treatment.
+  state_and_scope_verification: >-
+    PASS - STATE parses, diff whitespace passes, and exactly nine intended paths
+    are changed. No manifest, lockfile, Docker, migration, source catalog data,
+    research source/result/artifact/script, public or protected visual page,
+    database, auth semantic, strategy, signal, allocation, broadcast, execution,
+    billing, or external-state path changed.
+  repository_test_verification: >-
+    PASS - all 272 runnable Jest suites and 2,053 tests pass with 3 suites and 26
+    tests skipped and 1 snapshot passed; forceExit closed the repository's
+    inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root build compiled signals, trading-agents, and Next.js
+    and generated 329/329 pages. /api/research/intake/evidence.csv is registered
+    as a static one-hour-cached route; the one-page increase from the 328-page
+    baseline is exactly the new endpoint. Only inherited NFT tracing, middleware
+    deprecation, edge-static-generation, and Node url.parse warnings remain.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    evidence_csv_bytes: 4492
+    evidence_csv_sha256: 663f5dd0b2d94205827423ee682316f6ffeb7d42a024fc7729e43f56c330286e
+    replay_equal: true
+    parsed_rows: 6
+    physical_lines: 7
+    columns_per_row: 25
+    task_ids: TC-259, TC-257, TC-255, TC-258, TC-256, TC-260
+    source_orders: 22, 24, 32, 34, 37, 61
+    evidence_json_unchanged: true
+    full_public_json_unchanged: true
+    tc260_public_candidate_json_unchanged: true
+    full_public_csv_unchanged: true
+    full_admin_json_unchanged: true
+    tc260_admin_candidate_json_unchanged: true
+    admin_review_json_unchanged: true
+    protected_review_csv_unchanged: true
+    receipt_ledger_unchanged: true
+    marketing_handoff_ledger_unchanged: true
+  final_contract_audit: >-
+    PASS - every frozen acceptance gate is proven by intentional RED, focused and
+    adjacent GREEN, independent spreadsheet parse, deterministic replay,
+    baseline/source/state/scope audits, static analysis, all repository tests,
+    and the registered production route; no requirement relies on client-side
+    JSON transformation, favorable-result filtering, or untested authority.
+  visual_verification: >-
+    No public or protected admin page, layout, copy, style, or interaction changed;
+    this increment adds only the complete public spreadsheet read contract and
+    its API documentation/README handoff while visual work remains owner-gated.
+  precommit_verification: >-
+    PASS - the exact 26-suite public/protected intake, candidate, full/evidence/
+    review CSV, receipt, loop, marketing, auth, README, and OpenAPI set passes
+    114/114 against the final precommit tree; independent CSV parsing, the
+    deterministic evidence and eight-baseline replay, STATE parse, diff
+    whitespace, and exact nine-path scope all pass again.
+  admin_visual_v0_changed: false
+  public_visual_changed: false
+  current_step: Create the local implementation commit without pushing, deploying, publishing, or activating anything
+  next_action: Record the implementation hash in a state-only closure commit, update shared MemoryCore, and leave the isolated branch clean; preserve the sole TC-260 receipt until exact 18:00Z
+  external_actions: none
+  safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
 public_research_evidence_index_2026_08_29:
   at: 2026-08-30T00:57:09+08:00

@@ -599,6 +599,41 @@ export function buildOpenApiSpec(): OpenApiSpec {
           },
         },
       },
+      "/api/research/intake/evidence.csv": {
+        get: {
+          tags: ["Research"],
+          operationId: "downloadResearchIntakeEvidenceCsv",
+          summary: "Download every examined research candidate as CSV",
+          description:
+            "Returns all six examined candidates as a claim-safe 25-column spreadsheet in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
+            "No API key is required. Every row repeats the pinned source receipt and false publication/trading authority; the canonical evidence JSON retains complete nested research records.",
+          security: [],
+          responses: {
+            "200": {
+              description: "Complete adverse-inclusive public research evidence spreadsheet",
+              headers: {
+                "Content-Disposition": {
+                  description: "Deterministic snapshot-dated evidence attachment filename",
+                  schema: {
+                    type: "string",
+                    example:
+                      'attachment; filename="tradeclaw-systematic-research-evidence-2026-08-29.csv"',
+                  },
+                },
+              },
+              content: {
+                "text/csv": {
+                  schema: {
+                    type: "string",
+                    description:
+                      "The shared 25-column header plus six source-ordered evidence rows. Canonical evidence JSON remains authoritative for nested records.",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       "/api/research/intake/{candidateId}": {
         get: {
           tags: ["Research"],

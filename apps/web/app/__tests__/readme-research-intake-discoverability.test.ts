@@ -44,6 +44,12 @@ describe('README systematic-research intake discoverability', () => {
       /all six examined candidates[\s\S]*failures[\s\S]*no-go audits[\s\S]*inconclusive/i,
     );
     expect(api).toContain(
+      'curl https://tradeclaw.win/api/research/intake/evidence.csv -o tradeclaw-systematic-research-evidence-2026-08-29.csv',
+    );
+    expect(api).toMatch(
+      /six-row evidence spreadsheet[\s\S]*failures[\s\S]*no-go audits[\s\S]*inconclusive/i,
+    );
+    expect(api).toContain(
       'curl https://tradeclaw.win/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation',
     );
     expect(api).toMatch(/one canonical candidate[\s\S]*complete safe evidence overlay/i);
