@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T03:24:09+08:00
+updated: 2026-08-30T03:25:03+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 admin_research_catalog_navigation_2026_08_30:
-  at: 2026-08-30T03:24:09+08:00
+  at: 2026-08-30T03:25:03+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_implementation_commit
+  status: verified_protected_admin_catalog_navigation_committed_local_closing_state
   scope: Let an authenticated admin build and navigate the filtered research catalog without duplicating hidden server enums, defaults, validation limits, query normalization, or URL serialization
   base_commit: 1a32b933a8fb74d19181e4847e9340dce8bbbe2b
+  implementation_commit: afaf9efdd48db4b9c288cf3bb130bc542e14d5a9
   branch: agent/research-intake-desk-20260829
   parent_task: TC-256
   current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
@@ -132,8 +133,12 @@ admin_research_catalog_navigation_2026_08_30:
   publish_approved: false
   trading_approved: false
   external_actions: none
-  current_step: Create the verified local implementation commit from the exact four-file manifest
-  next_action: Record the implementation hash in STATE, create the STATE-only closure commit, and save durable MemoryCore context
+  implementation_commit_verification: >-
+    PASS - the exact verified four-file manifest is recorded locally at
+    afaf9efdd48db4b9c288cf3bb130bc542e14d5a9 and the worktree returned clean
+    immediately afterward.
+  current_step: Create the STATE-only closure commit, save durable project context to shared MemoryCore, and leave the isolated branch clean
+  next_action: Preserve TC-261 as the sole 18:00Z receipt; begin the next preregistered source-intake decision no earlier than the 21:00Z UTC rollover
   safety: No research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_resource_map_2026_08_30:
