@@ -103,6 +103,34 @@ describe('three-hour research and marketing loop', () => {
     expect(draft?.body).toMatch(/does not authorize promotion, publication, allocation, broadcast, or execution/i);
   });
 
+  it('creates a same-window benchmark draft for the failed term-premium receipt', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.tradeClawEvidence?.taskId === 'TC-259',
+    );
+    if (!record) throw new Error('TC-259 intake record is missing');
+    const draft = buildMarketingReviewDraft(record);
+    expect(draft).toMatchObject({
+      candidateId: 'trading-the-term-premium',
+      title: 'Term-spread timing failed stability and its holdout cash benchmark',
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+    });
+    expect(draft?.summary).toBe(
+      'Holdout headline return was +10.35% versus +15.62% for the identically costed one-month sleeve; only 1/4 paper folds beat both frozen benchmarks.',
+    );
+    expect(draft?.summary).not.toContain('+3917.50%');
+    expect(draft?.body).toContain('full-history headline return was +3917.50%');
+    expect(draft?.body).toContain('only 1 of 4 paper folds beat both benchmarks');
+    expect(draft?.body).toContain('+10.35% after modeled costs versus +15.62%');
+    expect(draft?.body).toContain('prior-only ambiguity control returned +13.70%');
+    expect(draft?.body).toMatch(/Verdict: FAIL/);
+    expect(draft?.body).toMatch(/fitted current-vintage curve results/i);
+    expect(draft?.body).toMatch(
+      /do not authorize promotion, publication, allocation, broadcast, or execution/i,
+    );
+  });
+
   it('does not manufacture a marketing draft for untested upstream rows', () => {
     const untested = SYSTEMATIC_RESEARCH_INTAKE.find((candidate) => !candidate.tradeClawEvidence);
     if (!untested) throw new Error('untested intake record is missing');

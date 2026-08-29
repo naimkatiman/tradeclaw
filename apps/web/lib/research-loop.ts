@@ -120,6 +120,27 @@ export function buildMarketingReviewDraft(
     };
   }
 
+  if (evidence.taskId === 'TC-259') {
+    return {
+      candidateId: record.id,
+      title: 'Term-spread timing failed stability and its holdout cash benchmark',
+      summary:
+        `Holdout headline return was ${signedPercent(evidence.holdout.headlineCompoundedReturn)} versus ${signedPercent(evidence.holdout.alwaysOneMonthHeadlineCompoundedReturn)} for the identically costed one-month sleeve; only ${evidence.stability.passingPaperFolds}/${evidence.stability.totalPaperFolds} paper folds beat both frozen benchmarks.`,
+      body: [
+        `We independently replicated “${record.title}” from an exact Federal Reserve curve snapshot after freezing the MA40 timing, modeled zero-coupon returns, ${evidence.costs.headlineSideBps} bp-per-side headline roll cost, folds, controls, and a 2023-2026 holdout.`,
+        `All standing QA and full-window gates passed; the canonical full-history headline return was ${signedPercent(evidence.full.headlineCompoundedReturn)}.`,
+        `The durability test failed: only ${evidence.stability.passingPaperFolds} of ${evidence.stability.totalPaperFolds} paper folds beat both benchmarks, and the canonical holdout returned ${signedPercent(evidence.holdout.headlineCompoundedReturn)} after modeled costs versus ${signedPercent(evidence.holdout.alwaysOneMonthHeadlineCompoundedReturn)} for the same-window one-month sleeve.`,
+        `The frozen prior-only ambiguity control returned ${signedPercent(evidence.holdout.priorOnlyHeadlineCompoundedReturn)} in the holdout and cannot replace the canonical result after the run.`,
+        'Verdict: FAIL. These fitted current-vintage curve results are not observed security fills and do not authorize promotion, publication, allocation, broadcast, or execution.',
+      ].join(' '),
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+      resultPath: evidence.resultPath,
+      artifactPath: evidence.artifactPath,
+    };
+  }
+
   if (evidence.taskId !== 'TC-255') return unsupportedEvidence(evidence);
 
   return {

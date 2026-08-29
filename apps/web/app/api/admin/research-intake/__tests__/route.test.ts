@@ -69,12 +69,12 @@ describe('GET /api/admin/research-intake', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 57,
+        discovered: 56,
         sourceAudited: 1,
-        replicated: 3,
-        failed: 2,
+        replicated: 4,
+        failed: 3,
         inconclusive: 1,
-        untested: 58,
+        untested: 57,
         sourceNoGo: 1,
       },
       pagination: {
@@ -215,7 +215,9 @@ describe('GET /api/admin/research-intake', () => {
     mockedAdmin.mockResolvedValue(null);
 
     const response = await GET(
-      request('?stage=replicated&verdict=fail&sourceAuditDisposition=advance&limit=100'),
+      request(
+        '?q=seasonality&stage=replicated&verdict=fail&sourceAuditDisposition=advance&limit=100',
+      ),
     );
     const body = await response.json();
 
@@ -244,6 +246,68 @@ describe('GET /api/admin/research-intake', () => {
       candidateId: 'seasonality-trend-following-and-mean-reversion-in-bitcoin',
       title: 'Bitcoin MAX10/MIN10 failed its post-paper holdout',
       summary: 'BTC holdout gross +56.54% became -65.66% net under frozen spot costs.',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+    });
+  });
+
+  it('exposes the failed term-premium receipt with exact QA, benchmarks, and no authority', async () => {
+    mockedAdmin.mockResolvedValue(null);
+
+    const response = await GET(
+      request(
+        '?q=term%20premium&stage=replicated&verdict=fail&sourceAuditDisposition=advance&limit=100',
+      ),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.pagination).toMatchObject({ totalRecords: 1, returnedRecords: 1 });
+    expect(body.records[0]).toMatchObject({
+      id: 'trading-the-term-premium',
+      stage: 'replicated',
+      verdict: 'fail',
+      costStatus: 'failed',
+      tradeClawSourceAudit: {
+        disposition: 'advance',
+        tradeClawBacktestRunAtAuditClose: false,
+        data: {
+          currentVintage: true,
+          rawBytesCommitted: false,
+        },
+      },
+      tradeClawEvidence: {
+        taskId: 'TC-259',
+        performanceGatesEvaluated: true,
+        eligibleForProspectiveReview: false,
+        activationApproved: false,
+        publicationApproved: false,
+        qa: {
+          standingQaPassed: true,
+          curveRows: 782,
+          suppliedYieldChecks: 18334,
+          fullOutcomes: 703,
+          holdoutOutcomes: 42,
+        },
+        full: {
+          headlineCompoundedReturn: 39.174968845477,
+        },
+        holdout: {
+          headlineCompoundedReturn: 0.103469314645,
+          alwaysOneMonthHeadlineCompoundedReturn: 0.156215427867,
+        },
+        stability: {
+          passingPaperFolds: 1,
+          totalPaperFolds: 4,
+        },
+        failedGates: ['paperFoldStability', 'holdoutBeatsAlwaysOneMonth'],
+      },
+    });
+    expect(body.records[0].marketingReviewDraft).toMatchObject({
+      candidateId: 'trading-the-term-premium',
+      title: 'Term-spread timing failed stability and its holdout cash benchmark',
+      summary:
+        'Holdout headline return was +10.35% versus +15.62% for the identically costed one-month sleeve; only 1/4 paper folds beat both frozen benchmarks.',
       disposition: 'human-review-draft-only',
       publishApproved: false,
     });

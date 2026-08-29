@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T20:10:56+08:00
+updated: 2026-08-29T20:44:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 trading_term_premium_preregistration_2026_08_29:
-  at: 2026-08-29T20:10:56+08:00
+  at: 2026-08-29T20:44:00+08:00
   agent: TradeClaw PM agent
-  status: preregistered_returns_unopened
+  status: verified_canonical_fail_integrated_commit_pending
   scope: Freeze a cost-first independent replication of the catalog's simple U.S. moving-average term-spread lane before calculating any local strategy return
   base_commit: 177bed1096633b5ac4f2e8f35c87e82bfe00d9ce
   branch: agent/research-intake-desk-20260829
+  preregistration_commit: 5dd2457215314edb12e7a0089818bc368b3dd69a
   task_id: TC-259
   candidate_id: trading-the-term-premium
   cycle_id: 2026-08-29T12:00:00.000Z/PT3H
@@ -24,6 +25,10 @@ trading_term_premium_preregistration_2026_08_29:
   preregistration_sha256: 74b138499e36ea55f03490069a3c3f3823e458997c4cb00daf82903bd3f6387b
   input_path: docs/research/data/trading-term-premium/fed-nominal-month-end-1961-06-30-2026-07-31.csv
   input_sha256: 29442bea3f4ccef06aa741ff4afd6202c2a029cf6f43966f04e482960959f041
+  artifact_path: docs/research/experiments/trading-term-premium-US-NOMINAL-MA40-1968-01-2026-07-f4.json
+  artifact_sha256: e30db6b2cbd9f7e9865c0c6c65699c6f2dd2a772f43e449ff63e9120ee6fb18e
+  result_path: docs/research/2026-08-29-trading-term-premium-replication-result.md
+  result_sha256: f1f9281a100a21a3a5988eb8c6896dd2e157554e1b7c1bf9b4b2c33942176d6e
   input_receipt: >
     The exact 16,631,671-byte Federal Reserve source at SHA-256
     877d0908ce3b875412eac0295715f88b40a011a94e24339e15959ec3bb04cad7
@@ -51,21 +56,21 @@ trading_term_premium_preregistration_2026_08_29:
     field. The Federal Reserve inputs are public-domain with attribution, but
     the SSRN paper and New York Fed PDF are hash-cited and not redistributed.
   preregistration_frozen: true
-  returns_opened: false
-  return_calculated: false
-  artifact_created: false
-  verdict: not-run
-  catalog_stage_advanced: false
-  marketing_draft: none
+  returns_opened: true
+  return_calculated: true
+  artifact_created: true
+  verdict: fail
+  catalog_stage_advanced: true
+  marketing_draft: human-review-only-holdout-benchmark-failure-draft
   publish_approved: false
   activation_approved: false
   allocation_approved: false
   broadcast_approved: false
   execution_approved: false
   external_actions: none
-  current_step: Commit the fully verified frozen protocol before adding or invoking any return assembly
-  verification: PASS - deterministic input preparation reproduced the exact source and snapshot hashes; all 381,362 full-source reconstruction checks passed the frozen tolerance; the 782-row snapshot reproduced byte-for-byte; script syntax, package JSON, YAML, git diff, and the pre-return boundary passed; the required production build compiled both packages and generated all 325 pages with inherited warnings only
-  safety: No return, artifact, verdict, marketing copy, UI, auth, database, Docker, dependency, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
+  current_step: Commit the fully verified local FAIL receipt and record its exact implementation hash without publishing or changing runtime authority
+  verification: PASS - all 14 standing QA checks passed; canonical full headline return was +3917.50%, but only 1/4 paper folds passed and holdout headline +10.35% trailed identically costed one-month +15.62%; artifact replay was byte-identical at 966,688 bytes and SHA-256 e30db6b2cbd9f7e9865c0c6c65699c6f2dd2a772f43e449ff63e9120ee6fb18e; typed intake/admin/draft/shelf/registry integration passed 65/65 focused tests; all research tests passed 213/213; repository Jest passed 250 suites and 1,978 tests with three suites and 26 tests skipped before cleanup of the known open handle; pinned intake reconstruction passed 61/61; web typecheck passed; lint completed with zero errors and 21 inherited warnings; JSON, YAML, hashes, trailing-LF, replay-temp, and diff checks passed; the required build compiled both packages and generated 325/325 pages
+  safety: Only local modeled research code, artifact, result, and state changed; no UI, auth, database, Docker, dependency, live signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 research_intake_marketing_handoff_projection_2026_08_29:
   at: 2026-08-29T19:18:24+08:00
@@ -305,9 +310,9 @@ end_of_month_treasury_replication_2026_08_29:
   next_action: Under a new preregistration, obtain an original-vintage Federal Reserve curve file or define an explicit rounded-parameter reconciliation policy before attempting any performance evaluation
 
 research_intake_desk_2026_08_29:
-  at: 2026-08-29T20:10:56+08:00
+  at: 2026-08-29T20:44:00+08:00
   agent: TradeClaw PM agent
-  status: foundation_admin_api_three_completed_cycles_and_tc259_preregistered_ui_checkpoint
+  status: foundation_admin_api_four_completed_cycles_tc259_fail_verified_commit_pending_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
   base_commit: f7936bcf627f208ac0379412453976b17218608b
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
@@ -315,12 +320,18 @@ research_intake_desk_2026_08_29:
   treasury_replication_commit: 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
   bitcoin_max_min_replication_commit: 6a3c1b01afad160fb0ee4970d4dff6a78f381731
   branch: agent/research-intake-desk-20260829
-  current_step: TC-259 now has a hash-bound source audit, deterministic public-domain month-end snapshot, frozen costs, controls, folds, holdout, QA, and decision gates in the new 12:00Z window; the required 325-page production build and all checkpoint checks pass, returns remain unopened until the preregistration is committed, and visual v0 remains paused at the required UI direction checkpoint
+  current_step: >
+    TC-259 is an immutable canonical FAIL and is now bound to the typed intake,
+    protected admin projection, server-owned review-only draft, experiment
+    shelf, and registry. Full verification passes, including 213/213 research
+    tests, 1,978 repository tests, source reconstruction, typecheck, lint, and
+    the 325-page production build; the local commit is next, while visual v0
+    remains paused at the required UI direction checkpoint.
   next_cycle_readiness:
-    at: 2026-08-29T20:10:56+08:00
-    window_status: new_utc_window_open_preregistration_verified_returns_closed
+    at: 2026-08-29T20:44:00+08:00
+    window_status: current_utc_window_canonical_fail_verified_commit_pending
     candidate_id: trading-the-term-premium
-    stage: preregistered
+    stage: replicated
     candidate_lane: monthly_us_moving_average_term_spread
     primary_rule_candidate: >
       Frozen canonical rule: use the Federal Reserve continuously compounded
@@ -355,13 +366,13 @@ research_intake_desk_2026_08_29:
       its portfolio sorts identify a phenomenon rather than an executable
       historical strategy.
     preregistration_frozen: true
-    returns_opened: false
-    catalog_stage_advanced: false
+    returns_opened: true
+    catalog_stage_advanced: true
     cycle_receipt_created: true
     current_window_receipt: 2026-08-29T12:00:00.000Z/PT3H
-    marketing_draft: none
+    marketing_draft: human-review-only-holdout-benchmark-failure-draft
     external_actions: none
-    next_action: Commit this verified preregistration-only checkpoint; only then implement and invoke the deterministic return assembly
+    next_action: Create the local implementation commit and record its exact hash; do not start a new cycle before the 15:00Z boundary
   source: >
     Populate discovery metadata from the 61 highlighted strategies in the exact
     paperswithbacktest/awesome-systematic-trading commit
@@ -384,11 +395,11 @@ research_intake_desk_2026_08_29:
   foundation: >
     Added a strict 61-row source manifest pinned to the exact upstream commit and
     README SHA-256, a fail-closed parser and searchable intake model, a local
-    evidence overlays that mark TC-255 and TC-258 replicated/failed and TC-257
-    replicated/inconclusive without promoting performance, deterministic
-    UTC-aligned three-hour cycle windows, and a factual TC-255 marketing draft
-    builder whose disposition is human-review-only and publishApproved is fixed
-    false. Added a read-only network verifier that reconstructs every source row
+    evidence overlays that mark TC-255, TC-258, and TC-259 replicated/failed and
+    TC-257 replicated/inconclusive without promoting performance, deterministic
+    UTC-aligned three-hour cycle windows, and factual server-owned marketing
+    draft builders whose disposition is human-review-only and publishApproved is
+    fixed false. Added a read-only network verifier that reconstructs every source row
     from the pinned README and compares it byte-for-structure with the manifest.
     The first deeper audit retains Price Overreactions in the Cryptocurrency
     Market as source-audited/not-tested with a no-go disposition: the primary
@@ -405,21 +416,18 @@ research_intake_desk_2026_08_29:
     publication or trading authority. No POST, mutation, database, or runtime
     scheduling path was added.
   verification: >
-    PASS: live pinned-source reconstruction 61/61 with exact category counts and
-    README hash; canonical source-audit receipt hash; 42/42 focused
-    API/intake/loop/middleware/auth tests including real signed-cookie acceptance
-    and missing/malformed-cookie denial; 195/195 adjacent research/API tests plus
-    the separate 3/3 real-auth boundary; repository Jest 247 suites / 1,924 tests
-    passed with three suites / 26 tests skipped and the known forced-exit warning;
-    web TypeScript; targeted ESLint; full lint with zero errors and the same 21
-    inherited warnings; verifier syntax; JSON and YAML parse; git diff --check;
-    and the required 325-page production build, whose route inventory includes
-    /api/admin/research-intake. The first full foundation run correctly exposed
-    two inherited branch gaps: the two TC-255 JSON artifacts were absent from the
-    complete experiment shelf and one boundary assertion assumed LF-only checkout
-    bytes. Both were repaired. npm ci restored the lockfile environment and
-    reported the repository's existing 72 dependency advisories; no dependency
-    or lockfile changed. Existing non-blocking build warnings remain unchanged.
+    PASS: deterministic Federal Reserve preparation reproduced the exact input
+    hash; 65/65 focused assembly/intake/loop/admin/shelf tests and 213/213 full
+    research tests passed. Repository Jest passed 250 suites and 1,978 tests,
+    with three suites and 26 tests skipped, before cleanup after the known open
+    handle warning. Live pinned-source reconstruction passed 61/61 with exact
+    category counts and README hash; web TypeScript passed; full lint completed
+    with zero errors and the same 21 inherited warnings; JSON, YAML, artifact
+    hashes, trailing-LF, replay-temp, and git diff checks passed. The required
+    production build compiled signals and trading-agents and generated all 325
+    Next.js pages including /api/admin/research-intake. Existing Turbopack,
+    middleware, edge-static-generation, and Node url.parse warnings remain
+    non-blocking and unchanged.
   cycle:
     id: 2026-08-29T06:00:00.000Z/PT3H
     started_at: 2026-08-29T06:00:00.000Z
@@ -574,14 +582,27 @@ research_intake_desk_2026_08_29:
     ends_at: 2026-08-29T15:00:00.000Z
     candidate_id: trading-the-term-premium
     stage_before: discovered
-    stage_after: preregistered
-    verdict: not-run
-    outcome: frozen-returns-unopened
+    stage_after: replicated
+    verdict: fail
+    outcome: verified-canonical-fail-integrated-commit-pending
     changed_files:
       - docs/research/2026-08-29-trading-term-premium-source-audit.md
+      - docs/research/2026-08-29-trading-term-premium-replication-result.md
       - docs/plans/2026-08-29-trading-term-premium-replication.md
+      - docs/research/experiments/trading-term-premium-US-NOMINAL-MA40-1968-01-2026-07-f4.json
       - docs/research/data/trading-term-premium/fed-nominal-month-end-1961-06-30-2026-07-31.csv
       - scripts/research/prepare-trading-term-premium-input.mjs
+      - scripts/research/trading-term-premium-assembly.ts
+      - scripts/research/trading-term-premium-replication.ts
+      - scripts/research/__tests__/trading-term-premium-assembly.test.ts
+      - apps/web/lib/research-intake.ts
+      - apps/web/lib/research-loop.ts
+      - apps/web/lib/strategy-study-catalog.ts
+      - apps/web/lib/__tests__/research-intake.test.ts
+      - apps/web/lib/__tests__/research-loop.test.ts
+      - apps/web/lib/__tests__/strategy-study-catalog.test.ts
+      - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+      - docs/research/experiments/REGISTRY.md
       - package.json
       - STATE.yaml
     verification:
@@ -591,18 +612,33 @@ research_intake_desk_2026_08_29:
       - source-audit and preregistration canonical hashes recorded
       - required production build compiled both packages and generated all 325 pages with inherited warnings only
       - YAML, script syntax, package JSON, git diff, and the pre-return boundary passed
+      - focused assembly test was observed RED on the absent module and now passes 20/20
+      - strict standalone TypeScript and thin-runner import passed
+      - all 14 frozen standing QA checks passed before performance evaluation
+      - canonical artifact replayed byte-identically at 966,688 bytes and SHA-256 e30db6b2cbd9f7e9865c0c6c65699c6f2dd2a772f43e449ff63e9120ee6fb18e
+      - verdict FAIL because only 1/4 paper folds passed and holdout +10.35% trailed identically costed one-month +15.62%
+      - typed intake, protected admin projection, review-only draft, shelf, and registry integration passed 65/65 focused tests
+      - all research tests passed 213/213
+      - repository Jest passed 250 suites and 1,978 tests with three suites and 26 tests skipped before known open-handle cleanup
+      - pinned source reconstruction passed 61/61 and web TypeScript passed
+      - full lint completed with 0 errors and 21 inherited warnings
+      - required production build compiled both packages and generated 325/325 pages
+      - JSON, YAML, hashes, trailing-LF, replay-temp, and git diff checks passed
     evidence_paths:
       - docs/research/2026-08-29-trading-term-premium-source-audit.md
+      - docs/research/2026-08-29-trading-term-premium-replication-result.md
       - docs/plans/2026-08-29-trading-term-premium-replication.md
       - docs/research/data/trading-term-premium/fed-nominal-month-end-1961-06-30-2026-07-31.csv
+      - docs/research/experiments/trading-term-premium-US-NOMINAL-MA40-1968-01-2026-07-f4.json
     preregistration_frozen: true
-    returns_opened: false
-    return_calculated: false
-    catalog_stage_advanced: false
-    marketing_draft: none
+    returns_opened: true
+    return_calculated: true
+    artifact_created: true
+    catalog_stage_advanced: true
+    marketing_draft: human-review-only-holdout-benchmark-failure-draft
     publish_approved: false
     external_actions: none
-    next_action: Commit the verified preregistration-only checkpoint before calculating any return
+    next_action: Commit locally and record the exact implementation hash without publishing or changing runtime authority
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00
@@ -5640,13 +5676,22 @@ next_actions:
       cef21d66d07f29fb32af67f542a482491c4ffd0e00b656ea79bdb9600e0f8965;
       preregistration SHA-256 is
       74b138499e36ea55f03490069a3c3f3823e458997c4cb00daf82903bd3f6387b.
-      Returns, artifact, verdict, catalog overlay, marketing draft, and every
-      publication/trading authority remain unopened. The required production
-      build compiled both packages and generated all 325 pages with inherited
-      warnings only; deterministic preparation, exact source/snapshot hashes,
-      all 381,362 full-source reconstruction checks, script syntax, package JSON,
-      YAML, git diff, and the pre-return boundary pass. A separate local
-      checkpoint commit remains required before return logic is added. No push,
+      The preregistration-only checkpoint was committed locally at
+      5dd2457215314edb12e7a0089818bc368b3dd69a before any return logic. The pure
+      dual-curve assembly was observed RED on its absent module and then passed
+      20/20 focused tests plus strict standalone TypeScript. All 14 standing QA
+      checks passed. The canonical result is FAIL: full headline compounded
+      +3917.50%, but only 1/4 paper folds beat both frozen benchmarks and the
+      untouched holdout returned +10.35% versus +15.62% for identically costed
+      one-month. Prior-only timing returned +13.70% in holdout and cannot rescue
+      the verdict. The 966,688-byte artifact at SHA-256
+      e30db6b2cbd9f7e9865c0c6c65699c6f2dd2a772f43e449ff63e9120ee6fb18e
+      replayed byte-identically. The typed intake, protected admin projection,
+      server-owned review-only draft, complete shelf, and registry integration
+      pass 65/65 focused tests. All 213 research tests and 1,978 repository
+      tests pass; source reconstruction, typecheck, lint, exact hashes, and the
+      required 325-page build also pass. The local implementation commit is the
+      remaining step. Every publication/trading authority is false. No push,
       merge, deploy, UI,
       database, Docker, dependency, signal, allocation, broadcast, execution,
       billing, or publication action occurred.

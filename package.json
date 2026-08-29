@@ -31,6 +31,7 @@
     "research:prepare-trading-term-premium": "node scripts/research/prepare-trading-term-premium-input.mjs",
     "research:bitcoin-max-min": "npx tsx scripts/research/bitcoin-max-min-replication.ts",
     "research:end-of-month-treasury": "npx tsx scripts/research/end-of-month-treasury-replication.ts",
+    "research:trading-term-premium": "npx tsx scripts/research/trading-term-premium-replication.ts",
     "test": "jest",
     "test:e2e": "npm run test:e2e --workspace=apps/web"
   },

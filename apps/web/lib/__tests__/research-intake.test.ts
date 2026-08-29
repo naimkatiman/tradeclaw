@@ -48,6 +48,18 @@ const bitcoinMaxMinArtifactPath = resolve(
   root,
   'docs/research/experiments/bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json',
 );
+const termPremiumAuditPath = resolve(
+  root,
+  'docs/research/2026-08-29-trading-term-premium-source-audit.md',
+);
+const termPremiumResultPath = resolve(
+  root,
+  'docs/research/2026-08-29-trading-term-premium-replication-result.md',
+);
+const termPremiumArtifactPath = resolve(
+  root,
+  'docs/research/experiments/trading-term-premium-US-NOMINAL-MA40-1968-01-2026-07-f4.json',
+);
 
 interface ReplicationMetrics {
   grossCompoundedReturn: number;
@@ -188,6 +200,63 @@ interface BitcoinMaxMinMetrics {
   breakEvenSideCostPct: number | null;
 }
 
+interface TermPremiumReadingMetrics {
+  compoundedReturn: number;
+  annualizedSharpe: number;
+  maximumDrawdown: number;
+}
+
+interface TermPremiumArtifact {
+  meta: { task: string };
+  sources: {
+    input: { expectedSha256: string };
+    sourceAudit: { expectedSha256: string };
+    preregistration: { expectedSha256: string };
+  };
+  spec: {
+    headlineSideCostBps: number;
+    stressSideCostBps: number;
+  };
+  qa: {
+    passed: boolean;
+    summary: {
+      rows: number;
+      nelsonSiegelRows: number;
+      svenssonRows: number;
+      suppliedYieldChecks: number;
+      suppliedYieldChecksAboveTolerance: number;
+      fullOutcomes: number;
+      holdoutOutcomes: number;
+      earlyExtrapolatedPaperOutcomes: number;
+    };
+  };
+  results: {
+    full: {
+      canonical: Record<'gross' | 'headline' | 'stress', TermPremiumReadingMetrics>;
+      alwaysTenYear: { headline: TermPremiumReadingMetrics };
+      alwaysOneMonth: { headline: TermPremiumReadingMetrics };
+    };
+    holdout: {
+      canonical: Record<'gross' | 'headline' | 'stress', TermPremiumReadingMetrics>;
+      priorOnly: { headline: TermPremiumReadingMetrics };
+      alwaysTenYear: { headline: TermPremiumReadingMetrics };
+      alwaysOneMonth: { headline: TermPremiumReadingMetrics };
+      pairedHeadline: {
+        canonicalMinusAlwaysOneMonth: { compoundedHeadlineNetExcessReturn: number };
+      };
+    };
+  };
+  decision: {
+    verdict: string;
+    performanceGatesEvaluated: boolean;
+    passingPaperFoldCount: number;
+    failedPerformanceGates: string[];
+    eligibleForProspectiveReview: boolean;
+    activationApproved: boolean;
+    publicationApproved: boolean;
+  };
+}
+
 function manifest(): Record<string, unknown> {
   return JSON.parse(readFileSync(manifestPath, 'utf8')) as Record<string, unknown>;
 }
@@ -231,7 +300,7 @@ describe('systematic research intake', () => {
 
   it('keeps replication evidence separate from source-audit no-go evidence', () => {
     const tested = SYSTEMATIC_RESEARCH_INTAKE.filter((record) => record.tradeClawEvidence);
-    expect(tested).toHaveLength(3);
+    expect(tested).toHaveLength(4);
     const tc255 = tested.find((record) => record.tradeClawEvidence?.taskId === 'TC-255');
     expect(tc255).toMatchObject({
       id: 'how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin',
@@ -273,10 +342,25 @@ describe('systematic research intake', () => {
     });
     expect(tc258?.nextAction).toMatch(/without selecting.*MAX-only/i);
 
+    const tc259 = tested.find((record) => record.tradeClawEvidence?.taskId === 'TC-259');
+    expect(tc259).toMatchObject({
+      id: 'trading-the-term-premium',
+      stage: 'replicated',
+      verdict: 'fail',
+      costStatus: 'failed',
+      marketingDisposition: 'human-review-draft-only',
+      tradeClawSourceAudit: { disposition: 'advance' },
+      tradeClawEvidence: {
+        performanceGatesEvaluated: true,
+        eligibleForProspectiveReview: false,
+      },
+    });
+    expect(tc259?.nextAction).toMatch(/without switching.*prior-only/i);
+
     const sourceAudited = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => record.tradeClawSourceAudit,
     );
-    expect(sourceAudited).toHaveLength(3);
+    expect(sourceAudited).toHaveLength(4);
     const noGo = sourceAudited.find(
       (record) => record.id === 'price-overreactions-in-the-cryptocurrency-market',
     );
@@ -297,7 +381,7 @@ describe('systematic research intake', () => {
     const untouched = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => !record.tradeClawEvidence && !record.tradeClawSourceAudit,
     );
-    expect(untouched).toHaveLength(57);
+    expect(untouched).toHaveLength(56);
     expect(untouched.every((record) => record.stage === 'discovered')).toBe(true);
     expect(untouched.every((record) => record.verdict === 'not-tested')).toBe(true);
     expect(untouched.every((record) => record.costStatus === 'unassessed')).toBe(true);
@@ -560,18 +644,121 @@ describe('systematic research intake', () => {
     });
   });
 
+  it('binds TC-259 to its audited curve source, failed artifact, and benchmark gates', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.tradeClawEvidence?.taskId === 'TC-259',
+    );
+    const evidence = record?.tradeClawEvidence;
+    const audit = record?.tradeClawSourceAudit;
+    if (!evidence || evidence.taskId !== 'TC-259') {
+      throw new Error('TC-259 term-premium evidence is missing');
+    }
+    if (!audit || audit.taskId !== 'TC-259') {
+      throw new Error('TC-259 term-premium source audit is missing');
+    }
+
+    function canonicalHash(path: string): string {
+      const bytes = Buffer.from(readFileSync(path, 'utf8').replace(/\r\n/g, '\n'), 'utf8');
+      return createHash('sha256').update(bytes).digest('hex');
+    }
+
+    const artifact = JSON.parse(
+      readFileSync(termPremiumArtifactPath, 'utf8'),
+    ) as TermPremiumArtifact;
+    expect(canonicalHash(termPremiumAuditPath)).toBe(audit.researchSha256);
+    expect(canonicalHash(termPremiumResultPath)).toBe(evidence.resultSha256);
+    expect(canonicalHash(termPremiumArtifactPath)).toBe(evidence.artifactSha256);
+    expect(artifact.meta.task).toBe(evidence.taskId);
+    expect(artifact.sources).toMatchObject({
+      input: {
+        expectedSha256: audit.data.normalizedSnapshotSha256,
+      },
+      sourceAudit: {
+        expectedSha256: evidence.sourceAuditSha256,
+      },
+      preregistration: {
+        expectedSha256: evidence.preregistrationSha256,
+      },
+    });
+    expect(artifact.spec).toMatchObject({
+      headlineSideCostBps: evidence.costs.headlineSideBps,
+      stressSideCostBps: evidence.costs.stressSideBps,
+    });
+    expect(artifact.qa).toMatchObject({
+      passed: true,
+      summary: {
+        rows: evidence.qa.curveRows,
+        nelsonSiegelRows: evidence.qa.nelsonSiegelRows,
+        svenssonRows: evidence.qa.svenssonRows,
+        suppliedYieldChecks: evidence.qa.suppliedYieldChecks,
+        suppliedYieldChecksAboveTolerance: evidence.qa.suppliedYieldChecksAboveTolerance,
+        fullOutcomes: evidence.qa.fullOutcomes,
+        holdoutOutcomes: evidence.qa.holdoutOutcomes,
+        earlyExtrapolatedPaperOutcomes: evidence.qa.earlyExtrapolatedPaperOutcomes,
+      },
+    });
+    expect(evidence.full).toMatchObject({
+      grossCompoundedReturn: artifact.results.full.canonical.gross.compoundedReturn,
+      headlineCompoundedReturn: artifact.results.full.canonical.headline.compoundedReturn,
+      stressCompoundedReturn: artifact.results.full.canonical.stress.compoundedReturn,
+      headlineAnnualizedSharpe: artifact.results.full.canonical.headline.annualizedSharpe,
+      headlineMaximumDrawdown: artifact.results.full.canonical.headline.maximumDrawdown,
+      alwaysTenYearHeadlineCompoundedReturn:
+        artifact.results.full.alwaysTenYear.headline.compoundedReturn,
+      alwaysOneMonthHeadlineCompoundedReturn:
+        artifact.results.full.alwaysOneMonth.headline.compoundedReturn,
+    });
+    expect(evidence.holdout).toMatchObject({
+      grossCompoundedReturn: artifact.results.holdout.canonical.gross.compoundedReturn,
+      headlineCompoundedReturn: artifact.results.holdout.canonical.headline.compoundedReturn,
+      stressCompoundedReturn: artifact.results.holdout.canonical.stress.compoundedReturn,
+      headlineAnnualizedSharpe: artifact.results.holdout.canonical.headline.annualizedSharpe,
+      headlineMaximumDrawdown: artifact.results.holdout.canonical.headline.maximumDrawdown,
+      priorOnlyHeadlineCompoundedReturn:
+        artifact.results.holdout.priorOnly.headline.compoundedReturn,
+      alwaysTenYearHeadlineCompoundedReturn:
+        artifact.results.holdout.alwaysTenYear.headline.compoundedReturn,
+      alwaysOneMonthHeadlineCompoundedReturn:
+        artifact.results.holdout.alwaysOneMonth.headline.compoundedReturn,
+      canonicalMinusAlwaysOneMonthCompoundedExcess:
+        artifact.results.holdout.pairedHeadline.canonicalMinusAlwaysOneMonth
+          .compoundedHeadlineNetExcessReturn,
+    });
+    expect(artifact.decision).toMatchObject({
+      verdict: 'FAIL',
+      performanceGatesEvaluated: true,
+      passingPaperFoldCount: evidence.stability.passingPaperFolds,
+      failedPerformanceGates: evidence.failedGates,
+      eligibleForProspectiveReview: false,
+      activationApproved: false,
+      publicationApproved: false,
+    });
+    expect(audit).toMatchObject({
+      disposition: 'advance',
+      tradeClawBacktestRunAtAuditClose: false,
+      primarySource: { redistributionRightsEstablished: false },
+      publishedRule: {
+        cadence: 'monthly',
+        movingAverageMonths: 40,
+        expectedMaturityResetsPerYear: 12,
+      },
+      data: { currentVintage: true, rawBytesCommitted: false },
+      costScreen: { costChargedEveryMaturityReset: true },
+    });
+  });
+
   it('summarizes and filters by next-action evidence state rather than upstream return', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 57,
+      discovered: 56,
       sourceAudited: 1,
       preregistered: 0,
-      replicated: 3,
+      replicated: 4,
       prospective: 0,
       passed: 0,
-      failed: 2,
+      failed: 3,
       inconclusive: 1,
-      untested: 58,
+      untested: 57,
       sourceNoGo: 1,
     });
     expect(
@@ -589,6 +776,7 @@ describe('systematic research intake', () => {
         verdict: 'fail',
       }).map((record) => record.id),
     ).toEqual([
+      'trading-the-term-premium',
       'how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin',
       'seasonality-trend-following-and-mean-reversion-in-bitcoin',
     ]);

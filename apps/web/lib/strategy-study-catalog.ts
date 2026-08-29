@@ -265,6 +265,13 @@ export const FEATURED_STRATEGY_STUDIES: readonly StrategyStudyRecord[] = [
 
 export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
   {
+    file: 'trading-term-premium-US-NOMINAL-MA40-1968-01-2026-07-f4.json',
+    runDate: '2026-08-29',
+    label: 'U.S. term-spread MA40 external replication',
+    disposition: 'shelved',
+    reason: 'TC-259 passed standing QA and all full-window gates but failed temporal stability at 1/4 paper folds and trailed the identically costed one-month sleeve in the untouched holdout; no timing control is eligible for promotion.',
+  },
+  {
     file: 'bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json',
     runDate: '2026-08-29',
     label: 'Bitcoin MAX10/MIN10 external replication',

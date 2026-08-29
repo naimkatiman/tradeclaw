@@ -219,10 +219,73 @@ export interface TradeClawBitcoinMaxMinReplicationEvidence {
   reason: string;
 }
 
+export interface TradeClawTermPremiumReplicationEvidence {
+  taskId: 'TC-259';
+  studyDate: '2026-08-29';
+  preregistrationPath: string;
+  preregistrationSha256: string;
+  sourceAuditPath: string;
+  sourceAuditSha256: string;
+  resultPath: string;
+  resultSha256: string;
+  artifactPath: string;
+  artifactSha256: string;
+  verdict: 'fail';
+  evidenceBasis: 'modeled-current-vintage-independent-replication';
+  performanceGatesEvaluated: true;
+  eligibleForProspectiveReview: false;
+  activationApproved: false;
+  publicationApproved: false;
+  costs: {
+    headlineSideBps: 5;
+    stressSideBps: 12.5;
+    tenYearAdverseSidesPerMonth: 2;
+    oneMonthAdverseSidesPerMonth: 1;
+  };
+  qa: {
+    standingQaPassed: true;
+    curveRows: 782;
+    nelsonSiegelRows: 223;
+    svenssonRows: 559;
+    suppliedYieldChecks: 18334;
+    suppliedYieldChecksAboveTolerance: 0;
+    fullOutcomes: 703;
+    holdoutOutcomes: 42;
+    earlyExtrapolatedPaperOutcomes: 44;
+  };
+  full: {
+    grossCompoundedReturn: number;
+    headlineCompoundedReturn: number;
+    stressCompoundedReturn: number;
+    headlineAnnualizedSharpe: number;
+    headlineMaximumDrawdown: number;
+    alwaysTenYearHeadlineCompoundedReturn: number;
+    alwaysOneMonthHeadlineCompoundedReturn: number;
+  };
+  holdout: {
+    grossCompoundedReturn: number;
+    headlineCompoundedReturn: number;
+    stressCompoundedReturn: number;
+    headlineAnnualizedSharpe: number;
+    headlineMaximumDrawdown: number;
+    priorOnlyHeadlineCompoundedReturn: number;
+    alwaysTenYearHeadlineCompoundedReturn: number;
+    alwaysOneMonthHeadlineCompoundedReturn: number;
+    canonicalMinusAlwaysOneMonthCompoundedExcess: number;
+  };
+  stability: {
+    passingPaperFolds: 1;
+    totalPaperFolds: 4;
+  };
+  failedGates: readonly ['paperFoldStability', 'holdoutBeatsAlwaysOneMonth'];
+  reason: string;
+}
+
 export type TradeClawResearchEvidence =
   | TradeClawReplicationEvidence
   | TradeClawTreasuryReplicationEvidence
-  | TradeClawBitcoinMaxMinReplicationEvidence;
+  | TradeClawBitcoinMaxMinReplicationEvidence
+  | TradeClawTermPremiumReplicationEvidence;
 
 export interface TradeClawSourceAuditEvidence {
   taskId: 'TC-256';
@@ -337,10 +400,52 @@ export interface TradeClawBitcoinMaxMinSourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawTermPremiumSourceAuditEvidence {
+  taskId: 'TC-259';
+  auditDate: '2026-08-29';
+  researchPath: string;
+  researchSha256: string;
+  disposition: 'advance';
+  tradeClawBacktestRunAtAuditClose: false;
+  primarySource: {
+    title: 'Trading the Term Premium';
+    authors: readonly ['Luke van Schaik', 'Emlyn Flint', 'Florence Chikurunhe'];
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4324696';
+    doi: 'https://doi.org/10.2139/ssrn.4324696';
+    documentSha256: string;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    cadence: 'monthly';
+    signal: 'continuously-compounded-10y-minus-3m';
+    movingAverageMonths: 40;
+    highSleeve: 'modeled-ten-year-zero';
+    lowSleeve: 'modeled-one-month-zero';
+    paperSample: '1968-01/2021-01';
+    expectedMaturityResetsPerYear: 12;
+  };
+  data: {
+    source: 'Federal Reserve Gürkaynak-Sack-Wright nominal curve';
+    completeSourceSha256: string;
+    normalizedSnapshotSha256: string;
+    publicDomainWithAttribution: true;
+    currentVintage: true;
+    rawBytesCommitted: false;
+  };
+  costScreen: {
+    headlineSideBps: 5;
+    stressSideBps: 12.5;
+    costChargedEveryMaturityReset: true;
+  };
+  limits: readonly string[];
+  reason: string;
+}
+
 export type TradeClawResearchSourceAuditEvidence =
   | TradeClawSourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
-  | TradeClawBitcoinMaxMinSourceAuditEvidence;
+  | TradeClawBitcoinMaxMinSourceAuditEvidence
+  | TradeClawTermPremiumSourceAuditEvidence;
 
 export interface ResearchIntakeRecord extends SystematicDiscoveryCandidate {
   sourcePosition: number;
@@ -414,6 +519,7 @@ const PRICE_OVERREACTIONS_ID = 'price-overreactions-in-the-cryptocurrency-market
 const END_OF_MONTH_TREASURY_ID = 'predictable-end-of-month-treasury-returns';
 const BITCOIN_SEASONALITY_MAX_MIN_ID =
   'seasonality-trend-following-and-mean-reversion-in-bitcoin';
+const TRADING_TERM_PREMIUM_ID = 'trading-the-term-premium';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -671,6 +777,121 @@ const TC258_BITCOIN_MAX_MIN_EVIDENCE: TradeClawBitcoinMaxMinReplicationEvidence 
     'BTC and ETH retained spectacular full-history gross and positive full-history net returns, but both failed post-paper holdout, fold-stability, and Calmar gates; neither holdout cleared the fee alone.',
 };
 
+const TC259_TERM_PREMIUM_SOURCE_AUDIT: TradeClawTermPremiumSourceAuditEvidence = {
+  taskId: 'TC-259',
+  auditDate: '2026-08-29',
+  researchPath: 'docs/research/2026-08-29-trading-term-premium-source-audit.md',
+  researchSha256: 'cef21d66d07f29fb32af67f542a482491c4ffd0e00b656ea79bdb9600e0f8965',
+  disposition: 'advance',
+  tradeClawBacktestRunAtAuditClose: false,
+  primarySource: {
+    title: 'Trading the Term Premium',
+    authors: ['Luke van Schaik', 'Emlyn Flint', 'Florence Chikurunhe'],
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4324696',
+    doi: 'https://doi.org/10.2139/ssrn.4324696',
+    documentSha256: '867fe06c98fb89d8d7139ec778eaf0367adfad45a86edde4a95d85e1f0deabc0',
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    cadence: 'monthly',
+    signal: 'continuously-compounded-10y-minus-3m',
+    movingAverageMonths: 40,
+    highSleeve: 'modeled-ten-year-zero',
+    lowSleeve: 'modeled-one-month-zero',
+    paperSample: '1968-01/2021-01',
+    expectedMaturityResetsPerYear: 12,
+  },
+  data: {
+    source: 'Federal Reserve Gürkaynak-Sack-Wright nominal curve',
+    completeSourceSha256:
+      '877d0908ce3b875412eac0295715f88b40a011a94e24339e15959ec3bb04cad7',
+    normalizedSnapshotSha256:
+      '29442bea3f4ccef06aa741ff4afd6202c2a029cf6f43966f04e482960959f041',
+    publicDomainWithAttribution: true,
+    currentVintage: true,
+    rawBytesCommitted: false,
+  },
+  costScreen: {
+    headlineSideBps: 5,
+    stressSideBps: 12.5,
+    costChargedEveryMaturityReset: true,
+  },
+  limits: [
+    'The paper does not specify whether the decision month is included in its 40-month moving average.',
+    'The fitted current-vintage curve is not the authors retained source vintage or executable security history.',
+    'The first 44 paper-window outcomes extend beyond the supplied ten-year comparison field.',
+    'The paper omits costs; TradeClaw applies a disclosed modern modeling surcharge rather than historical fills.',
+  ],
+  reason:
+    'The simple monthly rule is independently reconstructible from exact public Federal Reserve bytes, supports identically costed duration and cash controls, and has a 42-month post-publication holdout; modeled-price and source-ambiguity limits remain explicit.',
+};
+
+const TC259_TERM_PREMIUM_EVIDENCE: TradeClawTermPremiumReplicationEvidence = {
+  taskId: 'TC-259',
+  studyDate: '2026-08-29',
+  preregistrationPath: 'docs/plans/2026-08-29-trading-term-premium-replication.md',
+  preregistrationSha256:
+    '74b138499e36ea55f03490069a3c3f3823e458997c4cb00daf82903bd3f6387b',
+  sourceAuditPath: 'docs/research/2026-08-29-trading-term-premium-source-audit.md',
+  sourceAuditSha256:
+    'cef21d66d07f29fb32af67f542a482491c4ffd0e00b656ea79bdb9600e0f8965',
+  resultPath: 'docs/research/2026-08-29-trading-term-premium-replication-result.md',
+  resultSha256: 'f1f9281a100a21a3a5988eb8c6896dd2e157554e1b7c1bf9b4b2c33942176d6e',
+  artifactPath:
+    'docs/research/experiments/trading-term-premium-US-NOMINAL-MA40-1968-01-2026-07-f4.json',
+  artifactSha256: 'e30db6b2cbd9f7e9865c0c6c65699c6f2dd2a772f43e449ff63e9120ee6fb18e',
+  verdict: 'fail',
+  evidenceBasis: 'modeled-current-vintage-independent-replication',
+  performanceGatesEvaluated: true,
+  eligibleForProspectiveReview: false,
+  activationApproved: false,
+  publicationApproved: false,
+  costs: {
+    headlineSideBps: 5,
+    stressSideBps: 12.5,
+    tenYearAdverseSidesPerMonth: 2,
+    oneMonthAdverseSidesPerMonth: 1,
+  },
+  qa: {
+    standingQaPassed: true,
+    curveRows: 782,
+    nelsonSiegelRows: 223,
+    svenssonRows: 559,
+    suppliedYieldChecks: 18334,
+    suppliedYieldChecksAboveTolerance: 0,
+    fullOutcomes: 703,
+    holdoutOutcomes: 42,
+    earlyExtrapolatedPaperOutcomes: 44,
+  },
+  full: {
+    grossCompoundedReturn: 66.707633586989,
+    headlineCompoundedReturn: 39.174968845477,
+    stressCompoundedReturn: 17.365631462152,
+    headlineAnnualizedSharpe: 0.778536552742,
+    headlineMaximumDrawdown: 0.197535219739,
+    alwaysTenYearHeadlineCompoundedReturn: 25.459444018235,
+    alwaysOneMonthHeadlineCompoundedReturn: 9.965281972918,
+  },
+  holdout: {
+    grossCompoundedReturn: 0.138778864332,
+    headlineCompoundedReturn: 0.103469314645,
+    stressCompoundedReturn: 0.052557463149,
+    headlineAnnualizedSharpe: 0.597730405628,
+    headlineMaximumDrawdown: 0.060036705572,
+    priorOnlyHeadlineCompoundedReturn: 0.136992657136,
+    alwaysTenYearHeadlineCompoundedReturn: -0.008364693383,
+    alwaysOneMonthHeadlineCompoundedReturn: 0.156215427867,
+    canonicalMinusAlwaysOneMonthCompoundedExcess: -0.045619624121,
+  },
+  stability: {
+    passingPaperFolds: 1,
+    totalPaperFolds: 4,
+  },
+  failedGates: ['paperFoldStability', 'holdoutBeatsAlwaysOneMonth'],
+  reason:
+    'All standing QA and full-window gates passed, but only one of four paper folds beat both frozen benchmarks and the canonical post-publication holdout returned 10.35% after modeled costs versus 15.62% for the identically costed one-month sleeve.',
+};
+
 const TC255_EVIDENCE: TradeClawReplicationEvidence = {
   taskId: 'TC-255',
   studyDate: '2026-08-29',
@@ -901,7 +1122,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         ? TC257_TREASURY_EVIDENCE
         : candidate.id === BITCOIN_SEASONALITY_MAX_MIN_ID
           ? TC258_BITCOIN_MAX_MIN_EVIDENCE
-          : null;
+          : candidate.id === TRADING_TERM_PREMIUM_ID
+            ? TC259_TERM_PREMIUM_EVIDENCE
+            : null;
     const tradeClawSourceAudit =
       candidate.id === PRICE_OVERREACTIONS_ID
         ? TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT
@@ -909,7 +1132,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
           ? TC257_TREASURY_SOURCE_AUDIT
           : candidate.id === BITCOIN_SEASONALITY_MAX_MIN_ID
             ? TC258_BITCOIN_MAX_MIN_SOURCE_AUDIT
-            : null;
+            : candidate.id === TRADING_TERM_PREMIUM_ID
+              ? TC259_TERM_PREMIUM_SOURCE_AUDIT
+              : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {
@@ -928,7 +1153,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
       }
       const nextAction = tradeClawEvidence.taskId === 'TC-258'
         ? 'Archive the failed composite without selecting a better-looking MAX-only control; use the post-paper fee-only failure to screen the next candidate.'
-        : 'Archive the failed result without retuning or promotion; use the break-even cost finding to screen lower-turnover candidates.';
+        : tradeClawEvidence.taskId === 'TC-259'
+          ? 'Archive the failed term-spread timing result without switching to the stronger prior-only control; screen the next candidate on fold stability and a cash benchmark before opening returns.'
+          : 'Archive the failed result without retuning or promotion; use the break-even cost finding to screen lower-turnover candidates.';
       return {
         ...candidate,
         sourcePosition,
