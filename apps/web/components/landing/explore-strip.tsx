@@ -70,6 +70,7 @@ export function ExploreStrip() {
           >
             <Link
               href={destination.href}
+              prefetch={false}
               className="group flex h-full min-h-44 flex-col p-5 transition-colors duration-200 hover:bg-[var(--brand-soft)] sm:p-6"
             >
               <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-[var(--text-secondary)]">

@@ -1,9 +1,18 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useSyncExternalStore } from 'react';
-import { CostFieldHero } from './CostFieldHero';
 
 const DESKTOP_QUERY = '(min-width: 768px)';
+const CostFieldHero = dynamic(
+  () => import('./CostFieldHero').then((module) => module.CostFieldHero),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="premium-grid-bg h-full w-full opacity-40" aria-hidden="true" />
+    ),
+  },
+);
 
 /**
  * Avoids fetching the WebGL dataset or loading Three.js for a visualization

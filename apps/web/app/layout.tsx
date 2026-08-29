@@ -9,7 +9,6 @@ import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
 import { LocaleProvider } from "./components/locale-provider";
 import { SiteFooter } from "./components/site-footer";
-import { AnalyticsProvider } from "../components/AnalyticsProvider";
 import { PostHogPageView } from "../components/PostHogPageView";
 import { EvidenceActionTracker } from "../components/EvidenceActionTracker";
 import { Suspense } from "react";
@@ -165,32 +164,30 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <script dangerouslySetInnerHTML={{ __html: localeBootstrap }} />
-        <AnalyticsProvider>
-          <Suspense fallback={null}>
-            <PostHogPageView />
-            <EvidenceActionTracker />
-          </Suspense>
-          <ThemeProvider>
-            <LocaleProvider>
-              <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-              />
-              <SWRegister />
-              {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
-              <div className="flex-1 pb-16 md:pb-0">
-                {children}
-              </div>
-              <SiteFooter />
-              {/* Product chrome and floating widgets stay off layer-1
-                  marketing routes (DESIGN.md Layering). */}
-              <MarketingChromeGate>
-                <MobileNav />
-                <PWAInstallPrompt />
-              </MarketingChromeGate>
-            </LocaleProvider>
-          </ThemeProvider>
-        </AnalyticsProvider>
+        <Suspense fallback={null}>
+          <PostHogPageView />
+          <EvidenceActionTracker />
+        </Suspense>
+        <ThemeProvider>
+          <LocaleProvider>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <SWRegister />
+            {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
+            <div className="flex-1 pb-16 md:pb-0">
+              {children}
+            </div>
+            <SiteFooter />
+            {/* Product chrome and floating widgets stay off layer-1
+                marketing routes (DESIGN.md Layering). */}
+            <MarketingChromeGate>
+              <MobileNav />
+              <PWAInstallPrompt />
+            </MarketingChromeGate>
+          </LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

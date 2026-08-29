@@ -156,6 +156,7 @@ export function Navbar({ variant = 'full' }: NavbarProps = {}) {
             {minimal ? (
               <Link
                 href="/track-record"
+                prefetch={false}
                 aria-label={copy.links.evidence}
                 className="flex shrink-0 items-center gap-1.5 rounded-sm bg-white px-2.5 py-2 text-xs font-semibold text-black transition-colors duration-200 hover:bg-[#dcfce7] sm:gap-2 sm:px-4"
               >

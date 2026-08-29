@@ -7,29 +7,25 @@
  */
 
 import { Activity, ArrowRight, Database, Server, ShieldCheck } from 'lucide-react';
+import { NextRequest } from 'next/server';
 import { DesktopCostField } from './cost-field/DesktopCostField';
-import { AnimatedNumber } from '../motion/animated-number';
-import { Magnetic } from '../motion/magnetic';
 import { getProofHeadline, type ProofLedgerState } from './proof-hero-copy';
-
-interface EquitySummary {
-  totalReturn: number;
-  totalSignals: number;
-  sizedTrades?: number;
-  expectancyR: number | null;
-  netExpectancyR?: number | null;
-  roundTripCostPct?: number;
-  avgCostR?: number | null;
-}
+import {
+  GET as getEquitySummaryResponse,
+  type EquitySummary,
+} from '../../app/api/signals/equity/route';
 
 async function fetchEquitySummary(): Promise<EquitySummary | null> {
   try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
-    const res = await fetch(`${base}/api/signals/equity?summaryOnly=1&scope=pro`, {
-      next: { revalidate: 60 },
-    });
+    // Invoke the shared route in-process. A server component fetching its own
+    // public URL can fail behind proxies or when the runtime port differs,
+    // even while the underlying evidence store is healthy.
+    const request = new NextRequest(
+      'http://tradeclaw.internal/api/signals/equity?summaryOnly=1&scope=pro',
+    );
+    const res = await getEquitySummaryResponse(request);
     if (!res.ok) return null;
-    const data = await res.json();
+    const data = (await res.json()) as { summary?: EquitySummary };
     return (data?.summary ?? null) as EquitySummary | null;
   } catch {
     return null;
@@ -39,6 +35,18 @@ async function fetchEquitySummary(): Promise<EquitySummary | null> {
 function fractionDigits(value: number): number {
   const decimals = String(value).split('.')[1];
   return Math.min(decimals?.length ?? 0, 4);
+}
+
+function formatMetric(
+  value: number,
+  { decimals = 2, signed = false, suffix = '' }: {
+    decimals?: number;
+    signed?: boolean;
+    suffix?: string;
+  } = {},
+): string {
+  const normalized = Object.is(value, -0) ? 0 : value;
+  return `${signed && normalized > 0 ? '+' : ''}${normalized.toFixed(decimals)}${suffix}`;
 }
 
 function LedgerItem({
@@ -155,34 +163,32 @@ export async function ProofHero() {
 
       <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(430px,0.98fr)] lg:gap-12">
         <div className="relative z-10 flex flex-col justify-center py-4 sm:py-8 lg:py-14">
-          <p className="animate-fade-up flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">
+          <p className="flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">
             <span className="h-2 w-2 rounded-full bg-[var(--brand)] shadow-[0_0_18px_var(--brand)]" />
             Open trading research lab
             {hasMeasuredTrades ? ` · ${trades.toLocaleString('en-US')} eligible sized candidates` : ''}
           </p>
 
           <h1 className="font-display mt-4 max-w-[720px] text-[2.05rem] font-[720] leading-[1.01] tracking-[-0.05em] sm:mt-5 sm:text-[clamp(3rem,4.6vw,4.35rem)] sm:leading-[0.98] sm:tracking-[-0.055em]">
-            <span className="animate-fade-up fade-delay-1 block">Test trading ideas.</span>
-            <span className="animate-fade-up fade-delay-3 mt-1 block text-[var(--text-secondary)]">
+            <span className="block">Test trading ideas.</span>
+            <span className="mt-1 block text-[var(--text-secondary)]">
               See where they fail after costs.
             </span>
           </h1>
 
-          <p className={`animate-fade-up fade-delay-3 mt-4 text-sm font-semibold ${outcomeColor}`}>
+          <p className={`mt-4 text-sm font-semibold ${outcomeColor}`}>
             Current finding: {headline.outcome}
           </p>
 
-          <p className="animate-fade-up fade-delay-3 mt-3 max-w-xl text-sm leading-6 text-[var(--text-secondary)] sm:text-base sm:leading-7">
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--text-secondary)] sm:text-base sm:leading-7">
             <HeroDescription ledgerState={ledgerState} trades={trades} />
           </p>
 
-          <div className="animate-fade-up fade-delay-4 mt-6 flex flex-wrap items-center gap-3">
-            <Magnetic>
-              <a href="/track-record" className="premium-button-primary group">
-                Explore the evidence
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-              </a>
-            </Magnetic>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <a href="/track-record" className="premium-button-primary group">
+              Explore the evidence
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            </a>
             <a
               href="/start"
               className="premium-button-secondary"
@@ -192,7 +198,7 @@ export async function ProofHero() {
             </a>
           </div>
 
-          <ul className="animate-fade-up fade-delay-4 mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs text-[var(--text-secondary)]">
+          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs text-[var(--text-secondary)]">
             <li className="flex items-center gap-1.5">
               <Server className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden="true" />
               Self-hosted
@@ -248,23 +254,27 @@ export async function ProofHero() {
           >
             <LedgerItem
               label="Before modeled costs, per trade"
-              value={eq.expectancyR != null ? <AnimatedNumber value={eq.expectancyR} decimals={2} signed suffix="R" /> : '—'}
+              value={eq.expectancyR != null ? formatMetric(eq.expectancyR, { signed: true, suffix: 'R' }) : '—'}
               negative={eq.expectancyR != null && eq.expectancyR < 0}
             />
             <LedgerItem
               label="− Modeled fees + slippage, per trade"
-              value={displayedCostR != null ? <AnimatedNumber value={displayedCostR} decimals={2} suffix="R" /> : '—'}
+              value={displayedCostR != null ? formatMetric(displayedCostR, { suffix: 'R' }) : '—'}
               detail={eq.roundTripCostPct != null ? `≈ ${eq.roundTripCostPct}% of trade size` : undefined}
               negative={displayedCostR != null && displayedCostR > 0}
             />
             <LedgerItem
               label="= After modeled costs, per trade"
-              value={eq.netExpectancyR != null ? <AnimatedNumber value={eq.netExpectancyR} decimals={2} signed suffix="R" /> : '—'}
+              value={eq.netExpectancyR != null ? formatMetric(eq.netExpectancyR, { signed: true, suffix: 'R' }) : '—'}
               negative={eq.netExpectancyR != null && eq.netExpectancyR < 0}
             />
             <LedgerItem
               label="Separate simulation: compounded result (1% risk per trade)"
-              value={<AnimatedNumber value={eq.totalReturn} decimals={fractionDigits(eq.totalReturn)} signed suffix="%" />}
+              value={formatMetric(eq.totalReturn, {
+                decimals: fractionDigits(eq.totalReturn),
+                signed: true,
+                suffix: '%',
+              })}
               negative={eq.totalReturn < 0}
             />
           </dl>

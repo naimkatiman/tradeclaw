@@ -1,11 +1,69 @@
 project: tradeclaw
-updated: 2026-08-29T02:18:15+08:00
+updated: 2026-08-29T10:27:40+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+lighthouse_accessibility_trust_repair_2026_08_29:
+  at: 2026-08-29T09:42:09+08:00
+  agent: TradeClaw PM agent
+  status: release_authorized
+  release_authorized_at: 2026-08-29T10:27:40+08:00
+  scope: Repair the homepage evidence handoff, mobile LCP and unused JavaScript, homepage contrast, Backtest accessibility, and the Cloudflare Insights CSP warning
+  base_commit: ca926f91c298c92fd0643f52adf6c02f23971d70
+  branch: agent/lighthouse-a11y-performance-20260829
+  current_step: Owner authorized commit, push, protected merge, exact-final-main Railway deployment, and live remeasurement
+  implementation: >
+    The homepage now invokes the shared equity route in-process instead of
+    fetching a guessed localhost/public origin, so a healthy production ledger
+    cannot be mislabeled unavailable because of proxy or port topology. Above-
+    fold count-up, magnetic, and delayed-fade client work was removed. Optional
+    PostHog loads dynamically only when configured, the desktop cost field is a
+    mobile-safe dynamic boundary, and homepage route prefetch is disabled during
+    the critical window. Scroll reveals retain full text opacity. Backtest now
+    has a main landmark, an explicitly named symbol select, 24px preset controls,
+    and a mobile menu accessible name that contains its visible label. The
+    report-only CSP allows the Cloudflare Insights host.
+  baseline_live_lighthouse_13_4_1:
+    homepage_mobile_median: "85 performance / 96 accessibility / 77 best practices / 100 SEO"
+    lcp_ms: 4129
+    homepage_contrast_failures: 18
+    backtest_accessibility: 90
+    unused_javascript_kib_approx: 78
+  candidate_local_production_lighthouse_13_4_1:
+    homepage_mobile_three_run_median: "92 performance / 100 accessibility / 100 best practices / 100 SEO"
+    fcp_ms: 1215
+    lcp_ms: 3293
+    tbt_ms: 50
+    cls: 0
+    unused_javascript_bytes: 26212
+    homepage_desktop_single_run: "97 performance / 100 accessibility / 100 best practices / 100 SEO"
+    desktop_lcp_ms: 804
+    desktop_unused_javascript_bytes: 23010
+    backtest_accessibility_single_run: 100
+  verification: >
+    Web TypeScript passed. Lint passed with zero errors and 21 pre-existing
+    warnings. Focused Jest passed three suites and 13 tests; the new boundary
+    suite passed all five checks after the final prefetch change. The mandatory
+    production build compiled and generated 325/325 pages. Production Chromium
+    landing coverage passed 4/4 sequentially across its narrow viewport matrix,
+    and the full focused Backtest flow passed 4/4. The initial parallel browser
+    attempt had one transient strict-locator failure during concurrent ISR and
+    four unavailable-WebKit-launch failures because that browser binary is not
+    installed; the authoritative installed-Chromium rerun was green. The final
+    homepage made zero PostHog or rrweb network requests while analytics was
+    unconfigured. Local no-database rendering truthfully showed an empty ledger,
+    not a temporarily unavailable dataset. The live raw API remained HTTP 200
+    with 4,954 sized trades and -0.57R net expectancy at audit time.
+  remaining_constraint: >
+    Local Best Practices is 100 and the application-owned CSP issue is fixed.
+    Production Cloudflare may continue injecting deprecated Shared Storage,
+    persistent-storage, and Protected Audience calls; removing those warnings
+    requires an edge security/product setting decision and is not an application
+    code fix.
 
 evidence_first_public_product_release_2026_08_29:
   at: 2026-08-29T02:18:15+08:00
