@@ -1,11 +1,150 @@
 project: tradeclaw
-updated: 2026-08-30T05:50:46+08:00
+updated: 2026-08-30T06:08:44+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_evidence_state_summary_2026_08_30:
+  at: 2026-08-30T05:58:20+08:00
+  agent: TradeClaw PM agent
+  status: verified_shared_evidence_summary_ready_for_local_commit
+  scope: Give public users and authenticated admins one identical, ordered summary of the complete examined-candidate evidence desk so source-audit, QA-only, and evaluated performance states never need to be inferred from stage or verdict totals
+  base_commit: c025a8e97b0e866deee2120e75f8629b93f043af
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-262
+  current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-262
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T00:00:00.000Z
+  gate_observed_at: 2026-08-29T21:58:20.8548754Z
+  gate_decision: The 00:00Z receipt gate is closed; use the completed window only for a nonvisual read-model improvement and do not create research or marketing state
+  library_search: No reusable research-intake, source-audit, preregistration, cost-screen, or receipt-ledger pattern exists in shared MemoryCore; reuse the repository's shared evidence-state classifier and existing public/protected evidence-desk boundaries
+  problem: >-
+    The complete evidence endpoints expose eight plain-language record states but
+    their aggregate `evidenceSummary` still combines source-audit no-go and
+    discovery states under `untested`, and combines the QA-only hold under the
+    generic inconclusive verdict. A client must recount records to explain how
+    many candidates actually reached performance gates.
+  decision: >-
+    Add one deterministic `evidenceStateSummary` derived from the existing shared
+    classifier. Return the same ordered six-state counts and evaluated-gate totals
+    from the public and protected complete evidence desks, then document the
+    public schema. Keep all raw records and existing summaries intact.
+  frozen_summary_shape:
+    fields: [totalCandidates, withTradeClawRecord, performanceGatesEvaluated, performanceGatesNotEvaluated, statuses, grantsPublicationAuthority, grantsTradingAuthority]
+    status_item_fields: [performanceEvidenceStatus, label, meaning, count, performanceGatesEvaluated]
+    status_order: [not-tested, source-audit-only-no-local-backtest, qa-only-no-performance-result, modeled-historical-pass, modeled-historical-fail, modeled-historical-inconclusive]
+    expected_counts: [0, 4, 1, 0, 3, 0]
+    expected_total_candidates: 8
+    expected_with_tradeclaw_record: 8
+    expected_performance_gates_evaluated: 3
+    authority_fields_are_always_false: true
+  frozen_boundaries:
+    public_evidence_changed: true
+    protected_evidence_changed: true
+    public_openapi_changed: true
+    full_catalog_changed: false
+    candidate_detail_changed: false
+    csv_changed: false
+    raw_evidence_changed: false
+    receipt_or_marketing_state_changed: false
+    auth_semantics_changed: false
+    rendered_ui_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-evidence-state.ts
+    - apps/web/lib/research-intake-public.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/openapi.ts
+    - apps/web/lib/__tests__/research-intake-evidence-state-summary.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+  red_verification: >-
+    PASS - the focused contract executed two assertions and both failed for the
+    intended reason: public and protected evidence payloads returned undefined
+    for the frozen `evidenceStateSummary`. Both existing builders loaded and no
+    unrelated assertion or source evidence failed.
+  focused_verification: >-
+    PASS - all three focused assertions pass: the public evidence desk returns
+    exact ordered 0/4/1/0/3/0 state counts, the protected desk is identical at
+    the frozen observation instant, and OpenAPI requires the same documented
+    six-state schema.
+  adjacent_verification_first_invocation: >-
+    The intended research regex was broader than its label and ran effectively the
+    full repository. 285 suites and 2,124 assertions passed; exactly one frozen
+    deterministic assertion failed because the protected evidence JSON moved from
+    65,280 to 67,037 bytes after adding the documented summary. CSV, public and
+    protected routes, auth, receipts, marketing, publication boundaries, raw
+    evidence, and all trading tests stayed green. Jest then retained its known
+    open handle and was stopped after reporting the complete result.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    public_evidence: 39042 bytes / a25e7d1f6bc9e7ee7abffd46d8ed3b9617d92db7f97d614fa559303164868f88
+    protected_evidence: 67037 bytes / 458bdc5332343c957cb88d34bec06c461b4b09376382208e3f2548b06d5d9ae8
+    public_catalog_unchanged: 90768 bytes / 7325ab89c11cbfaf00c6dc7cf886c6f5f71c6e2820f6bfada4a0febba0dfa2eb
+    protected_default_catalog_unchanged: 67466 bytes / 6b7b17ac521616cb771de613d7c990614859157a00f55810b057e2bcf4d6b8e4
+  deterministic_audit: >-
+    PASS - a direct TypeScript verifier confirms only the intended public and
+    protected evidence JSON fingerprints moved. The full public catalog and
+    protected default catalog remain byte-identical to their pre-increment
+    receipts; the protected evidence deterministic contract now pins its new hash.
+  adjacent_verification: >-
+    PASS - all 18 exact public/protected evidence, route, auth, CSV, receipt,
+    marketing, README, query, and publication-boundary suites pass 67/67 after
+    freezing the intentional protected evidence fingerprint.
+  source_verification: >-
+    PASS - the verifier reconstructs all 61 pinned candidates at upstream commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a.
+  typecheck_verification: PASS - the signals prerequisite and web TypeScript project compile without errors
+  changed_file_eslint: PASS - all six changed TypeScript files pass the configured web ESLint command with zero findings
+  lint_verification: PASS - authoritative full lint reports zero errors and the same 21 inherited warnings; changed files remain clean
+  repository_test_verification: >-
+    PASS - 286/286 runnable suites and 2,125/2,125 runnable tests pass; the
+    inherited 3 suites / 26 tests remain skipped and the single snapshot passes.
+    The known open-handle notice appears only after the green result and forced exit.
+  build_verification: >-
+    PASS - signals and trading-agents compile and the Next.js production build
+    generates all 329/329 pages. The six protected research routes remain dynamic;
+    only inherited middleware, NFT trace, `url.parse`, and edge-runtime warnings appear.
+  implementation_files:
+    evidence_state_module: 5867 bytes / 029ca9cbe5df493687efbee68fb51e7412988e69c63a5c1e09d735a9178e74f5
+    public_projection: 6679 bytes / 2e94139e7c6e8a6169fdc6f8405ad436497deb8e80fe106f0a868c2bc965a637
+    protected_projection: 39659 bytes / a1649692fa2872a0f7f9a0a52c0b6cec005981c122aa9b0a583bfbce5559030b
+    public_openapi: 45494 bytes / 87d6a1157cfcb7c262cc68c88ebd754aa00923268a7210f2f05aa2939311c50f
+    focused_contract: 4625 bytes / 190f6ca91b5d07e207811edb0f5b2cbc5c2e0ab41f87243356bde616e421dac8
+    protected_deterministic_contract: 10828 bytes / c555ee7cc2abec4f45acc43aa3d0e6eebe152b8f12f80641a3f3feaf6461ff2f
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, `git diff --check` is clean, and the worktree has
+    exactly the frozen seven-path manifest: STATE, four product/schema files,
+    and two tests. No rendered UI, raw evidence, receipt, marketing, CSV, auth,
+    Docker, manifest, dependency, database, strategy, signal, or execution path changed.
+  scope_audit:
+    changed_paths: 7
+    forbidden_surface_changes: 0
+    branch: agent/research-intake-desk-20260829
+    base_commit_confirmed: c025a8e97b0e866deee2120e75f8629b93f043af
+    broad_dirty_checkout_touched: false
+    rendered_ui_changed: false
+    current_cycle_receipts_changed: false
+    marketing_state_changed: false
+    temporary_audit_workspace_present: false
+    next_gate_rechecked_at: 2026-08-29T22:08:44.9499362Z
+    next_gate_still_closed: true
+  final_state_bound_verification: >-
+    PASS - all 18 exact evidence, route, auth, CSV, receipt, marketing, README,
+    query, and publication-boundary suites pass 67/67 against the frozen
+    seven-path implementation and safety state; YAML parses and diff checks pass.
+  current_step: Create the local implementation commit, then record its exact hash in a STATE-only closure
+  next_action: Record the implementation hash in a STATE-only closure commit and keep the recurring goal active until the 00:00Z receipt boundary
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: No new source data, return, source audit, preregistration, artifact, receipt, marketing draft, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state change is authorized
 
 research_candidate_evidence_state_2026_08_30:
   at: 2026-08-30T05:37:00+08:00

@@ -309,6 +309,62 @@ export function buildOpenApiSpec(): OpenApiSpec {
             tradeClawEvidence: { type: ["object", "null"] },
           },
         },
+        ResearchIntakeEvidenceStateSummary: {
+          type: "object",
+          description:
+            "Ordered plain-language counts from the same evidence-state classifier used by every candidate record. Source-audit and QA-only records are kept separate from evaluated modeled performance.",
+          required: [
+            "totalCandidates",
+            "withTradeClawRecord",
+            "performanceGatesEvaluated",
+            "performanceGatesNotEvaluated",
+            "statuses",
+            "grantsPublicationAuthority",
+            "grantsTradingAuthority",
+          ],
+          properties: {
+            totalCandidates: { type: "integer", minimum: 0, example: 8 },
+            withTradeClawRecord: { type: "integer", minimum: 0, example: 8 },
+            performanceGatesEvaluated: { type: "integer", minimum: 0, example: 3 },
+            performanceGatesNotEvaluated: { type: "integer", minimum: 0, example: 5 },
+            statuses: {
+              type: "array",
+              minItems: 6,
+              maxItems: 6,
+              description:
+                "All six statuses in stable decision order, including zero-count states.",
+              items: {
+                type: "object",
+                required: [
+                  "performanceEvidenceStatus",
+                  "label",
+                  "meaning",
+                  "count",
+                  "performanceGatesEvaluated",
+                ],
+                properties: {
+                  performanceEvidenceStatus: {
+                    type: "string",
+                    enum: [
+                      "not-tested",
+                      "source-audit-only-no-local-backtest",
+                      "qa-only-no-performance-result",
+                      "modeled-historical-pass",
+                      "modeled-historical-fail",
+                      "modeled-historical-inconclusive",
+                    ],
+                  },
+                  label: { type: "string" },
+                  meaning: { type: "string" },
+                  count: { type: "integer", minimum: 0 },
+                  performanceGatesEvaluated: { type: "boolean" },
+                },
+              },
+            },
+            grantsPublicationAuthority: { type: "boolean", const: false },
+            grantsTradingAuthority: { type: "boolean", const: false },
+          },
+        },
         ResearchIntakeResponse: {
           type: "object",
           description:
@@ -453,6 +509,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "catalogSummary",
             "evidenceIndex",
             "evidenceSummary",
+            "evidenceStateSummary",
             "records",
           ],
           properties: {
@@ -513,6 +570,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
                   },
                 },
               ],
+            },
+            evidenceStateSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
             },
             records: {
               type: "array",

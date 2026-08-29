@@ -20,6 +20,7 @@ import {
 } from './research-intake-candidate-navigation';
 import {
   buildResearchIntakeEvidenceState,
+  summarizeResearchIntakeEvidenceStates,
   type ResearchIntakeEvidenceState,
 } from './research-intake-evidence-state';
 import {
@@ -401,6 +402,7 @@ export interface ResearchIntakeAdminEvidencePayload {
     includesEveryAvailableOverlay: true;
   };
   evidenceSummary: ReturnType<typeof summarizeResearchIntake>;
+  evidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   items: readonly ResearchIntakeAdminEvidenceItem[];
 }
 
@@ -1190,6 +1192,7 @@ export function buildResearchIntakeAdminEvidencePayload(
       includesEveryAvailableOverlay: true,
     },
     evidenceSummary: summarizeResearchIntake(evidenceRecords),
+    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(evidenceRecords),
     items: evidenceRecords.map((record, index) => {
       const candidateWorkflow = buildResearchIntakeAdminCandidateWorkflow(
         record,

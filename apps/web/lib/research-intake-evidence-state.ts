@@ -8,6 +8,15 @@ export type ResearchIntakePerformanceEvidenceStatus =
   | 'modeled-historical-fail'
   | 'modeled-historical-inconclusive';
 
+export const RESEARCH_INTAKE_EVIDENCE_STATUS_ORDER = Object.freeze([
+  'not-tested',
+  'source-audit-only-no-local-backtest',
+  'qa-only-no-performance-result',
+  'modeled-historical-pass',
+  'modeled-historical-fail',
+  'modeled-historical-inconclusive',
+] as const satisfies readonly ResearchIntakePerformanceEvidenceStatus[]);
+
 export interface ResearchIntakeEvidenceState {
   performanceEvidenceStatus: ResearchIntakePerformanceEvidenceStatus;
   label: string;
@@ -16,6 +25,24 @@ export interface ResearchIntakeEvidenceState {
   taskId: string | null;
   evidencePath: string | null;
   artifactPath: string | null;
+  grantsPublicationAuthority: false;
+  grantsTradingAuthority: false;
+}
+
+export interface ResearchIntakeEvidenceStateSummaryItem {
+  performanceEvidenceStatus: ResearchIntakePerformanceEvidenceStatus;
+  label: string;
+  meaning: string;
+  count: number;
+  performanceGatesEvaluated: boolean;
+}
+
+export interface ResearchIntakeEvidenceStateSummary {
+  totalCandidates: number;
+  withTradeClawRecord: number;
+  performanceGatesEvaluated: number;
+  performanceGatesNotEvaluated: number;
+  statuses: readonly ResearchIntakeEvidenceStateSummaryItem[];
   grantsPublicationAuthority: false;
   grantsTradingAuthority: false;
 }
@@ -101,6 +128,42 @@ export function buildResearchIntakeEvidenceState(
     taskId: evidence?.taskId ?? sourceAudit?.taskId ?? null,
     evidencePath: evidence?.resultPath ?? sourceAudit?.researchPath ?? null,
     artifactPath: evidence?.artifactPath ?? null,
+    grantsPublicationAuthority: false,
+    grantsTradingAuthority: false,
+  };
+}
+
+export function summarizeResearchIntakeEvidenceStates(
+  records: readonly ResearchIntakeRecord[],
+): ResearchIntakeEvidenceStateSummary {
+  const counts: Record<ResearchIntakePerformanceEvidenceStatus, number> = {
+    'not-tested': 0,
+    'source-audit-only-no-local-backtest': 0,
+    'qa-only-no-performance-result': 0,
+    'modeled-historical-pass': 0,
+    'modeled-historical-fail': 0,
+    'modeled-historical-inconclusive': 0,
+  };
+  let performanceGatesEvaluated = 0;
+
+  for (const record of records) {
+    const state = buildResearchIntakeEvidenceState(record);
+    counts[state.performanceEvidenceStatus] += 1;
+    if (state.performanceGatesEvaluated) performanceGatesEvaluated += 1;
+  }
+
+  return {
+    totalCandidates: records.length,
+    withTradeClawRecord: records.length - counts['not-tested'],
+    performanceGatesEvaluated,
+    performanceGatesNotEvaluated: records.length - performanceGatesEvaluated,
+    statuses: RESEARCH_INTAKE_EVIDENCE_STATUS_ORDER.map((status) => ({
+      performanceEvidenceStatus: status,
+      label: EVIDENCE_STATUS_COPY[status].label,
+      meaning: EVIDENCE_STATUS_COPY[status].meaning,
+      count: counts[status],
+      performanceGatesEvaluated: status.startsWith('modeled-historical-'),
+    })),
     grantsPublicationAuthority: false,
     grantsTradingAuthority: false,
   };

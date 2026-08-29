@@ -12,6 +12,7 @@ import {
 } from './research-intake-candidate-navigation';
 import {
   buildResearchIntakeEvidenceState,
+  summarizeResearchIntakeEvidenceStates,
   type ResearchIntakeEvidenceState,
 } from './research-intake-evidence-state';
 
@@ -69,6 +70,7 @@ export type ResearchIntakePublicEvidencePayload = Omit<
     includesEveryAvailableOverlay: true;
   };
   evidenceSummary: ReturnType<typeof summarizeResearchIntake>;
+  evidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   records: readonly ResearchIntakePublicRecord[];
 };
 
@@ -159,6 +161,7 @@ export function buildResearchIntakePublicEvidencePayload(): ResearchIntakePublic
       includesEveryAvailableOverlay: true,
     },
     evidenceSummary: summarizeResearchIntake(evidenceRecords),
+    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(evidenceRecords),
     records: evidenceRecords.map(toPublicRecord),
   };
 }
