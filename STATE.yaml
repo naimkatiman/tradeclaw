@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T16:40:23+08:00
+updated: 2026-08-29T16:45:08+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -13,6 +13,7 @@ end_of_month_treasury_replication_2026_08_29:
   status: verified_replicated_inconclusive_qa_only
   scope: Independently test the catalog's lower-turnover end-of-month Treasury hypothesis with public Federal Reserve data, explicit financing and execution costs, a post-publication holdout, same-duration controls, and an external falsification market
   base_commit: 8423a6f66c8549e7726aed0283839289377d559c
+  implementation_commit: 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
   branch: agent/research-intake-desk-20260829
   candidate_id: predictable-end-of-month-treasury-returns
   source_audit: docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md
@@ -83,6 +84,7 @@ research_intake_desk_2026_08_29:
   base_commit: f7936bcf627f208ac0379412453976b17218608b
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
   admin_api_commit: 27faeffad19ba42fcd914e956103f863ce253537
+  treasury_replication_commit: 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
   branch: agent/research-intake-desk-20260829
   current_step: The pinned foundation, first source no-go, protected admin read API, and TC-257 QA-only replication are implemented; visual v0 remains paused at the required UI direction checkpoint
   source: >
@@ -5221,4 +5223,6 @@ next_actions:
       exposed. No UI, strategy, signal, allocation, broadcast, execution,
       billing, database, Docker, dependency, publication, push, merge, or
       deployment state changed. Any source-consistency policy change requires a
-      fresh preregistration.
+      fresh preregistration. The complete implementation and evidence package
+      was committed locally as 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
+      on the isolated research-intake branch; nothing was pushed.
