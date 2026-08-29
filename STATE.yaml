@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T01:43:38+08:00
+updated: 2026-08-30T01:45:14+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 admin_research_evidence_desk_2026_08_29:
-  at: 2026-08-30T01:43:38+08:00
+  at: 2026-08-30T01:45:14+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_commit
+  status: verified_committed_local_closing_state
   scope: Give an authenticated admin one complete observation-consistent evidence desk for every awesome-systematic-trading candidate TradeClaw has examined, without paginating and filtering the 61-row catalog or separately joining receipts and marketing handoffs
   base_commit: d63150aac48a2287be6d0b26548bbd01386344c6
+  implementation_commit: 61c5609d73512fade561b470b8d57839a0d4d8a9
   branch: agent/research-intake-desk-20260829
   current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
   current_cycle_status: complete
@@ -169,9 +170,17 @@ admin_research_evidence_desk_2026_08_29:
   precommit_state_and_scope_verification: >-
     PASS - STATE parses, diff whitespace passes, and the working tree contains
     exactly the seven frozen implementation/state paths.
+  implementation_commit_verification: >-
+    PASS - local commit 61c5609d73512fade561b470b8d57839a0d4d8a9 contains
+    exactly the seven frozen paths and the worktree was clean immediately after
+    commit. Nothing was pushed, merged, deployed, published, posted, or activated.
+  closure_verification: >-
+    PASS - after the implementation commit, all 29 adjacent suites and 125 tests
+    pass again. The two STATE-bound receipt/marketing suites also pass 9/9;
+    STATE parses, diff whitespace passes, and STATE.yaml is the only changed path.
   admin_visual_v0_changed: false
   public_visual_changed: false
-  current_step: Review and stage exactly the seven frozen paths, verify the cached diff, and create the local implementation commit
+  current_step: Create the STATE-only local closure commit, verify a clean branch, and update shared MemoryCore before the exact 18:00Z rollover
   next_action: Close every failed gate before creating local implementation and state commits; preserve the sole TC-260 receipt until exact 18:00Z
   external_actions: none
   safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
