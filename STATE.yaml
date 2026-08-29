@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T00:34:09+08:00
+updated: 2026-08-30T00:35:17+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 admin_research_marketing_review_json_2026_08_29:
-  at: 2026-08-30T00:34:09+08:00
+  at: 2026-08-30T00:35:17+08:00
   agent: TradeClaw PM agent
-  status: verified_pending_local_commit
+  status: verified_committed_local_closing_state
   scope: Give an authenticated admin one compact structured marketing-review queue with candidate, receipt, draft, and loop provenance, without fetching the complete catalog or parsing the spreadsheet export
   base_commit: d32518901a06d7c757716d02bb7c0299d76db6de
+  implementation_commit: 4374a250f8f97235ebe1c74114f2d9f441c7a3b3
   branch: agent/research-intake-desk-20260829
   current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
   current_cycle_receipt: TC-260
@@ -63,7 +64,8 @@ admin_research_marketing_review_json_2026_08_29:
   deterministic_replay_verification: PASS - two independent fixed-instant serializations are byte-identical at 20,006 bytes and SHA-256 316301ff; the exact four-item order, latest/current-window state, TC-260 loop completion, pre-loop null receipt, cycle-receipt equality, safe candidate key allowlist, and every false authority control were independently asserted
   final_contract_audit: PASS - all frozen acceptance gates are proven by the builder, mocked and real-auth route tests, boundary replay, source/hash/state/scope audits, full repository tests, and the registered production route; no requirement relies on intent or an untested client-side join
   visual_verification: No public or protected admin page, layout, copy, style, or interaction changed; this increment supplies the compact protected read contract for a future owner-confirmed admin visual
-  precommit_verification: PASS - the exact 21-suite protected/public intake, candidate, CSV, receipt, loop, marketing, auth, and publication-boundary set passes 100/100 against the final precommit tree; STATE parses, diff whitespace passes, and exact seven-path scope is retained
+  precommit_verification: PASS - the exact 21-suite protected/public intake, candidate, CSV, receipt, loop, marketing, auth, and publication-boundary set passes 100/100 against the final precommit tree; STATE parses, diff whitespace passes, exact seven-path scope is retained, and the implementation is committed locally at 4374a250f8f97235ebe1c74114f2d9f441c7a3b3
+  closure_verification: PASS - the same 21 suites pass 100/100 after recording the exact implementation commit; STATE parses, diff whitespace passes, and only STATE.yaml remains modified for closure
   deterministic_payload_audit:
     at: 2026-08-29T15:59:59.999Z
     admin_review_json_bytes: 20006
@@ -79,7 +81,7 @@ admin_research_marketing_review_json_2026_08_29:
     public_csv_unchanged: true
   admin_visual_v0_changed: false
   public_surface_changed: false
-  current_step: Commit the verified seven-path implementation locally, then create a state-only closure with the exact implementation hash
+  current_step: Create the state-only closure commit, save implementation and closure hashes to shared MemoryCore, and confirm a clean isolated branch
   next_action: Save implementation and closure hashes to shared MemoryCore, leave the isolated branch clean, and preserve the sole TC-260 receipt until exact 18:00Z
   external_actions: none
   safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
