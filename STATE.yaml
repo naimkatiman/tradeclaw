@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T23:31:24+08:00
+updated: 2026-08-29T23:32:10+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 systematic_candidate_screen_2026_08_29_15z:
-  at: 2026-08-29T23:31:24+08:00
+  at: 2026-08-29T23:32:10+08:00
   agent: TradeClaw PM agent
-  status: verified_source_audit_no_go_awaiting_local_commit
+  status: verified_source_audit_no_go_committed_local_closing_state
   scope: Select at most one untouched pinned candidate for the new UTC window using reconstructibility, immutable public data, full-cost headroom, chronological falsification, and bounded verification rather than upstream performance or source order
   base_commit: 61c121e6bca1debd875eb2900ab8d915456bf4eb
   branch: agent/research-intake-desk-20260829
+  implementation_commit: 3ef5eb3d9b3dee9aa4f33b1fb4de95077290f300
   cycle_id: 2026-08-29T15:00:00.000Z/PT3H
   started_at: 2026-08-29T15:02:14.525Z
   ends_at: 2026-08-29T18:00:00.000Z
@@ -134,7 +135,7 @@ systematic_candidate_screen_2026_08_29_15z:
   primary_pdf_committed: false
   admin_visual_v0_changed: false
   public_visual_structure_changed: false
-  current_step: Create the verified local implementation commit, record its exact hash in STATE, create one state-only closure commit, and save shared MemoryCore
+  current_step: Create the state-only closure commit, save the exact receipt and implementation hash to shared MemoryCore, and leave the isolated branch clean
   next_action: Leave the verified no-go shelved, preserve the completed 15:00Z window, and wait for the next exact three-hour boundary before screening another candidate
   external_actions: none
   safety: Exactly one candidate was selected and one no-go receipt was created in the 15:00Z window; no preregistration, return, result artifact, marketing draft, UI, runtime, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
@@ -1056,6 +1057,7 @@ research_intake_desk_2026_08_29:
     stage_after: source-audited
     verdict: not-tested
     outcome: verified-no-go
+    implementation_commit: 3ef5eb3d9b3dee9aa4f33b1fb4de95077290f300
     changed_files:
       - apps/web/lib/research-intake.ts
       - apps/web/lib/research-loop-receipts.ts
