@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T05:49:14+08:00
+updated: 2026-08-30T05:50:46+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,11 @@ description: >
 research_candidate_evidence_state_2026_08_30:
   at: 2026-08-30T05:37:00+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_implementation_commit
+  status: verified_shared_evidence_state_committed_local_closing_state
   scope: Give public users and authenticated admins one shared, plain-language, claim-safe interpretation of each candidate's current evidence without changing any research result or rendered UI
   base_commit: 31231580338a5caf767410789b4ddb5aae905349
+  implementation_commit: 128ab14290d3c2d57905ca584bf6de96c930b2ed
+  committed_at: 2026-08-29T21:50:46.9685407Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-262
   current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
@@ -150,6 +152,10 @@ research_candidate_evidence_state_2026_08_30:
     PASS - STATE.yaml parses, `git diff --check` is clean, and the worktree has
     exactly the frozen eleven-file manifest: STATE.yaml, five product/schema
     files, five tests, and no temporary verifier. No rendered UI path changed.
+  final_state_bound_verification: >-
+    PASS - immediately before the local implementation commit, all 31 adjacent
+    research-intake, route, auth, CSV, OpenAPI, and publication-boundary suites
+    pass 148/148 against the final product and safety state.
   scope_audit:
     changed_paths: 11
     forbidden_surface_changes: 0
@@ -161,7 +167,8 @@ research_candidate_evidence_state_2026_08_30:
     current_cycle_receipts_changed: false
     next_gate_rechecked_at: 2026-08-29T21:49:14.0514573Z
     next_gate_still_closed: true
-  current_step: Rerun the final state-bound adjacent contract and create the local implementation commit
+  current_step: Create the local STATE-only closure commit and prove a clean branch
+  next_action: Keep the recurring goal active; preserve TC-262 as the sole 21:00Z receipt and, at or after 2026-08-30T00:00:00.000Z, open at most one new cost-first research intake decision before further product or marketing work
   visual_ui_changed: false
   marketing_handoff_created: false
   publish_approved: false
