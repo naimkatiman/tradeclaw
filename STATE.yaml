@@ -1,11 +1,88 @@
 project: tradeclaw
-updated: 2026-08-30T00:11:11+08:00
+updated: 2026-08-30T00:34:09+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_marketing_review_json_2026_08_29:
+  at: 2026-08-30T00:34:09+08:00
+  agent: TradeClaw PM agent
+  status: verified_pending_local_commit
+  scope: Give an authenticated admin one compact structured marketing-review queue with candidate, receipt, draft, and loop provenance, without fetching the complete catalog or parsing the spreadsheet export
+  base_commit: d32518901a06d7c757716d02bb7c0299d76db6de
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
+  current_cycle_receipt: TC-260
+  new_research_receipt_created: false
+  return_calculated: false
+  finding: The protected catalog JSON embeds the complete marketing handoff but its default response is 42,354 bytes and mixes the queue with paginated candidate discovery; the protected review CSV is complete but a future admin client must parse flattened cells and separately join canonical candidate and receipt context
+  library_search: No reusable review-queue, marketing-handoff, authenticated JSON, or private no-store admin-read pattern exists in shared MemoryCore; reuse TradeClaw's assertAdminApi boundary, canonical observation clock, receipt ledger, marketing handoff ledger, and exact candidate records
+  acceptance_gates:
+    - GET /api/admin/research-intake/review authenticates before observing the clock, reading research state, building queue data, or interpreting query parameters
+    - The response is filter-independent and contains canonical source, selection policy, workflow, UTC PT3H observation and receipt context, queue summary, latest item, current-window items, and every review-ready item visible at the observation instant
+    - Each queue item carries chronological position, exact candidate identity/title/source/asset class/source position/stage/verdict/cost status, canonical handoff and draft, exact cycle receipt or explicit null for the TC-255 pre-loop closure, protected/public candidate detail paths, and false publication/posting/trading/external-action controls
+    - TC-255 appears only at or after 2026-08-29T04:55:27.000Z with a null receipt; TC-257, TC-258, and TC-259 carry their exact receipts; TC-259 is absent one millisecond before 12:47:51.000Z and present at that instant
+    - TC-256 and TC-260 remain absent because their source-audit no-go receipts have no marketing draft; at 15:59:59.999Z the queue is exactly TC-255, TC-257, TC-258, TC-259, latest is TC-259, current-window items are empty, and the loop still reports complete through TC-260
+    - Denied callers receive only the existing generic 401 body; success and denial responses are dynamic, private, no-store, vary on Cookie and Authorization, deny CORS, ignore query filters, and expose only GET
+    - Existing whole-admin JSON, admin candidate detail, protected review CSV, public JSON, public candidate detail, public CSV, receipt ledger, and marketing handoff ledger remain byte-identical at the fixed audit instant
+    - No public or protected visual page, OpenAPI/public contract, research stage/result/receipt/handoff, source data, strategy, runtime authority, Docker, dependency, database, auth semantics, billing, execution, or external state changes
+    - Intentional RED, focused and adjacent tests, deterministic payload/hash/state/scope audits, typecheck, lint, repository tests, and the required npm run build pass before local commits
+  baseline_audit_at: 2026-08-29T15:59:59.999Z
+  baseline_payloads:
+    full_admin_json_bytes: 42354
+    full_admin_json_sha256: 0cd758e2cb630ada326fdaefaacf6585b71ab102f663f3c8df6638a9db10b300
+    tc260_admin_candidate_json_bytes: 9230
+    tc260_admin_candidate_json_sha256: df2a11b661c4821b1148a9ff1e2bef2af0331b2fdea95a9b966dfe7f806a6296
+    protected_review_csv_bytes: 6350
+    protected_review_csv_sha256: 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    public_json_bytes: 59873
+    public_json_sha256: ade593cd52274f7386cb4a505c2e8bf2abd7836685c927f0dfba85a0f0546dc6
+    tc260_public_candidate_json_bytes: 5770
+    tc260_public_candidate_json_sha256: adba3fd308fcaac7cea5aebf078640b9ef98f8e8c1e290cb2b9d3fad83b51b3d
+    public_csv_bytes: 36725
+    public_csv_sha256: f51787d97c5c21aef4751135899bc0e1c310155cde7c07c7961a2d332c6f54c6
+    receipt_task_ids: TC-256, TC-257, TC-258, TC-259, TC-260
+    marketing_handoff_task_ids: TC-255, TC-257, TC-258, TC-259
+  red_evidence: PASS - the three focused suites fail only because buildResearchIntakeAdminReviewPayload and the protected review route do not exist; all four builder assertions reached the missing export and both route suites stopped at the missing module, with no unrelated product assertion failure
+  first_green_iteration: 2/3 suites and 9/10 tests passed; the sole failure was a RED fixture assuming one-based source positions, while the implementation correctly preserved TradeClaw's canonical zero-based sourcePosition values, so the fixture was corrected without changing catalog order or any baseline payload
+  implementation: Added a canonical observation-time review-item join over exact candidate summaries, handoffs, cycle receipts or explicit pre-loop nulls, safe detail links, and repeated false authority controls; exposed it through a static auth-first private JSON route and documented its relationship to the whole admin payload and spreadsheet export
+  focused_verification: PASS - the builder, mocked route, and real signed-cookie suites pass 10/10 after the source-position fixture correction; exact temporal boundaries, queue membership, joins, safe candidate fields, false controls, auth ordering, query independence, private headers, and GET-only behavior are covered
+  adjacent_verification: PASS - 21 protected/public intake, candidate, CSV, receipt, loop, marketing, auth, and publication-boundary suites pass 100/100
+  first_repository_gate_iteration: TypeScript correctly rejected a test-only comparison against TC-256/TC-260 because the typed handoff union excludes both no-draft tasks; the assertion now verifies the runtime string list without weakening the boundary. The attempted root npx eslint invocation resolved outside the web workspace config and is discarded; lint must run through apps/web/eslint.config.mjs.
+  typecheck_verification: PASS - signals package build and web TypeScript complete without errors after the typed no-draft assertion correction
+  changed_file_lint_iteration: The authoritative web-workspace lint reported zero errors and two new unused test constants; both constants were removed and scoped lint must be rerun to zero findings
+  changed_file_lint_verification: PASS - every changed TypeScript file has zero lint findings after removing the two unused fixture constants
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  source_verification: PASS - the independent source verifier reconstructs all 61 candidates at exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs discovery-only treatment
+  state_and_scope_verification: PASS - STATE parses, diff whitespace passes, and exactly seven intended paths are changed; no manifest, lockfile, Docker, migration, source catalog data, result artifact, research script, public page/API/OpenAPI, protected visual page, database, strategy, signal, allocation, broadcast, execution, billing, or auth-semantics path changed
+  repository_test_verification: PASS - all 268 runnable Jest suites and 2,041 tests pass with 3 suites and 26 tests skipped and 1 snapshot passed; forceExit closed the repository's inherited open handle after the complete green summary
+  build_verification: PASS - the required root build compiled signals, trading-agents, and Next.js and generated 327/327 pages; /api/admin/research-intake/review is registered as a dynamic route beside the existing dynamic detail and CSV routes, with only inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings
+  deterministic_replay_verification: PASS - two independent fixed-instant serializations are byte-identical at 20,006 bytes and SHA-256 316301ff; the exact four-item order, latest/current-window state, TC-260 loop completion, pre-loop null receipt, cycle-receipt equality, safe candidate key allowlist, and every false authority control were independently asserted
+  final_contract_audit: PASS - all frozen acceptance gates are proven by the builder, mocked and real-auth route tests, boundary replay, source/hash/state/scope audits, full repository tests, and the registered production route; no requirement relies on intent or an untested client-side join
+  visual_verification: No public or protected admin page, layout, copy, style, or interaction changed; this increment supplies the compact protected read contract for a future owner-confirmed admin visual
+  precommit_verification: PASS - the exact 21-suite protected/public intake, candidate, CSV, receipt, loop, marketing, auth, and publication-boundary set passes 100/100 against the final precommit tree; STATE parses, diff whitespace passes, and exact seven-path scope is retained
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    admin_review_json_bytes: 20006
+    admin_review_json_sha256: 316301ff0ffb9762ba4a7150a901b3334c01b69771a2eafe2a229235bbc82c30
+    queue_task_ids: TC-255, TC-257, TC-258, TC-259
+    latest_queue_task_id: TC-259
+    current_window_queue_items: 0
+    full_admin_json_unchanged: true
+    tc260_admin_candidate_json_unchanged: true
+    protected_review_csv_unchanged: true
+    public_json_unchanged: true
+    tc260_public_candidate_json_unchanged: true
+    public_csv_unchanged: true
+  admin_visual_v0_changed: false
+  public_surface_changed: false
+  current_step: Commit the verified seven-path implementation locally, then create a state-only closure with the exact implementation hash
+  next_action: Save implementation and closure hashes to shared MemoryCore, leave the isolated branch clean, and preserve the sole TC-260 receipt until exact 18:00Z
+  external_actions: none
+  safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
 admin_research_candidate_detail_2026_08_29:
   at: 2026-08-30T00:11:11+08:00

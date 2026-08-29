@@ -80,6 +80,17 @@ pre-loop and receipt-backed evidence and keep publication-approved drafts at
 zero. `review-ready` means only that factual copy exists for a human to inspect;
 automatic publication and posting remain false.
 
+`GET /api/admin/research-intake/review` is the compact structured sibling for an
+admin client that needs the complete review queue without fetching the paginated
+catalog or parsing CSV. It joins each visible handoff to a safe candidate
+summary and its exact cycle receipt, or explicit `null` receipt for TC-255's
+pre-loop closure. It also carries the current receipt window, canonical detail
+paths, and repeated false publication, posting, trading, and external-action
+controls. `GET /api/admin/research-intake/review.csv` remains the spreadsheet
+download of the same visible handoff set. Both routes authenticate before
+observing the clock, ignore filters, stay private/no-store, and expose no
+mutation or outbound action.
+
 The retained history contains one known contract violation: TC-256 and TC-257
 both use `2026-08-29T06:00:00.000Z/PT3H`. Neither receipt may be deleted,
 renamed, or silently selected as canonical after the fact. The ledger labels

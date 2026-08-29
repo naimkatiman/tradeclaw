@@ -125,6 +125,55 @@ export interface ResearchIntakeAdminCandidatePayload {
   };
 }
 
+export interface ResearchIntakeAdminReviewControls {
+  humanReviewRequired: true;
+  publicationApproved: false;
+  automaticPublication: false;
+  automaticPosting: false;
+  tradingApproved: false;
+  automaticTrading: false;
+  externalActions: 'none';
+}
+
+export interface ResearchIntakeAdminReviewItem {
+  queuePosition: number;
+  candidate: Pick<
+    ResearchIntakeRecord,
+    | 'id'
+    | 'title'
+    | 'sourceUrl'
+    | 'assetClass'
+    | 'sourcePosition'
+    | 'stage'
+    | 'verdict'
+    | 'costStatus'
+  >;
+  handoff: ResearchLoopMarketingHandoff;
+  receipt: ResearchLoopReceipt | null;
+  links: {
+    adminCandidate: string;
+    publicCandidate: string;
+  };
+  controls: ResearchIntakeAdminReviewControls;
+}
+
+export interface ResearchIntakeAdminReviewPayload {
+  schemaVersion: 1;
+  access: ResearchIntakeAdminPayload['access'];
+  source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
+  selectionPolicy: string;
+  workflow: typeof RESEARCH_INTAKE_WORKFLOW;
+  researchLoop: ResearchIntakeAdminPayload['researchLoop'];
+  queue: {
+    status: ResearchLoopMarketingReview['status'];
+    summary: ResearchLoopMarketingReview['summary'];
+    latestItem: ResearchIntakeAdminReviewItem | null;
+    currentWindowItems: readonly ResearchIntakeAdminReviewItem[];
+    items: readonly ResearchIntakeAdminReviewItem[];
+    controls: ResearchIntakeAdminReviewControls;
+  };
+}
+
 export class ResearchIntakeAdminQueryError extends Error {
   readonly parameter: string;
 
@@ -263,6 +312,69 @@ function toAdminRecord(
   };
 }
 
+const ADMIN_REVIEW_CONTROLS: ResearchIntakeAdminReviewControls = {
+  humanReviewRequired: true,
+  publicationApproved: false,
+  automaticPublication: false,
+  automaticPosting: false,
+  tradingApproved: false,
+  automaticTrading: false,
+  externalActions: 'none',
+};
+
+function toAdminReviewItem(
+  handoff: ResearchLoopMarketingHandoff,
+  queuePosition: number,
+  observedAtMs: number,
+): ResearchIntakeAdminReviewItem {
+  const candidate = SYSTEMATIC_RESEARCH_INTAKE.find(
+    (record) => record.id === handoff.candidateId,
+  );
+  if (!candidate || candidate.tradeClawEvidence?.taskId !== handoff.taskId) {
+    throw new Error(`marketing review ${handoff.taskId} has no matching evidence record`);
+  }
+
+  const receipt = RESEARCH_LOOP_RECEIPTS.find(
+    (entry) =>
+      entry.taskId === handoff.taskId &&
+      Date.parse(entry.recordedAt) <= observedAtMs,
+  ) ?? null;
+  if (handoff.basis === 'pre-loop-closure') {
+    if (receipt !== null || handoff.cycleId !== null) {
+      throw new Error(`pre-loop marketing review ${handoff.taskId} acquired a cycle receipt`);
+    }
+  } else if (
+    receipt === null ||
+    receipt.candidateId !== handoff.candidateId ||
+    receipt.recordedAt !== handoff.availableAt ||
+    receipt.cycleId !== handoff.cycleId
+  ) {
+    throw new Error(`marketing review ${handoff.taskId} has no matching cycle receipt`);
+  }
+
+  const encodedCandidateId = encodeURIComponent(candidate.id);
+  return {
+    queuePosition,
+    candidate: {
+      id: candidate.id,
+      title: candidate.title,
+      sourceUrl: candidate.sourceUrl,
+      assetClass: candidate.assetClass,
+      sourcePosition: candidate.sourcePosition,
+      stage: candidate.stage,
+      verdict: candidate.verdict,
+      costStatus: candidate.costStatus,
+    },
+    handoff,
+    receipt,
+    links: {
+      adminCandidate: `/api/admin/research-intake/${encodedCandidateId}`,
+      publicCandidate: `/api/research/intake/${encodedCandidateId}`,
+    },
+    controls: ADMIN_REVIEW_CONTROLS,
+  };
+}
+
 export function buildResearchIntakeAdminPayload(
   searchParams: URLSearchParams,
   at: Date | string | number = new Date(),
@@ -358,6 +470,43 @@ export function buildResearchIntakeAdminCandidatePayload(
         automaticTrading: false,
         externalActions: 'none',
       },
+    },
+  };
+}
+
+/**
+ * Protected, filter-independent marketing-review queue. The server performs
+ * every candidate and receipt join so admin clients do not reconstruct
+ * provenance from the paginated catalog or flattened CSV cells.
+ */
+export function buildResearchIntakeAdminReviewPayload(
+  at: Date | string | number = new Date(),
+): ResearchIntakeAdminReviewPayload {
+  const observation = buildResearchIntakeAdminObservation(at);
+  const items = observation.marketingReview.handoffs.map((handoff, index) => (
+    toAdminReviewItem(handoff, index + 1, observation.observedAtMs)
+  ));
+
+  return {
+    schemaVersion: 1,
+    access: {
+      mode: 'admin-read-only',
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    },
+    source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
+    selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
+    workflow: RESEARCH_INTAKE_WORKFLOW,
+    researchLoop: observation.researchLoop,
+    queue: {
+      status: observation.marketingReview.status,
+      summary: observation.marketingReview.summary,
+      latestItem: items.at(-1) ?? null,
+      currentWindowItems: items.filter(
+        (item) => item.handoff.cycleId === observation.researchLoop.currentWindow.id,
+      ),
+      items,
+      controls: ADMIN_REVIEW_CONTROLS,
     },
   };
 }
