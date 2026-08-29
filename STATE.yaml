@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T04:38:47+08:00
+updated: 2026-08-30T04:39:33+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,10 @@ description: >
 admin_research_catalog_result_view_2026_08_30:
   at: 2026-08-30T04:24:25+08:00
   agent: TradeClaw PM agent
-  status: verified_protected_admin_catalog_result_view_ready_for_local_commit
+  status: verified_protected_admin_catalog_result_view_committed_local_closing_state
   scope: Let an authenticated admin distinguish visible results, no matches, and an out-of-range page and recover through one server-authored action without reconstructing pagination state
   base_commit: b0da7430dda905352fa2b2c04dc1754874ed2a53
+  implementation_commit: fcdcd6880a02d8c8e37f833125230b5f8490f027
   branch: agent/research-intake-desk-20260829
   parent_task: TC-256
   current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
@@ -162,7 +163,7 @@ admin_research_catalog_result_view_2026_08_30:
     170/170; repository 284 runnable suites and 2,111 tests; final state-bound
     80/80; pinned source 61/61; web typecheck; changed-file and full lint with
     zero errors; YAML/hash/diff/scope audits; required 329/329-page production build.
-  final_gate_observed_at: 2026-08-29T20:38:47.770Z
+  final_gate_observed_at: 2026-08-29T20:39:33.327Z
   final_gate_decision: The 21:00Z research rollover remains closed; TC-261 stays the sole receipt in the complete 18:00Z window and no new research or marketing handoff is created
   visual_ui_changed: false
   public_contract_changed: false
@@ -170,8 +171,8 @@ admin_research_catalog_result_view_2026_08_30:
   publish_approved: false
   trading_approved: false
   external_actions: none
-  current_step: Create the exact five-file local implementation commit
-  next_action: Record the implementation hash in STATE, create a state-only closure commit, and save the verified outcome to shared MemoryCore
+  current_step: Create the state-only closure commit and save the verified outcome to shared MemoryCore
+  next_action: Leave the isolated branch clean and preserve TC-261 as the sole 18:00Z receipt until the exact 21:00Z rollover; do not push, deploy, publish, or activate trading
   safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_catalog_record_links_2026_08_30:
