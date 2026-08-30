@@ -16,6 +16,12 @@
  * API route. It is documentation-only.
  */
 
+import {
+  SYSTEMATIC_RESEARCH_INTAKE,
+  summarizeResearchIntake,
+} from './research-intake';
+import { summarizeResearchIntakeEvidenceStates } from './research-intake-evidence-state';
+
 export type OpenApiSpec = Record<string, unknown>;
 
 const SERVERS = [
@@ -24,6 +30,25 @@ const SERVERS = [
 ];
 
 const API_KEY_HEADER = "X-TradeClaw-Key";
+
+const OPENAPI_RESEARCH_CATALOG = SYSTEMATIC_RESEARCH_INTAKE;
+const OPENAPI_RESEARCH_EVIDENCE = OPENAPI_RESEARCH_CATALOG.filter(
+  (record) => record.tradeClawSourceAudit !== null || record.tradeClawEvidence !== null,
+);
+const OPENAPI_RESEARCH_CATALOG_SUMMARY = summarizeResearchIntake(
+  OPENAPI_RESEARCH_CATALOG,
+);
+const OPENAPI_RESEARCH_EVIDENCE_SUMMARY = summarizeResearchIntake(
+  OPENAPI_RESEARCH_EVIDENCE,
+);
+const OPENAPI_RESEARCH_CATALOG_EVIDENCE_SUMMARY =
+  summarizeResearchIntakeEvidenceStates(OPENAPI_RESEARCH_CATALOG);
+const OPENAPI_RESEARCH_CATALOG_COUNT = OPENAPI_RESEARCH_CATALOG.length;
+const OPENAPI_RESEARCH_EVIDENCE_COUNT = OPENAPI_RESEARCH_EVIDENCE.length;
+const OPENAPI_RESEARCH_SOURCE_POSITION_MAXIMUM = Math.max(
+  0,
+  OPENAPI_RESEARCH_CATALOG_COUNT - 1,
+);
 
 /**
  * Build the full OpenAPI 3.1 document.
@@ -283,7 +308,11 @@ export function buildOpenApiSpec(): OpenApiSpec {
             upstreamTStatistic: { type: "number" },
             upstreamVolatilityPct: { type: "number" },
             upstreamYearsTested: { type: "number" },
-            sourcePosition: { type: "integer", minimum: 0, maximum: 60 },
+            sourcePosition: {
+              type: "integer",
+              minimum: 0,
+              maximum: OPENAPI_RESEARCH_SOURCE_POSITION_MAXIMUM,
+            },
             discoveryBasis: { type: "string", const: "upstream-gross-metadata" },
             stage: { type: "string" },
             verdict: { type: "string" },
@@ -512,17 +541,41 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 "byAssetClass",
               ],
               properties: {
-                total: { type: "integer", example: 61 },
-                discovered: { type: "integer", example: 53 },
-                sourceAudited: { type: "integer", example: 4 },
-                preregistered: { type: "integer", example: 0 },
-                replicated: { type: "integer", example: 4 },
-                prospective: { type: "integer", example: 0 },
-                passed: { type: "integer", example: 0 },
-                failed: { type: "integer", example: 3 },
-                inconclusive: { type: "integer", example: 1 },
-                untested: { type: "integer", example: 57 },
-                sourceNoGo: { type: "integer", example: 4 },
+                total: { type: "integer", example: OPENAPI_RESEARCH_CATALOG_SUMMARY.total },
+                discovered: {
+                  type: "integer",
+                  example: OPENAPI_RESEARCH_CATALOG_SUMMARY.discovered,
+                },
+                sourceAudited: {
+                  type: "integer",
+                  example: OPENAPI_RESEARCH_CATALOG_SUMMARY.sourceAudited,
+                },
+                preregistered: {
+                  type: "integer",
+                  example: OPENAPI_RESEARCH_CATALOG_SUMMARY.preregistered,
+                },
+                replicated: {
+                  type: "integer",
+                  example: OPENAPI_RESEARCH_CATALOG_SUMMARY.replicated,
+                },
+                prospective: {
+                  type: "integer",
+                  example: OPENAPI_RESEARCH_CATALOG_SUMMARY.prospective,
+                },
+                passed: { type: "integer", example: OPENAPI_RESEARCH_CATALOG_SUMMARY.passed },
+                failed: { type: "integer", example: OPENAPI_RESEARCH_CATALOG_SUMMARY.failed },
+                inconclusive: {
+                  type: "integer",
+                  example: OPENAPI_RESEARCH_CATALOG_SUMMARY.inconclusive,
+                },
+                untested: {
+                  type: "integer",
+                  example: OPENAPI_RESEARCH_CATALOG_SUMMARY.untested,
+                },
+                sourceNoGo: {
+                  type: "integer",
+                  example: OPENAPI_RESEARCH_CATALOG_SUMMARY.sourceNoGo,
+                },
                 byAssetClass: {
                   type: "object",
                   additionalProperties: { type: "integer" },
@@ -532,12 +585,12 @@ export function buildOpenApiSpec(): OpenApiSpec {
             catalogEvidenceStateSummary: {
               $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
               description:
-                "Whole 61-candidate interpretation: 53 untouched discoveries, four source audits, one QA-only record, and three modeled failures.",
+                `Whole-catalog interpretation: ${OPENAPI_RESEARCH_CATALOG_EVIDENCE_SUMMARY.plainLanguageSummary}`,
             },
             records: {
               type: "array",
-              minItems: 61,
-              maxItems: 61,
+              minItems: OPENAPI_RESEARCH_CATALOG_COUNT,
+              maxItems: OPENAPI_RESEARCH_CATALOG_COUNT,
               items: { $ref: "#/components/schemas/ResearchIntakePublicRecord" },
             },
           },
@@ -545,7 +598,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
         ResearchIntakeEvidenceResponse: {
           type: "object",
           description:
-            "Public, deterministic index of all nine candidates with a TradeClaw source-audit or replication overlay. Records remain in pinned source order and include failures, no-go audits, and the inconclusive run.",
+            `Public, deterministic index of all ${OPENAPI_RESEARCH_EVIDENCE_COUNT} candidates with a TradeClaw source-audit or replication overlay. Records remain in pinned source order and include failures, no-go audits, and the inconclusive run.`,
           required: [
             "schemaVersion",
             "access",
@@ -585,7 +638,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             catalogEvidenceStateSummary: {
               $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
               description:
-                "Whole 61-candidate interpretation. This is deliberately separate from the eight-record evidenceStateSummary below.",
+                `Whole ${OPENAPI_RESEARCH_CATALOG_COUNT}-candidate interpretation. This is deliberately separate from the ${OPENAPI_RESEARCH_EVIDENCE_COUNT}-record evidenceStateSummary below.`,
             },
             evidenceIndex: {
               type: "object",
@@ -611,19 +664,26 @@ export function buildOpenApiSpec(): OpenApiSpec {
                   $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
                 },
                 {
-                  description: "Stage and verdict counts for the complete eight-record index",
+                  description:
+                    `Stage and verdict counts for the complete ${OPENAPI_RESEARCH_EVIDENCE_COUNT}-record index`,
                   properties: {
-                    total: { example: 8 },
-                    discovered: { example: 0 },
-                    sourceAudited: { example: 4 },
-                    preregistered: { example: 0 },
-                    replicated: { example: 4 },
-                    prospective: { example: 0 },
-                    passed: { example: 0 },
-                    failed: { example: 3 },
-                    inconclusive: { example: 1 },
-                    untested: { example: 4 },
-                    sourceNoGo: { example: 4 },
+                    total: { example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.total },
+                    discovered: { example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.discovered },
+                    sourceAudited: {
+                      example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.sourceAudited,
+                    },
+                    preregistered: {
+                      example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.preregistered,
+                    },
+                    replicated: { example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.replicated },
+                    prospective: { example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.prospective },
+                    passed: { example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.passed },
+                    failed: { example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.failed },
+                    inconclusive: {
+                      example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.inconclusive,
+                    },
+                    untested: { example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.untested },
+                    sourceNoGo: { example: OPENAPI_RESEARCH_EVIDENCE_SUMMARY.sourceNoGo },
                   },
                 },
               ],
@@ -631,12 +691,12 @@ export function buildOpenApiSpec(): OpenApiSpec {
             evidenceStateSummary: {
               $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
               description:
-                "Interpretation of the complete eight-record evidence subset only.",
+                `Interpretation of the complete ${OPENAPI_RESEARCH_EVIDENCE_COUNT}-record evidence subset only.`,
             },
             records: {
               type: "array",
-              minItems: 8,
-              maxItems: 8,
+              minItems: OPENAPI_RESEARCH_EVIDENCE_COUNT,
+              maxItems: OPENAPI_RESEARCH_EVIDENCE_COUNT,
               items: { $ref: "#/components/schemas/ResearchIntakePublicRecord" },
             },
           },
@@ -648,7 +708,11 @@ export function buildOpenApiSpec(): OpenApiSpec {
           properties: {
             id: { type: "string" },
             title: { type: "string" },
-            position: { type: "integer", minimum: 1, maximum: 61 },
+            position: {
+              type: "integer",
+              minimum: 1,
+              maximum: OPENAPI_RESEARCH_CATALOG_COUNT,
+            },
             href: { type: "string" },
           },
         },
@@ -667,8 +731,15 @@ export function buildOpenApiSpec(): OpenApiSpec {
           ],
           properties: {
             order: { type: "string", enum: ["pinned-source-order"] },
-            currentPosition: { type: "integer", minimum: 1, maximum: 61 },
-            totalCandidates: { type: "integer", enum: [61] },
+            currentPosition: {
+              type: "integer",
+              minimum: 1,
+              maximum: OPENAPI_RESEARCH_CATALOG_COUNT,
+            },
+            totalCandidates: {
+              type: "integer",
+              enum: [OPENAPI_RESEARCH_CATALOG_COUNT],
+            },
             catalogHref: { type: "string", example: "/api/research/intake" },
             selfHref: {
               type: "string",
@@ -726,7 +797,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             catalogEvidenceStateSummary: {
               $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
               description:
-                "Whole 61-candidate interpretation included with the exact candidate context.",
+                `Whole ${OPENAPI_RESEARCH_CATALOG_COUNT}-candidate interpretation included with the exact candidate context.`,
             },
             navigation: {
               $ref: "#/components/schemas/ResearchIntakeCandidateNavigation",
@@ -778,7 +849,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "getResearchIntake",
           summary: "Inspect the pinned systematic-research intake",
           description:
-            "Returns all 61 source candidates in original order with upstream figures labeled as gross discovery metadata only and completed TradeClaw overlays labeled as modeled historical research. " +
+            `Returns all ${OPENAPI_RESEARCH_CATALOG_COUNT} source candidates in original order with upstream figures labeled as gross discovery metadata only and completed TradeClaw overlays labeled as modeled historical research. ` +
             "No API key is required. The response excludes admin and marketing workflow and grants no publication, strategy-selection, broadcast, or trading authority.",
           security: [],
           responses: {
@@ -799,7 +870,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "getResearchIntakeEvidence",
           summary: "Inspect every examined systematic-research candidate",
           description:
-            "Returns all nine candidates with a TradeClaw source-audit or replication overlay in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
+            `Returns all ${OPENAPI_RESEARCH_EVIDENCE_COUNT} candidates with a TradeClaw source-audit or replication overlay in pinned source order, including all failures, no-go audits, and the inconclusive run. ` +
             "The complete set is filter-free and never performance-ranked. No API key is required, and the response grants no publication, strategy-selection, broadcast, or trading authority.",
           security: [],
           responses: {
@@ -820,7 +891,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "downloadResearchIntakeEvidenceCsv",
           summary: "Download every examined research candidate as CSV",
           description:
-            "Returns all nine examined candidates as a claim-safe 25-column spreadsheet in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
+            `Returns all ${OPENAPI_RESEARCH_EVIDENCE_COUNT} examined candidates as a claim-safe 25-column spreadsheet in pinned source order, including all failures, no-go audits, and the inconclusive run. ` +
             "No API key is required. Every row repeats the pinned source receipt and false publication/trading authority; the canonical evidence JSON retains complete nested research records.",
           security: [],
           responses: {
@@ -841,7 +912,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
                   schema: {
                     type: "string",
                     description:
-                      "The shared 25-column header plus seven source-ordered evidence rows. Canonical evidence JSON remains authoritative for nested records.",
+                      `The shared 25-column header plus ${OPENAPI_RESEARCH_EVIDENCE_COUNT} source-ordered evidence rows. Canonical evidence JSON remains authoritative for nested records.`,
                   },
                 },
               },
@@ -898,7 +969,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "downloadResearchIntakeCsv",
           summary: "Download the systematic-research intake as CSV",
           description:
-            "Returns all 61 source candidates in original order as a claim-safe 25-column spreadsheet index with the pinned source receipt and false publication/trading authority repeated on every row. " +
+            `Returns all ${OPENAPI_RESEARCH_CATALOG_COUNT} source candidates in original order as a claim-safe 25-column spreadsheet index with the pinned source receipt and false publication/trading authority repeated on every row. ` +
             "The canonical JSON response retains complete nested TradeClaw evidence. No API key is required.",
           security: [],
           responses: {
@@ -919,7 +990,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
                   schema: {
                     type: "string",
                     description:
-                      "Header plus 61 source-ordered rows. Canonical JSON remains authoritative for nested evidence objects.",
+                      `Header plus ${OPENAPI_RESEARCH_CATALOG_COUNT} source-ordered rows. Canonical JSON remains authoritative for nested evidence objects.`,
                   },
                 },
               },

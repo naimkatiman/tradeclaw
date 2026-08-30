@@ -1,11 +1,156 @@
 project: tradeclaw
-updated: 2026-08-30T08:37:38+08:00
+updated: 2026-08-30T08:55:58+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_openapi_catalog_parity_2026_08_30:
+  at: 2026-08-30T08:44:29+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Keep the public systematic-research OpenAPI contract aligned with the compiled pinned catalog and complete adverse-inclusive evidence subset after every intake overlay
+  base_commit: 87735fb50bcc6af4e3be06b8035968784e6143d9
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-263
+  current_cycle_id: 2026-08-30T00:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-263
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T03:00:00.000Z
+  gate_observed_at: 2026-08-30T00:44:29.7413177Z
+  gate_decision: The 03:00Z research gate remains closed, so this turn may improve only deterministic product documentation and must create no candidate, receipt, return, preregistration, artifact, or marketing draft
+  library_search: MemoryCore's recommendation-tier-by-audience pattern favors short execution-first guidance for the user's requested simple experience; code inspection then exposed a more concrete trust defect, so this bounded cycle fixes the stale machine-readable contract instead of adding redundant guidance copy
+  problem: >-
+    The compiled public responses contain 61 candidates, including 52 untouched
+    discoveries, five source-audit-only records, one QA-only record, and three
+    modeled historical failures. The OpenAPI schema still describes 53 untouched
+    discoveries, four source audits, and an eight-record evidence desk, with
+    min/max array constraints that reject the real nine-record response.
+  decision: >-
+    Derive research-only OpenAPI counts, examples, descriptions, record bounds,
+    source-position bounds, and candidate-navigation bounds from the immutable
+    compiled catalog and its complete source-audit-or-replication subset. Add one
+    parity contract that compares the machine-readable schema with the real public
+    catalog and evidence payloads so future intake overlays cannot silently drift.
+  frozen_contract:
+    catalog_candidates: 61
+    catalog_discovered: 52
+    catalog_source_audited: 5
+    catalog_replicated: 4
+    catalog_untested: 57
+    catalog_source_no_go: 5
+    evidence_candidates: 9
+    evidence_source_audited: 5
+    evidence_replicated: 4
+    evidence_untested: 5
+    evidence_source_no_go: 5
+    evidence_performance_gates_evaluated: 3
+    evidence_performance_gates_not_evaluated: 6
+    catalog_record_min_max: 61
+    evidence_record_min_max: 9
+    source_position_maximum: 60
+    navigation_position_maximum: 61
+    public_payload_behavior_changed: false
+    protected_payload_behavior_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/openapi.ts
+    - apps/web/lib/__tests__/research-intake-openapi-parity.test.ts
+    - apps/web/app/__tests__/systematic-intake-publication-boundary.test.ts
+  frozen_boundaries:
+    rendered_ui_changed: false
+    source_catalog_or_evidence_changed: false
+    public_or_protected_json_payload_changed: false
+    csv_changed: false
+    route_or_auth_semantics_changed: false
+    receipt_handoff_or_marketing_state_changed: false
+    docker_dependency_database_or_migration_changed: false
+    signal_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  red_verification: >-
+    PASS - the new focused suite ran three assertions groups: two failed only on
+    the stale catalog examples and stale prose-number evidence contract, while
+    the unchanged 61-candidate source-position and navigation bounds passed.
+    No implementation code had changed and no unrelated failure was observed.
+  focused_green_verification: >-
+    PASS - the new parity suite runs four tests and all four pass. Catalog
+    examples and interpretation, nine-record evidence examples/descriptions and
+    min/max bounds, source-position and navigation bounds, and JSON/CSV endpoint
+    count copy now derive from the actual public payloads.
+  static_red_verification: >-
+    EXPECTED LOCAL FIX - source reconstruction passed 61/61. The first TypeScript
+    widening found one test-only structural cast that must pass through `unknown`;
+    implementation code compiled to that point and no unrelated error appeared.
+    The parallel lint process had not returned an exit status before the command
+    yield, so both TypeScript and lint will be rerun after the narrow cast fix.
+  adjacent_green_verification: >-
+    PASS - eight OpenAPI, public catalog, evidence, candidate, interpretation,
+    and publication-boundary suites ran 34 tests. All pass after replacing the
+    remaining word-based `nine` and 53/4/4 examples with values derived from the
+    real public payload. Existing public JSON and all four CSV fingerprints stay
+    byte-identical.
+  static_verification: >-
+    PASS - the pinned source verifier reconstructs all 61 candidates from commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a;
+    the signals prerequisite and full web TypeScript graph compile; lint reports
+    zero errors and the same 21 inherited warnings.
+  pre_full_suite_integrity: >-
+    PASS - STATE.yaml parses, `git diff --check` is clean apart from Windows
+    line-ending notices, docker-compose.yml has no diff, and the worktree is
+    limited to the four expected OpenAPI, parity-test, publication-boundary-test,
+    and state paths.
+  full_suite_verification: >-
+    PASS - all 293 runnable suites and all 2,160 runnable tests pass; the inherited
+    three suites and 26 tests remain skipped and the single snapshot passes. The
+    total includes the new four-test OpenAPI parity suite, and Jest used the
+    repository's known `--forceExit` handling only after the green result.
+  build_verification: >-
+    PASS - `npm run build` compiles signals, trading-agents, and the Next.js
+    production application and generates all 329 of 329 static pages. The three
+    inherited Turbopack NFT-trace notices, middleware deprecation, url.parse
+    deprecations, and edge-runtime static-generation notice remain non-fatal.
+  openapi_receipt:
+    compact_json_bytes: 29915
+    compact_json_sha256: 15b689f12ebd5510fa0947651d0857c3f10b9ae5b5600ac408f3b50fe686ff02
+    catalog_examples: {total: 61, discovered: 52, sourceAudited: 5, preregistered: 0, replicated: 4, prospective: 0, passed: 0, failed: 3, inconclusive: 1, untested: 57, sourceNoGo: 5}
+    catalog_record_bounds: {minItems: 61, maxItems: 61}
+    evidence_examples: {total: 9, discovered: 0, sourceAudited: 5, preregistered: 0, replicated: 4, prospective: 0, passed: 0, failed: 3, inconclusive: 1, untested: 5, sourceNoGo: 5}
+    evidence_record_bounds: {minItems: 9, maxItems: 9}
+    source_position_maximum: 60
+    navigation_position_maximum: 61
+  changed_path_manifest:
+    count: 4
+    sorted_lf_path_sha256: 470635be7cbbb44163e7799005ca9329ce94e352ace2a12bbdcfa07449f701fb
+    state_paths: 1
+    implementation_paths: 1
+    deterministic_test_paths: 2
+    rendered_ui_paths: 0
+    docker_or_dependency_paths: 0
+    database_or_migration_paths: 0
+    signal_allocation_broadcast_broker_execution_paths: 0
+    unexpected_paths: 0
+  final_scope_audit: >-
+    PASS - STATE parses, `git diff --check` is clean apart from Windows line-ending
+    notices, docker-compose.yml has no diff, and all four changed paths match the
+    frozen manifest. Public/protected JSON, CSV, auth, routes, receipts, marketing,
+    runtime, and trading behavior remain unchanged.
+  final_gate_observed_at: 2026-08-30T00:55:58.1418017Z
+  final_gate_decision: The 03:00Z research gate remains closed by more than two hours; create no new receipt and preserve TC-263 as the sole 00:00Z receipt
+  precommit_closure_verification: >-
+    PASS - the two final OpenAPI parity and publication-boundary suites reran nine
+    tests with all nine passing. STATE parses, `git diff --check` remains clean
+    apart from line-ending notices, Docker has no diff, and the exact four-path
+    manifest remains intact.
+  current_step: Commit the verified documentation-only parity repair locally
+  next_action: Record the implementation commit, close STATE in a local-only commit, save shared MemoryCore, and keep the recurring goal active for the exact 03:00Z gate
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: Documentation-only derived contract work; no rendered UI, candidate, receipt, return, preregistration, marketing draft, publication, posting, signal, allocation, broadcast, broker, execution, billing, push, merge, or deployment action is authorized
 
 research_source_intake_cycle_2026_08_30_0000:
   at: 2026-08-30T08:37:38+08:00

@@ -2,6 +2,10 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildOpenApiSpec } from '../../lib/openapi';
+import {
+  buildResearchIntakePublicEvidencePayload,
+  buildResearchIntakePublicPayload,
+} from '../../lib/research-intake-public';
 
 function source(path: string): string {
   return readFileSync(resolve(__dirname, '..', path), 'utf8');
@@ -54,6 +58,9 @@ describe('systematic research intake public boundary', () => {
   });
 
   it('documents the API-key-free read model in the canonical OpenAPI spec', () => {
+    const catalogPayload = buildResearchIntakePublicPayload();
+    const evidencePayload = buildResearchIntakePublicEvidencePayload();
+    const evidenceCount = evidencePayload.records.length;
     const spec = buildOpenApiSpec() as {
       tags: Array<{ name: string }>;
       components: { schemas: Record<string, unknown> };
@@ -175,13 +182,19 @@ describe('systematic research intake public boundary', () => {
     expect(evidenceOperation).toBeDefined();
     expect(evidenceOperation?.security).toEqual([]);
     expect(evidenceOperation?.description).toMatch(
-      /all nine.*source-audit or replication.*source order.*failures.*no-go.*inconclusive/i,
+      new RegExp(
+        `all ${evidenceCount}.*source-audit or replication.*source order.*failures.*no-go.*inconclusive`,
+        'i',
+      ),
     );
     expect(evidenceOperation?.responses).toHaveProperty('200');
     expect(evidenceCsvOperation).toBeDefined();
     expect(evidenceCsvOperation?.security).toEqual([]);
     expect(evidenceCsvOperation?.description).toMatch(
-      /all nine.*25-column.*source order.*failures.*no-go.*inconclusive.*no API key/i,
+      new RegExp(
+        `all ${evidenceCount}.*25-column.*source order.*failures.*no-go.*inconclusive.*no API key`,
+        'i',
+      ),
     );
     expect(evidenceCsvOperation?.responses).toHaveProperty('200');
     expect(candidateOperation).toBeDefined();
@@ -200,9 +213,13 @@ describe('systematic research intake public boundary', () => {
     expect(csvOperation?.security).toEqual([]);
     expect(csvOperation?.description).toMatch(/25-column spreadsheet index.*canonical JSON/i);
     expect(csvOperation?.responses).toHaveProperty('200');
-    expect(summaryExamples?.discovered?.example).toBe(53);
-    expect(summaryExamples?.sourceAudited?.example).toBe(4);
-    expect(summaryExamples?.sourceNoGo?.example).toBe(4);
+    expect(summaryExamples?.discovered?.example).toBe(catalogPayload.catalogSummary.discovered);
+    expect(summaryExamples?.sourceAudited?.example).toBe(
+      catalogPayload.catalogSummary.sourceAudited,
+    );
+    expect(summaryExamples?.sourceNoGo?.example).toBe(
+      catalogPayload.catalogSummary.sourceNoGo,
+    );
   });
 
   it('keeps every local OpenAPI reference resolvable', () => {
