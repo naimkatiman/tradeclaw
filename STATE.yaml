@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T19:03:11+08:00
+updated: 2026-08-30T19:04:08+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,7 +10,7 @@ description: >
 research_admin_owner_decision_form_2026_08_30:
   at: 2026-08-30T18:47:02+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_commit_pending
+  status: done_verified_implementation_committed_local
   scope: Give admins one canonical ready-only owner-decision YAML form and a strict read-only validator without persisting a decision or performing publication
   base_commit: 2b18c3d972443f5e95cc58574b0ae2bd119cb657
   branch: agent/research-intake-desk-20260829
@@ -195,6 +195,8 @@ research_admin_owner_decision_form_2026_08_30:
     state_and_package: PASS - YAML and JSON parse and both package commands match the recorded contract
     scope_and_cleanup: PASS - exactly nine intended paths changed; no temporary completed-handoff, completed-owner-decision, tmp, or temp artifact remains
     compose: PASS - no Compose, Dockerfile, lockfile, dependency, database, or migration path changed; Docker CLI remains unavailable for a runtime Compose check
+  implementation_commit: 624cc4789aaad884c61490b284a176a05209a116
+  implementation_committed_at: 2026-08-30T19:03:59+08:00
   safety: >-
     Preparation and validation may read bounded local files and current
     repository evidence only. They must not mutate review, receipt, queue,
@@ -202,7 +204,7 @@ research_admin_owner_decision_form_2026_08_30:
     billing, or trading state. A validated approval outcome may only describe a
     separately supplied manual owner response; this work provides no outbound
     publication action or authority.
-  next_action: Commit the nine intended files locally, record the exact implementation hash, then close state in a second local commit without pushing, deploying, publishing, posting, recording an owner decision, or trading.
+  next_action: At or after 2026-08-30T12:00:00.000Z, re-observe the receipt and marketing gate before opening any new current-window receipt; then choose one exact-source intake candidate or a higher-value receipt-neutral improvement, preserving one receipt per clean window and every fail-closed publication and trading boundary.
 
 research_admin_owner_request_artifact_2026_08_30:
   at: 2026-08-30T18:27:03+08:00
