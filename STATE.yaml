@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T18:38:55+08:00
+updated: 2026-08-30T18:40:53+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,7 +10,7 @@ description: >
 research_admin_owner_request_artifact_2026_08_30:
   at: 2026-08-30T18:27:03+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_commit_pending
+  status: done_verified_implementation_committed_local
   scope: Give admins one canonical compact transport artifact for a validated ready-only owner-decision request without recording a decision or performing any publication action
   base_commit: 82092e808d2d71bd70a7934e9ff37f399b2f58da
   branch: agent/research-intake-desk-20260829
@@ -177,12 +177,14 @@ research_admin_owner_request_artifact_2026_08_30:
     state_package_and_diff: PASS - STATE and package JSON parse, package command matches, and git diff check has no whitespace errors apart from Windows line-ending notices
     scope_and_cleanup: PASS - exactly seven intended files changed and no temporary completed-handoff, owner-decision JSON/YAML, tmp, or temp artifact remains
     compose: PASS - no Docker Compose path changed; Docker CLI remains unavailable for an additional local runtime check
+  implementation_commit: 6434763b7fb0de7b2fddf61debc90ae645175a26
+  implementation_committed_at: 2026-08-30T18:40:35+08:00
   safety: >-
     The command may read one local completed handoff and current repository
     evidence, then write JSON to stdout only. It must not create or overwrite a
     file, mutate the queue or receipts, record review or owner state, publish,
     post, authorize promotion, alter signals, contact brokers, execute, or trade.
-  next_action: Commit the seven intended files locally, record the exact implementation hash, then close state in a second local commit without pushing, deploying, publishing, or trading.
+  next_action: At or after 2026-08-30T12:00:00.000Z, re-observe the receipt and marketing gate before opening any new current-window receipt; then choose one receipt-neutral admin improvement or the next exact-source intake candidate, preserving one receipt per clean window and all fail-closed authority controls.
 
 research_admin_owner_decision_request_2026_08_30:
   at: 2026-08-30T18:06:29+08:00
