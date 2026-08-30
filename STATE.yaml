@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T19:24:39+08:00
+updated: 2026-08-30T19:26:27+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,7 +10,7 @@ description: >
 research_admin_publication_action_request_2026_08_30:
   at: 2026-08-30T19:08:37+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_implementation_commit
+  status: done_verified_implementation_committed_local
   scope: Turn only a fully validated owner approval into one deterministic content-bound request for a separately authorized publication action, without performing or enqueueing that action
   base_commit: bc82f442e270763e79025a3fae43088c6dbcda67
   branch: agent/research-intake-desk-20260829
@@ -129,8 +129,43 @@ research_admin_publication_action_request_2026_08_30:
     - scripts/research/prepare-marketing-publication-action-request.ts
     - scripts/research/research-marketing-publication-action-request.ts
   compose_flow: untouched; Docker Compose files, migrations, runtime routes, and database behavior are unchanged
+  final_gate_observed_at: 2026-08-30T11:25:30.216Z
+  final_gate_snapshot: >-
+    Complete with TC-266 still the sole current-window and latest receipt, 11
+    total receipts across 10 windows, only the expected historical 06:00Z
+    duplicate, no additional duplicate, four unchanged handoffs, no current-
+    window handoff, zero approved drafts, and automatic selection, publication,
+    posting, and trading false.
+  final_verification:
+    focused: PASS - 1 suite and 12 tests
+    adjacent: PASS - 52 suites and 318 tests
+    strict_standalone_typescript: PASS
+    research_routes_and_auth: PASS - 26 suites and 99 tests
+    pinned_source: PASS - 61/61 candidates
+    review_evidence: PASS - 4/4 manifests and 12/12 files
+    web_typecheck: PASS
+    lint: PASS - 0 errors and 21 inherited warnings
+    deterministic_replay: PASS - byte-identical exact-draft request with complete source and decision rebinding; decline, revision, tampering, and evidence drift yield no request
+    protected_public_and_csv_surfaces: PASS - all frozen byte counts and SHA-256 values unchanged
+    full_repository_tests: PASS - 326 runnable suites and 2363 tests
+    production_build: PASS - 331/331 pages
+    state_and_package: PASS - YAML and JSON parse and the package command matches the recorded contract
+    scope_and_cleanup: PASS - implementation commit contains exactly the intended seven paths; no temporary fixture or output artifact remains
+    compose: PASS - no Compose, Dockerfile, lockfile, dependency, database, or migration path changed; Docker CLI remains unavailable for a runtime Compose check
+  implementation_commit: f4439a4c8443d945e77b51067a122b919e649751
+  implementation_committed_at: 2026-08-30T19:25:12+08:00
+  recurring_goal_status: active
+  state_closure_verified_at: 2026-08-30T19:26:27+08:00
+  state_closure_verification: PASS - receipt-ledger and marketing-loop suites pass 9/9 against the final gate; STATE.yaml and package.json parse with the committed contract, git diff hygiene passes, the implementation commit contains exactly seven intended paths, and STATE.yaml is the sole closure change
+  safety: >-
+    The new command reads only two bounded local files and current repository
+    evidence, writes deterministic JSON to stdout, and returns no request unless
+    the exact approval path remains valid. It does not record a decision,
+    authenticate an owner, select a target, enqueue, publish, post, signal,
+    allocate, broadcast, call a broker, execute, bill, or trade; it grants no
+    publication or trading authority.
   external_actions: none
-  next_action: Commit the verified seven-file implementation locally, rerun the current-window gate, and close state in a second local commit.
+  next_action: At or after 2026-08-30T12:00:00.000Z, re-observe the receipt and marketing gate before opening any new current-window receipt; then choose one exact-source intake candidate or a higher-value receipt-neutral improvement, preserving one receipt per clean window and every fail-closed publication and trading boundary.
 
 research_admin_owner_decision_form_2026_08_30:
   at: 2026-08-30T18:47:02+08:00
