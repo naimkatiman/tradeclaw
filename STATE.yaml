@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T10:34:00+08:00
+updated: 2026-08-30T10:34:58+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,11 @@ description: >
 research_compact_evidence_index_2026_08_30:
   at: 2026-08-30T10:13:00+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_implementation_commit
+  status: done_compact_evidence_indexes_verified_and_committed_local
   scope: Bridge the compact overview to exact candidate detail with lightweight public and protected evidence indexes instead of forcing complete nested evidence-body downloads
   base_commit: 2f80c260d1f583044d1d8b4f03262760637f88f6
+  implementation_commit: 9966d006bf7b94de47da142ca0391e54039f7aa9
+  implementation_committed_at: 2026-08-30T02:34:58.1633233Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-263
   current_cycle_id: 2026-08-30T00:00:00.000Z/PT3H
@@ -176,8 +178,8 @@ research_compact_evidence_index_2026_08_30:
     with authentication before observation and no workflow bodies. Existing
     complete evidence and CSV resources remain available; no performance sort,
     automatic action, publication authority, or trading authority was added.
-  final_gate_observed_at: 2026-08-30T02:34:00.3716867Z
-  final_gate_decision: The exact 03:00Z rollover remains closed after all verification; TC-263 stays the sole current-window receipt and no research or marketing-loop artifact was created
+  final_gate_observed_at: 2026-08-30T02:34:58.1633233Z
+  final_gate_decision: The exact 03:00Z rollover remains closed after the local implementation commit; TC-263 stays the sole current-window receipt and no research or marketing-loop artifact was created
   frozen_boundaries:
     source_catalog_candidate_evidence_verdict_receipt_or_draft_changed: false
     candidate_or_csv_shape_changed: false
