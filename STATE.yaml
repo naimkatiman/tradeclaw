@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T23:47:51+08:00
+updated: 2026-08-30T23:48:56+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_readme_evidence_count_guard_2026_08_30:
-  at: 2026-08-30T23:47:51+08:00
+  at: 2026-08-30T23:48:56+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_commit
+  status: done_verified_implementation_committed_local
   scope: Repair the stale public README research status after TC-268 and make future catalog-count drift fail against the compiled evidence desk
   branch: agent/research-intake-desk-20260829
   base_commit: fb009dfb3b0dd7be30c2b5c561ecd170f2678b8b
+  implementation_commit: 4102544e2a75c852e56108177b737b9f0223a2ab
   receipt_neutral: true
   cycle_id: 2026-08-30T15:00:00.000Z/PT3H
   new_research_receipt: false
@@ -67,10 +68,11 @@ research_readme_evidence_count_guard_2026_08_30:
     receipt_or_marketing_state_changed: false
     gate_observed_at: 2026-08-30T15:47:43.534Z
     gate: PASS - TC-268 remains the sole current-window receipt, another receipt is denied until exact 2026-08-30T18:00:00.000Z, only the expected historical duplicate exists, four drafts remain human-review-only, zero are approved, and the current window has no marketing handoff
+    implementation_commit_audit: PASS - the exact verified three-path increment committed locally as 4102544e2a75c852e56108177b737b9f0223a2ab on the intended isolated branch with no residual source changes
   verification: PASS - focused README parity passes 2/2; research-domain tests pass 272/272; public/admin routes pass 113/113; pinned source reconstruction passes 61/61; all 339 runnable repository suites and 2431 tests pass; typecheck, lint, README parity, STATE, scope, diff, gate, and the required 333-page production build pass
   shared_library_search: No reusable README count-drift, generated-status-block, or canonical documentation-parity pattern was found under the shared MemoryCore library.
   safety_boundary: No candidate, source audit, return, receipt, preregistration, evidence artifact, marketing draft, rendered UI, auth, runtime, database, Docker, billing, signal, allocation, broadcast, broker, execution, or trading behavior will change.
-  next_step: Stage the exact verified three-path increment, commit locally, record the commit in STATE, save shared project memory, and wait for the exact 18:00Z intake boundary.
+  next_step: Commit this STATE-only closure locally, save shared project memory, and wait for the exact 2026-08-30T18:00:00.000Z intake boundary.
 
 research_tc268_commodity_correlation_momentum_2026_08_30:
   at: 2026-08-30T23:35:32+08:00
