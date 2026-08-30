@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T18:20:07+08:00
+updated: 2026-08-30T18:21:09+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,7 +10,7 @@ description: >
 research_admin_owner_decision_request_2026_08_30:
   at: 2026-08-30T18:06:29+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_commit_pending
+  status: done_verified_implementation_committed_local
   scope: Turn a valid completed-review handoff into one outcome-aware next step and a digest-bound non-authorizing owner-decision request only when the reviewer marks it ready
   base_commit: a224030e8e8565d29c6e4bcc9ae03c827cb5b93c
   branch: agent/research-intake-desk-20260829
@@ -167,12 +167,14 @@ research_admin_owner_decision_request_2026_08_30:
     state_and_diff: PASS - STATE parses and git diff check has no whitespace errors apart from Windows line-ending notices
     scope_and_cleanup: PASS - exactly seven intended files changed and no temporary completed-handoff, owner-decision, tmp, or temp artifact remains
     compose: PASS - no Docker Compose path changed; Docker CLI remains unavailable for an additional local runtime check
+  implementation_commit: 8e7040dc336f7188d45b381c070959dd6b8abd74
+  implementation_committed_at: 2026-08-30T18:20:34+08:00
   safety: >-
     This is a local read-only request object, not a decision, approval, queue
     mutation, post, publication action, signal change, broker instruction, or
     execution authority. Public, compact, CSV, receipt, rendered UI, Docker,
     billing, and trading surfaces must remain unchanged.
-  next_action: Commit the seven intended files locally, record the exact implementation hash, then close state in a second local commit without pushing or deploying.
+  next_action: At or after 2026-08-30T12:00:00.000Z, re-observe the receipt and marketing gate before opening any new current-window receipt; then choose one receipt-neutral admin improvement or the next exact-source intake candidate, preserving one receipt per clean window and all fail-closed authority controls.
 
 research_admin_completed_handoff_validator_2026_08_30:
   at: 2026-08-30T17:41:37+08:00
