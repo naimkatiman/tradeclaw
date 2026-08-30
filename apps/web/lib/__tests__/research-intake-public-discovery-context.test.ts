@@ -216,12 +216,12 @@ describe('public research-intake discovery context', () => {
         sha256: '6b4721b769db3cb6bd033c6b8d9d01c850db1f387ebdf33446fd14dccca0a06c',
       },
       catalog: {
-        bytes: 108_408,
-        sha256: '9c60f1a917e697806d4f0e7693c18d05e0013e3aef9d747cba1435993df0a55d',
+        bytes: 113_858,
+        sha256: 'd1472f9063673568c37df87293eecac0f049ebb03ead1678c5856fd63993cbc1',
       },
       evidence: {
-        bytes: 53_367,
-        sha256: '98a39c2b6721860c98efe3c3adc2203adf4bf11762a51ebc0af8f9af72e03193',
+        bytes: 56_318,
+        sha256: '21f0cbebf89d0c0e8edb016bafd834b71b5ba0d25bc90575c5e8151b0ddede54',
       },
     });
   });
@@ -231,16 +231,16 @@ describe('public research-intake discovery context', () => {
       new URLSearchParams(),
       DETERMINISTIC_AT,
     ))).toEqual({
-      bytes: 73_804,
-      sha256: '8962f8d01ba67241393e451b6027240f71b315d93ec038c741c29e96f0c270df',
+      bytes: 75_723,
+      sha256: '6fe5d701105afef8477436eac2d2ec6afd6db36d2e67f1d54a5f945c6ffa0a2a',
     });
     const protectedEvidence = buildResearchIntakeAdminEvidencePayload(DETERMINISTIC_AT);
     expect(protectedEvidence.catalogEvidenceStateSummary).toEqual(
       context(buildResearchIntakePublicPayload()).catalogEvidenceStateSummary,
     );
     expect(fingerprint(protectedEvidence)).toEqual({
-      bytes: 81_672,
-      sha256: '83501ae0607a65182fd228bb1420b66c494da6b9c8204b406d48b7b82732dd95',
+      bytes: 84_623,
+      sha256: 'ba8860f01443e4432625a372249e0207a619bebd48b834cf5abe617982c20a43',
     });
   });
 });

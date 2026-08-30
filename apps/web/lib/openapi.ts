@@ -405,6 +405,8 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 "meaning",
                 "performanceGatesEvaluated",
                 "taskId",
+                "decisionSummary",
+                "evidenceRecordedOn",
                 "evidencePath",
                 "artifactPath",
                 "grantsPublicationAuthority",
@@ -426,6 +428,18 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 meaning: { type: "string" },
                 performanceGatesEvaluated: { type: "boolean" },
                 taskId: { type: ["string", "null"] },
+                decisionSummary: {
+                  type: ["string", "null"],
+                  maxLength: 320,
+                  description:
+                    "Canonical candidate-specific TradeClaw decision reason, or null when the discovery has no TradeClaw source audit or replication.",
+                },
+                evidenceRecordedOn: {
+                  type: ["string", "null"],
+                  format: "date",
+                  description:
+                    "Canonical source-audit date or replication study date, or null for an untouched discovery.",
+                },
                 evidencePath: { type: ["string", "null"] },
                 artifactPath: { type: ["string", "null"] },
                 grantsPublicationAuthority: { type: "boolean", const: false },
@@ -736,6 +750,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "performanceGatesEvaluated",
             "taskId",
             "decisionSummary",
+            "evidenceRecordedOn",
           ],
           properties: {
             performanceEvidenceStatus: {
@@ -756,6 +771,12 @@ export function buildOpenApiSpec(): OpenApiSpec {
               maxLength: 320,
               description:
                 "Candidate-specific reason derived from the canonical TradeClaw source-audit or replication record. It is explanatory evidence copy, not a recommendation or authority.",
+            },
+            evidenceRecordedOn: {
+              type: "string",
+              format: "date",
+              description:
+                "Canonical source-audit date or replication study date for this examined candidate.",
             },
           },
         },

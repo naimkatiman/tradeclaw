@@ -23,6 +23,8 @@ export interface ResearchIntakeEvidenceState {
   meaning: string;
   performanceGatesEvaluated: boolean;
   taskId: string | null;
+  decisionSummary: string | null;
+  evidenceRecordedOn: string | null;
   evidencePath: string | null;
   artifactPath: string | null;
   grantsPublicationAuthority: false;
@@ -199,6 +201,8 @@ export function buildResearchIntakeEvidenceState(
     meaning: copy.meaning,
     performanceGatesEvaluated: status.startsWith('modeled-historical-'),
     taskId: evidence?.taskId ?? sourceAudit?.taskId ?? null,
+    decisionSummary: buildResearchIntakeDecisionSummary(record),
+    evidenceRecordedOn: buildResearchIntakeEvidenceRecordedOn(record),
     evidencePath: evidence?.resultPath ?? sourceAudit?.researchPath ?? null,
     artifactPath: evidence?.artifactPath ?? null,
     grantsPublicationAuthority: false,
@@ -207,23 +211,42 @@ export function buildResearchIntakeEvidenceState(
 }
 
 /**
- * Candidate-specific explanation for compact evidence views. The canonical
- * reason stays on the source-audit or replication record; this helper only
- * validates and projects it. Untouched discovery rows fall back to the shared
- * evidence-state meaning.
+ * Candidate-specific explanation projected from the canonical source-audit or
+ * replication record. Untouched discovery rows have no TradeClaw decision.
  */
-export function buildResearchIntakeDecisionSummary(record: ResearchIntakeRecord): string {
+export function buildResearchIntakeDecisionSummary(
+  record: ResearchIntakeRecord,
+): string | null {
   const evidence = record.tradeClawEvidence;
   const sourceAudit = record.tradeClawSourceAudit;
   const reason = evidence?.reason ?? sourceAudit?.reason;
 
   if (reason === undefined) {
-    return buildResearchIntakeEvidenceState(record).meaning;
+    return null;
   }
   if (reason.trim() !== reason || reason.length === 0 || reason.length > 320) {
     throw new Error(`research decision summary for ${record.id} must be 1-320 trimmed characters`);
   }
   return reason;
+}
+
+/** Canonical source-audit or replication date for the shared decision context. */
+export function buildResearchIntakeEvidenceRecordedOn(
+  record: ResearchIntakeRecord,
+): string | null {
+  const recordedOn = record.tradeClawEvidence?.studyDate
+    ?? record.tradeClawSourceAudit?.auditDate;
+  if (recordedOn === undefined) return null;
+
+  const parsed = new Date(`${recordedOn}T00:00:00.000Z`);
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(recordedOn)
+    || !Number.isFinite(parsed.getTime())
+    || parsed.toISOString().slice(0, 10) !== recordedOn
+  ) {
+    throw new Error(`research evidence date for ${record.id} must be canonical YYYY-MM-DD`);
+  }
+  return recordedOn;
 }
 
 export function summarizeResearchIntakeEvidenceStates(

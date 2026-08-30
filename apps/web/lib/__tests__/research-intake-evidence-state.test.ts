@@ -12,6 +12,8 @@ interface EvidenceStateView {
   meaning: string;
   performanceGatesEvaluated: boolean;
   taskId: string | null;
+  decisionSummary: string | null;
+  evidenceRecordedOn: string | null;
   evidencePath: string | null;
   artifactPath: string | null;
   grantsPublicationAuthority: false;
@@ -54,6 +56,8 @@ describe('shared research candidate evidence state', () => {
         'Only upstream gross discovery metadata is available; TradeClaw has not audited or performance-tested this candidate.',
       performanceGatesEvaluated: false,
       taskId: null,
+      decisionSummary: null,
+      evidenceRecordedOn: null,
       evidencePath: null,
       artifactPath: null,
       grantsPublicationAuthority: false,
@@ -67,6 +71,9 @@ describe('shared research candidate evidence state', () => {
         'Only a TradeClaw source audit is available; no local backtest ran, so there is no performance conclusion.',
       performanceGatesEvaluated: false,
       taskId: 'TC-262',
+      decisionSummary:
+        'The mathematical MDP objective is clear, but exact empirical replay would require proprietary point-in-time inputs plus invented estimator, penalty, fill, and friction choices; a public-universe implementation would be a materially new hypothesis.',
+      evidenceRecordedOn: '2026-08-30',
       evidencePath: 'docs/research/2026-08-30-most-diversified-portfolio-source-audit.md',
       artifactPath: null,
       grantsPublicationAuthority: false,
@@ -80,6 +87,9 @@ describe('shared research candidate evidence state', () => {
         'TradeClaw completed replication QA but did not evaluate performance gates, so there is no performance conclusion.',
       performanceGatesEvaluated: false,
       taskId: 'TC-257',
+      decisionSummary:
+        'One of 27,453 parameter-to-supplied-yield checks exceeded the preregistered 0.0001 percentage-point tolerance, so the retained artifact is QA-only and no performance gate was evaluated.',
+      evidenceRecordedOn: '2026-08-29',
       evidencePath:
         'docs/research/2026-08-29-end-of-month-treasury-replication-result.md',
       artifactPath:
@@ -95,6 +105,9 @@ describe('shared research candidate evidence state', () => {
         'A modeled historical TradeClaw replication failed its frozen gates; this is not live performance.',
       performanceGatesEvaluated: true,
       taskId: 'TC-255',
+      decisionSummary:
+        "The frozen BTC/ETH replication failed after modeled costs: BTC and ETH each lost more than 99% net, neither produced a positive fold, and the fixed portfolio lost 29.53% in holdout; BTC's 0.045% mean gross edge per trade was below 0.40% round-trip friction.",
+      evidenceRecordedOn: '2026-08-29',
       evidencePath:
         'docs/research/2026-08-29-external-multi-timeframe-replication-result.md',
       artifactPath:
@@ -151,6 +164,8 @@ describe('shared research candidate evidence state', () => {
       'meaning',
       'performanceGatesEvaluated',
       'taskId',
+      'decisionSummary',
+      'evidenceRecordedOn',
       'evidencePath',
       'artifactPath',
       'grantsPublicationAuthority',

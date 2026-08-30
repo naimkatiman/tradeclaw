@@ -12,7 +12,6 @@ import {
   type ResearchIntakeCandidateNavigation,
 } from './research-intake-candidate-navigation';
 import {
-  buildResearchIntakeDecisionSummary,
   buildResearchIntakeEvidenceState,
   summarizeResearchIntakeEvidenceStates,
   type ResearchIntakeEvidenceState,
@@ -115,6 +114,7 @@ export type ResearchIntakeEvidenceIndexState = Pick<
   'performanceEvidenceStatus' | 'label' | 'performanceGatesEvaluated' | 'taskId'
 > & {
   decisionSummary: string;
+  evidenceRecordedOn: string;
 };
 
 export interface ResearchIntakePublicEvidenceIndexItem {
@@ -178,12 +178,16 @@ function compactEvidenceState(
   record: ResearchIntakeRecord,
 ): ResearchIntakeEvidenceIndexState {
   const state = buildResearchIntakeEvidenceState(record);
+  if (state.decisionSummary === null || state.evidenceRecordedOn === null) {
+    throw new Error(`examined research record ${record.id} has incomplete decision context`);
+  }
   return {
     performanceEvidenceStatus: state.performanceEvidenceStatus,
     label: state.label,
     performanceGatesEvaluated: state.performanceGatesEvaluated,
     taskId: state.taskId,
-    decisionSummary: buildResearchIntakeDecisionSummary(record),
+    decisionSummary: state.decisionSummary,
+    evidenceRecordedOn: state.evidenceRecordedOn,
   };
 }
 

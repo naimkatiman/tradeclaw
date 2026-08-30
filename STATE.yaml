@@ -1,11 +1,157 @@
 project: tradeclaw
-updated: 2026-08-30T12:01:08+08:00
+updated: 2026-08-30T12:19:32+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_shared_decision_context_2026_08_30:
+  at: 2026-08-30T12:19:32+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_pending_local_commit
+  scope: Preserve one canonical decision explanation and evidence date from compact index through public/protected catalog, evidence, candidate-detail, and marketing-review projections without opening another receipt or adding another route
+  base_commit: 3361f9c6911fff6f17cf89d540d39585f1cea42d
+  implementation_commit: pending-local-implementation-commit
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-264
+  current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-264
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T06:00:00.000Z
+  gate_observed_at: 2026-08-30T04:04:38.102Z
+  gate_decision: TC-264 remains the sole current-window receipt, the expected legacy duplicate is the only historical conflict, and this turn may change only deterministic read models, documentation, tests, and state
+  library_search: No shared decision-brief, evidence-date, index-to-detail, or read-model pattern exists in MemoryCore; keep this contract project-specific until final verification proves a reusable pattern
+  measured_gap:
+    public_overview_bytes: 7637
+    public_compact_index_bytes: 16552
+    public_complete_evidence_bytes: 53367
+    protected_overview_bytes: 9735
+    protected_compact_index_bytes_at_observation: 22161
+    protected_complete_evidence_bytes_at_observation: 87624
+    marketing_review_bytes_at_observation: 27681
+    examined_candidates: 10
+    untouched_candidates: 51
+    problem: >-
+      Compact evidence rows expose a canonical candidate-specific decisionSummary,
+      but the shared evidenceState used by catalogs, exact candidate detail,
+      complete evidence, and marketing review does not. Following a detail link
+      therefore removes the predictable explanation and forces clients to find
+      a task-specific nested reason. No projection exposes the canonical source-
+      audit date or replication study date at the shared decision boundary.
+  decision: >-
+    Add decisionSummary and evidenceRecordedOn to the shared evidenceState.
+    Examined records derive the exact reason and date from their canonical
+    source-audit or replication record; untouched discoveries expose null for
+    both because TradeClaw has made no decision. Compact index rows reuse the
+    same fields and narrow them to non-null instead of recomputing separate copy.
+  shared_contract:
+    fields:
+      - evidenceState.decisionSummary
+      - evidenceState.evidenceRecordedOn
+    decision_summary_source: canonical TradeClaw source-audit or replication reason
+    evidence_recorded_on_source: source-audit auditDate or replication studyDate
+    evidence_recorded_on_format: YYYY-MM-DD
+    untouched_values: both-null
+    examined_values: both-required
+    decision_summary_maximum_characters: 320
+    public_and_protected_values_identical: true
+    compact_and_complete_values_identical: true
+    admin_next_action_remains_protected_only: true
+    grants_publication_authority: false
+    grants_trading_authority: false
+  expected_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake-evidence-state.ts
+    - apps/web/lib/research-intake-public.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/openapi.ts
+    - focused and affected deterministic tests
+  frozen_boundaries:
+    source_catalog_candidate_stage_verdict_cost_or_raw_evidence_changed: false
+    research_receipt_preregistration_return_or_artifact_changed: false
+    marketing_handoff_draft_or_review_state_changed: false
+    route_method_auth_cache_query_or_navigation_changed: false
+    rendered_ui_changed: false
+    public_next_action_exposed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_strategy_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  verification_strategy: Observe one intentional failing contract across shared state, public index-to-detail parity, protected projection parity, and OpenAPI/README; then implement centrally and run affected fingerprints, source reconstruction, static checks, the full repository suite, and the mandatory production build
+  intentional_red_verification: >-
+    PASS - the new four-test contract failed 4/4 exactly on the frozen missing
+    surfaces: shared evidenceState had neither field, public index context
+    disappeared in catalog/evidence/detail, protected context disappeared across
+    catalog/evidence/review/detail, and OpenAPI/README omitted the contract. No
+    implementation source had changed and no unrelated assertion failed.
+  focused_green_verification: >-
+    PASS - the same four-test contract now proves both-null context for all 51
+    untouched discoveries, canonical validated summary/date context for all ten
+    examined records, exact public and protected index-to-detail parity across
+    catalog/evidence/review/detail projections, public next-action exclusion,
+    and the nullable full-state versus required compact OpenAPI/README contract.
+  adjacent_verification: >-
+    PASS - 31/31 research-intake library suites with 158/158 tests and 24/24
+    public/protected route, authentication-boundary, README-discovery, and
+    publication-boundary suites with 89/89 tests pass. Exact shapes now include
+    the two shared fields; only intentional JSON fingerprints moved. Public,
+    protected-evidence, and protected-review CSV receipts remain byte-identical.
+  measured_outcome:
+    public_catalog_bytes: 113858
+    public_compact_index_bytes: 16892
+    public_complete_evidence_bytes: 56318
+    protected_default_catalog_bytes_at_frozen_observation: 75723
+    protected_complete_catalog_bytes_at_frozen_observation: 154843
+    protected_compact_index_bytes_at_frozen_observation: 22293
+    protected_complete_evidence_bytes_at_frozen_observation: 84623
+    protected_marketing_review_bytes_at_frozen_observation: 28877
+    public_candidate_detail_bytes: 9832
+    protected_candidate_detail_bytes_at_frozen_observation: 13253
+    openapi_bytes: 39955
+    examined_context_rows: 10
+    untouched_null_context_rows: 51
+    csv_receipt_bytes_changed: false
+  static_verification: >-
+    PASS - canonical source reconstruction reports 61/61 candidates with the
+    frozen gross-discovery treatment; web typecheck passes; lint reports zero
+    errors and the same 21 unrelated warnings present at the clean base.
+  full_suite_verification: >-
+    PASS - 305/305 runnable suites, 2,208/2,208 runnable tests, and 1/1
+    snapshot pass; 3 suites and 26 tests remain intentionally skipped. Expected
+    fail-closed test logging is unchanged.
+  production_build_verification: >-
+    PASS - the mandatory monorepo production build compiled successfully and
+    generated all 331/331 pages. Only the pre-existing middleware, NFT tracing,
+    edge-runtime, and Node url.parse warnings were reported.
+  closure_gate:
+    observed_at: 2026-08-30T04:19:22.631Z
+    current_window_id: 2026-08-30T03:00:00.000Z/PT3H
+    current_window_status: complete
+    current_window_receipt_count: 1
+    current_window_task_ids:
+      - TC-264
+    next_rollover_at: 2026-08-30T06:00:00.000Z
+    historical_integrity_status: historical-conflict
+    expected_legacy_duplicate_windows:
+      - 2026-08-29T06:00:00.000Z/PT3H
+    additional_duplicate_windows: []
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_trading: false
+    human_marketing_review_required: true
+    automatic_posting: false
+  boundary_audit: >-
+    PASS - diff check is clean and the exact manifest contains only STATE,
+    README, shared research-intake read models, OpenAPI, and focused/affected
+    tests. Candidate data, receipts, preregistrations, returns, artifacts,
+    marketing drafts, routes, rendered UI, Docker Compose, dependencies,
+    migrations, billing, signals, allocations, broadcast, broker, and execution
+    code are byte-unchanged.
+  next_action: Commit this verified receipt-neutral implementation locally, record the implementation hash in STATE, create a state-only closure commit, and save MemoryCore.
+  safety: No candidate, receipt, return, preregistration, result artifact, marketing draft, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_evidence_decision_summaries_2026_08_30:
   at: 2026-08-30T11:44:18+08:00
