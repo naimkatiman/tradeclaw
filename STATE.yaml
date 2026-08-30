@@ -8,11 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_packet_first_start_here_2026_08_30:
-  at: 2026-08-30T13:53:42+08:00
+  at: 2026-08-30T13:54:31+08:00
   agent: TradeClaw PM agent
-  status: ready_for_local_implementation_commit
+  status: done_packet_first_admin_guidance_verified_and_committed_local
   scope: Make the protected Markdown review packet the one server-authored manual-review action across every admin research projection without creating a receipt, review decision, approval, or external action
   base_commit: f38c7cbc090e2f30470dd02e6fc547ca71f03cef
+  implementation_commit: 4fa59574354599506bcfa87efec83f2699d02de3
+  implementation_committed_at: 2026-08-30T05:54:31Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-264
   current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
@@ -133,7 +135,8 @@ research_admin_packet_first_start_here_2026_08_30:
     start_here_grants_trading_authority: false
   publication_or_external_action_taken: none
   push_merge_deploy_taken: false
-  next_action: Commit the verified implementation locally, then record its exact commit in a state-only closure commit and save the completed slice to shared MemoryCore.
+  completion_summary: Protected admins now land directly on the concise oldest-visible Markdown review packet from every JSON projection; manual review, receipt priority, public bytes, packet bytes, exports, authority, and all external-action boundaries remain frozen
+  next_action: At or after the exact 2026-08-30T06:00:00.000Z rollover, open at most one new cost-first catalog receipt before any further product or marketing work; until then create no duplicate receipt.
   safety: No candidate, receipt, return, preregistration, research artifact, packet body, draft content, review decision, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_admin_markdown_review_packet_2026_08_30:
