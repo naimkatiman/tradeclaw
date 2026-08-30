@@ -148,11 +148,15 @@ describe('systematic research intake public boundary', () => {
       'catalog',
       'catalogCsv',
       'evidenceIndex',
+      'evidenceIndexBrief',
       'evidence',
       'evidenceCsv',
     ]);
     expect(publicResourcesSchema.properties?.overview?.const).toBe(
       '/api/research/intake/overview',
+    );
+    expect(publicResourcesSchema.properties?.evidenceIndexBrief?.const).toBe(
+      '/api/research/intake/evidence/index.md',
     );
     expect(publicResourcesSchema.properties?.catalog?.const).toBe('/api/research/intake');
     expect(candidateResponseSchema.required).toContain('navigation');

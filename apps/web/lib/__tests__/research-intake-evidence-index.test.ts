@@ -156,8 +156,8 @@ describe('compact research intake evidence-index contract', () => {
       /"(?:sourceUrl|upstreamGrossSharpe|upstreamTStatistic|upstreamVolatilityPct|upstreamYearsTested|tradeClawSourceAudit|tradeClawEvidence|nextAction|marketingDisposition|marketingReviewDraft|meaning|evidencePath|artifactPath)"/,
     );
     expect(fingerprint(payload)).toEqual({
-      bytes: 19_587,
-      sha256: '612e8c139f33f1539dc80251a0ad81e00e9c032063b40b7bfbf032ffd2160452',
+      bytes: 19_649,
+      sha256: 'af7a440f6306d82ab2fac0935ce7444ee93d8cb68e92cbac22113cfedf137431',
     });
   });
 
@@ -293,10 +293,10 @@ describe('compact research intake evidence-index contract', () => {
     expect(spec.paths).not.toHaveProperty('/api/admin/research-intake/evidence/index');
     expect(api).toMatch(/compact.*evidence index.*exact.*candidate/i);
     expect(api).toContain('curl https://tradeclaw.win/api/research/intake/evidence/index');
-    expect(api.indexOf('/api/research/intake/overview')).toBeLessThan(
-      api.indexOf('/api/research/intake/evidence/index'),
+    expect(api.indexOf('curl https://tradeclaw.win/api/research/intake/overview')).toBeLessThan(
+      api.indexOf('curl https://tradeclaw.win/api/research/intake/evidence/index\n'),
     );
-    expect(api.indexOf('/api/research/intake/evidence/index')).toBeLessThan(
+    expect(api.indexOf('curl https://tradeclaw.win/api/research/intake/evidence/index\n')).toBeLessThan(
       api.indexOf('/api/research/intake/evidence\n'),
     );
   });

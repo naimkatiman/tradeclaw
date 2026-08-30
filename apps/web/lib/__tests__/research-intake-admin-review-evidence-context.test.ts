@@ -203,16 +203,16 @@ describe('protected marketing-review evidence context', () => {
         sha256: 'b4a70171571700068b28dca6aca1f05ab0a492b4ea0881ef6f6e9a174d891116',
       },
       publicCatalog: {
-        bytes: 129_071,
-        sha256: 'a02bc48210d6c4c2ea8dfafaee6e9f4bd921b096874d073e21c697131648bf3a',
+        bytes: 129_133,
+        sha256: '2cffd91df6034ef16f3eedcbd7edbeafbdc4c870a16d35fc632a8f4a78183f48',
       },
       publicEvidence: {
-        bytes: 74_641,
-        sha256: 'c16406fedf9137f9f6b91adef80e398a1a7e69a3bb7a6497f6282763a8e4ada3',
+        bytes: 74_703,
+        sha256: 'ffd4352689d4c69945ff8c2265a23dd21e03c1bbc59fdf4c25984a0dff72dd24',
       },
       publicCandidate: {
-        bytes: 9_880,
-        sha256: 'df2b54a484b66dbf73dfd6bdd1868ee10ffa757eb1ff83edd05489775aa41c43',
+        bytes: 9_942,
+        sha256: 'b1e7258c78b39c75c69f98b3e261975d2a85130bbcae2fecfce02a2db50e9374',
       },
     });
   });

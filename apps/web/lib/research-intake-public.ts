@@ -33,6 +33,7 @@ export const RESEARCH_INTAKE_PUBLIC_RESOURCES = Object.freeze({
   catalog: '/api/research/intake',
   catalogCsv: '/api/research/intake.csv',
   evidenceIndex: '/api/research/intake/evidence/index',
+  evidenceIndexBrief: '/api/research/intake/evidence/index.md',
   evidence: '/api/research/intake/evidence',
   evidenceCsv: '/api/research/intake/evidence.csv',
 } as const);

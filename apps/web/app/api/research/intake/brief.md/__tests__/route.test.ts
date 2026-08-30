@@ -26,7 +26,10 @@ describe('GET /api/research/intake/brief.md', () => {
       '**3 of 61 pinned candidates reached TradeClaw performance gates; all 3 failed. The other 58 have no evaluated TradeClaw performance gate.**',
     );
     expect(brief).toContain(
-      '- Open: `/api/research/intake/evidence/index`',
+      '- Open human-readable index: `/api/research/intake/evidence/index.md`',
+    );
+    expect(brief).toContain(
+      '- Machine-readable index: `/api/research/intake/evidence/index`',
     );
     expect(brief).toContain('- Executes trades: No');
     expect(brief).not.toContain('/api/admin');

@@ -255,6 +255,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "catalog",
             "catalogCsv",
             "evidenceIndex",
+            "evidenceIndexBrief",
             "evidence",
             "evidenceCsv",
           ],
@@ -269,6 +270,10 @@ export function buildOpenApiSpec(): OpenApiSpec {
             evidenceIndex: {
               type: "string",
               const: "/api/research/intake/evidence/index",
+            },
+            evidenceIndexBrief: {
+              type: "string",
+              const: "/api/research/intake/evidence/index.md",
             },
             evidence: { type: "string", const: "/api/research/intake/evidence" },
             evidenceCsv: {
@@ -1229,6 +1234,31 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 "application/json": {
                   schema: {
                     $ref: "#/components/schemas/ResearchIntakeEvidenceIndexResponse",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/api/research/intake/evidence/index.md": {
+        get: {
+          tags: ["Research"],
+          operationId: "getResearchIntakeEvidenceIndexBrief",
+          summary: "Read the human-readable examined-candidate index",
+          description:
+            `Returns a human-readable adverse-inclusive index for all ${OPENAPI_RESEARCH_EVIDENCE_COUNT} examined candidates in pinned source order. ` +
+            "The list is not performance-ranked and preserves source-audit-only, QA-only, and modeled historical distinctions with exact public detail links. No API key is required, and the index grants no publication, strategy-selection, broadcast, or trading authority.",
+          security: [],
+          responses: {
+            "200": {
+              description: "Public human-readable examined-candidate index",
+              content: {
+                "text/markdown": {
+                  schema: {
+                    type: "string",
+                    description:
+                      "Deterministic UTF-8 Markdown derived from the compact public research evidence index.",
                   },
                 },
               },

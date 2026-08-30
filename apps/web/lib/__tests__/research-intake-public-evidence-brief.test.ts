@@ -53,7 +53,8 @@ const EXPECTED_BRIEF = [
   '',
   'This lightweight index includes every TradeClaw source audit and replication in pinned source order, with exact candidate-detail links and no performance ranking.',
   '',
-  '- Open: `/api/research/intake/evidence/index`',
+  '- Open human-readable index: `/api/research/intake/evidence/index.md`',
+  '- Machine-readable index: `/api/research/intake/evidence/index`',
   '- Automatic action: No',
   '',
   '## How to read this record',
@@ -79,6 +80,7 @@ const EXPECTED_BRIEF = [
   '## Open data',
   '',
   '- Machine-readable overview: `/api/research/intake/overview`',
+  '- Human-readable evidence index: `/api/research/intake/evidence/index.md`',
   '- Lightweight evidence index: `/api/research/intake/evidence/index`',
   '- Complete pinned catalog: `/api/research/intake`',
   '- Complete evidence records: `/api/research/intake/evidence`',
@@ -131,8 +133,8 @@ describe('public human-readable research evidence brief', () => {
     expect(replay).toBe(first);
     expect(first).toBe(EXPECTED_BRIEF);
     expect(fingerprint(first)).toEqual({
-      bytes: 3_599,
-      sha256: 'bad52fa432d29d7afd8e3d9991c16bc82e5e25486169265a671f0ffc43f994c8',
+      bytes: 3_761,
+      sha256: '2c6160b0185d429b8fb197e1839d2f2425e9ec5bf57d05eecba2ec753c8b55c1',
     });
     expect(first).not.toMatch(
       /\/api\/admin|receipt|marketing|owner decision|candidate record bodies/i,

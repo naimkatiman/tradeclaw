@@ -1,11 +1,171 @@
 project: tradeclaw
-updated: 2026-08-30T21:57:30+08:00
+updated: 2026-08-30T22:23:33+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_public_evidence_index_brief_2026_08_30:
+  at: 2026-08-30T22:23:33+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Add one public human-readable examined-candidate index so the evidence brief's next click does not force a user into JSON before they can choose an exact record
+  branch: agent/research-intake-desk-20260829
+  base_commit: 04868400b40a376482fc3b7455667c8d724974a8
+  cycle_id: 2026-08-30T12:00:00.000Z/PT3H
+  receipt_neutral: true
+  new_research_receipt: false
+  observed_at: 2026-08-30T14:01:37.044Z
+  gate_snapshot: >-
+    TC-267 remains the sole current-window and latest receipt. The explicit
+    gate is wait-for-next-window until exact 2026-08-30T15:00:00.000Z. Twelve
+    receipts occupy 11 windows with only the expected historical duplicate.
+    Four drafts remain manual-review-ready, zero are approved, TC-255 remains
+    next, and automatic selection, receipt creation, publication, posting, and
+    trading controls remain false.
+  audit_basis: >-
+    The public evidence brief is now a clear human-readable orientation, but
+    its Start here action sends the reader directly to the JSON-only evidence
+    index. A human must parse 19,587 bytes of structured data before choosing
+    one of 13 exact records. A compact Markdown index derived from the same
+    public index is the highest-value receipt-neutral simplification because it
+    completes the next-click journey without changing evidence or rendered UI.
+  shared_library_search: No reusable human-readable research index, evidence digest, research feed, citation index, or equivalent workflow pattern was found under the shared MemoryCore library
+  intended_contract:
+    route: /api/research/intake/evidence/index.md
+    method: GET only
+    format: deterministic UTF-8 Markdown
+    source: compact public evidence-index payload
+    order: pinned upstream source order, never performance-ranked
+    content:
+      - exact whole-catalog and examined-candidate denominator
+      - every examined candidate with position, title, asset class, task, evidence status, gate-evaluated flag, evidence date, decision summary, and exact public detail link
+      - explicit source-audit, QA-only, and modeled-history interpretation
+      - machine-readable index and complete evidence links
+      - explicit read-only, no-recommendation, no-publication, no-broadcast, and no-trading boundary
+    resource_discovery: every public research resource map
+    public_brief_next_click: human-readable index plus separate machine-readable index
+    openapi_documented: true
+    cache_control: public one-hour edge cache with stale-while-revalidate
+    authentication_required: false
+    mutation_supported: false
+  boundary_audit: >-
+    The Markdown index is a deterministic projection of existing public compact
+    rows. It must not add, reorder, rank, reinterpret, or recommend evidence;
+    expose admin, receipt, review, owner, publication-workflow, broker, or
+    execution state; or change candidate records, CSVs, protected payloads,
+    rendered UI, database, migrations, Compose, billing, signals, broker, or
+    execution behavior.
+  red_contract:
+    file: apps/web/lib/__tests__/research-intake-public-evidence-index-brief.test.ts
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-public-evidence-index-brief.test.ts --silent
+    result: EXPECTED_RED - 5/6 tests failed and the compact-row, research-record, and all-CSV immutability boundary passed
+    proves: >-
+      The Markdown builder and route are absent, public resource maps do not
+      advertise a human index, the evidence brief still hands humans to JSON,
+      canonical dynamic OpenAPI does not document the path, and README/loop
+      documentation does not define the human next click. Compact evidence
+      rows, catalog/evidence records, and all four public/protected CSVs stayed
+      byte-identical.
+  implementation:
+    builder: apps/web/lib/research-intake-public-evidence-index-brief.ts
+    route: apps/web/app/api/research/intake/evidence/index.md/route.ts
+    source: apps/web/lib/research-intake-public.ts compact evidence-index payload
+    resource_discovery: evidenceIndexBrief on every public research projection
+    public_brief_handoff: human-readable index first, machine-readable JSON index second
+    canonical_openapi: /api/research/intake/evidence/index.md with text/markdown response
+    item_count: 13
+    source_ordered: true
+    performance_ranked: false
+    public_record_change: false
+    csv_change: false
+    protected_payload_change: false
+    rendered_ui_change: false
+    mutation_supported: false
+  deterministic_index_brief:
+    normalized_bytes: 10122
+    sha256: 2b87465affdd1329167a22bd664fb3d06386ba5aab595479e03dae7fb75b3444
+    replay: byte-identical
+  first_green_refinement: The real route and builder passed 7/8 checks; the sole failure was a line-wrapped documentation sentence that made a same-line safety regex miss the word trade, so the sentence was kept intact without changing the contract
+  focused_green:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-public-evidence-index-brief.test.ts apps/web/lib/__tests__/research-intake-public-evidence-brief.test.ts apps/web/lib/__tests__/research-intake-evidence-index.test.ts apps/web/lib/__tests__/research-intake-overview.test.ts apps/web/lib/__tests__/research-intake-public-discovery-context.test.ts apps/web/app/api/research/intake/evidence/index.md/__tests__/route.test.ts apps/web/app/api/research/intake/brief.md/__tests__/route.test.ts --silent
+    result: PASS - 7 suites and 34 tests cover exact deterministic rendering, all 13 source-ordered decisions, human-to-human handoff, public resource discovery, real cache/query/GET route behavior, OpenAPI, documentation, record and CSV immutability, and protected isolation
+  first_adjacent_run: EXPECTED_PUBLIC_RESOURCE_DRIFT - 51/58 suites and 355/362 tests passed; all seven failures are frozen expectations for the intentional 62-byte evidenceIndexBrief resource-map addition on derived public projections or the protected discovery assertion that enumerates the public map. Protected records, review data, gates, and every CSV remain unchanged.
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps.web.lib.__tests__.(research-intake|research-loop|research-marketing)|scripts.research.__tests__.research-marketing).*test.ts$" --silent
+    result: PASS - 58 suites and 362 tests across public/protected intake, deterministic projections, evidence interpretation, candidate navigation, receipt timing, review workflow, marketing, owner decisions, publication-request safety, and the human index
+  route_and_auth_green:
+    command: npm test -- --runInBand apps/web/app/api/research/intake apps/web/app/api/admin/research-intake --silent
+    result: PASS - 30 suites and 109 tests cover every public/protected research-intake JSON, CSV, Markdown, YAML, exact-item, packet, overview, evidence, review, cache, query-neutrality, GET-only, real-cookie, malformed-cookie, and auth-first boundary
+  targeted_verification:
+    pinned_source: PASS - all 61 candidates reconstruct at source commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+    review_evidence: PASS - 4/4 review manifests and 12/12 preregistration, result, and artifact files match exact normalized bytes and SHA-256 bindings; the verifier grants neither review completion, publication authority, nor trading authority
+    web_typecheck: PASS
+    changed_file_lint: PASS - all 19 changed or new web implementation and contract files have zero warnings or errors
+  full_lint: PASS - zero errors and 21 inherited warnings; no warning points to this increment
+  first_full_repository_run: EXPECTED_OPENAPI_RESOURCE_FIXTURE_DRIFT - 335/336 runnable suites and 2416/2417 executed tests passed; the sole failure was a publication-boundary test outside the adjacent selector whose exact required-resource list did not yet include evidenceIndexBrief. The inherited post-summary Jest open handle was manually terminated after complete totals printed.
+  publication_boundary_repair: PASS - the canonical OpenAPI boundary now requires and verifies the exact public evidenceIndexBrief path; its focused suite passes 5/5 tests and the changed file has zero lint warnings or errors
+  full_repository_tests: PASS - 336 runnable suites, 2417 tests, and 1 snapshot; 3 suites and 26 tests skipped. The inherited post-summary open handle was manually terminated only after Jest printed the complete passing totals.
+  production_build: PASS - signals and trading-agents built, Next.js compiled, /api/research/intake/evidence/index.md appears as a one-hour-cacheable static route, and 333/333 static pages generated; only inherited middleware, Turbopack trace, url.parse, and edge-runtime warnings remained
+  deterministic_surfaces:
+    public_evidence_index_brief: 10122 bytes / 2b87465affdd1329167a22bd664fb3d06386ba5aab595479e03dae7fb75b3444
+    public_evidence_index_brief_replay: byte-identical
+    public_orientation_brief: 3761 bytes / 2c6160b0185d429b8fb197e1839d2f2425e9ec5bf57d05eecba2ec753c8b55c1
+    public_overview: 7749 bytes / ad38ae1c4caa50b7e21afd524e8ff188346b34cee535e108f9245de0722d5870
+    public_evidence_index: 19649 bytes / af7a440f6306d82ab2fac0935ce7444ee93d8cb68e92cbac22113cfedf137431
+    public_catalog: 129133 bytes / 2cffd91df6034ef16f3eedcbd7edbeafbdc4c870a16d35fc632a8f4a78183f48
+    public_evidence: 74703 bytes / ffd4352689d4c69945ff8c2265a23dd21e03c1bbc59fdf4c25984a0dff72dd24
+    public_resources: 374 bytes / c2ab8ff38c715b07414a0ddcdd73b0e7f016c0eac9e66db17caca18d784c3323
+    canonical_openapi: 41859 bytes / 1845388b278f1f0f66fd64ded3657b4c524d95f94b22ed7ebe62fdb0981b8ffb
+    compact_evidence_items_unchanged: 11709 bytes / 14bc012f5b77cdd33c88e5fc4daf397845f5f6723bc81c2f450d82e5678b6964
+    public_catalog_records_unchanged: 123673 bytes / 18826d9308cd8d7d9c936573e1f8cdbc24727e1fb6cf8bde0147f56718141a4f
+    public_evidence_records_unchanged: 66742 bytes / ea15952ebc48cdb48a61bf8f9a852febdc3734f745ba6cb47da8b5850299c98b
+    public_catalog_csv_unchanged: 37418 bytes / 2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f
+    public_evidence_csv_unchanged: 9138 bytes / e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941
+    protected_evidence_csv_unchanged: 19965 bytes / e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f
+    protected_review_csv_unchanged: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  final_gate_recheck:
+    observed_at: 2026-08-30T14:22:47.950Z
+    current_window: 2026-08-30T12:00:00.000Z/PT3H
+    current_window_status: complete
+    latest_and_current_receipt: TC-267
+    gate: wait-for-next-window
+    receipt_slot_available_now: false
+    next_available_at: 2026-08-30T15:00:00.000Z
+    next_available_window: 2026-08-30T15:00:00.000Z/PT3H
+    ledger: 12 receipts / 11 windows / expected historical duplicate only / no additional duplicates
+    marketing_review: 4 review-ready / 0 approved / TC-255 next
+    automatic_selection: false
+    automatic_receipt_creation: false
+    automatic_publication: false
+    automatic_posting: false
+    automatic_trading: false
+  final_audit:
+    git_diff_check: PASS
+    state_yaml_parse: PASS
+    intended_path_scope: PASS - 23 paths comprise one builder, one route and route contract, one focused contract, public projection/OpenAPI/brief integration, deterministic fixture repairs, README/operating-plan documentation, and STATE
+    docker_compose_changed: false
+    agents_md_changed: false
+    database_or_migration_changed: false
+    rendered_ui_changed: false
+    external_runtime_changed: false
+    docker_cli_available: false - Compose runtime validation unavailable, while all Compose files remain byte-untouched
+  final_verification:
+    focused: PASS - 7 suites / 34 tests
+    adjacent: PASS - 58 suites / 362 tests
+    public_and_protected_routes: PASS - 30 suites / 109 tests
+    publication_boundary: PASS - 1 suite / 5 tests
+    pinned_source: PASS - 61/61 candidates
+    review_evidence: PASS - 4/4 manifests and 12/12 files
+    web_typecheck: PASS
+    changed_file_lint: PASS - all 20 changed or new web files have zero warnings or errors
+    full_lint: PASS - zero errors / 21 inherited warnings
+    full_repository: PASS - 336 runnable suites / 2417 tests / 1 snapshot
+    production_build: PASS - 333/333 static pages and the new one-hour-cacheable Markdown route
+  external_actions: none
+  next_step: Create the exact local implementation commit, record its hash in STATE, create a state-closure commit, update shared MemoryCore, and wait for the exact next UTC receipt window without opening, selecting, publishing, posting, or trading automatically.
 
 research_public_evidence_brief_2026_08_30:
   at: 2026-08-30T21:57:30+08:00

@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Task: TC-256 through TC-266
+Task: TC-256 through TC-267
 
 Status: active operating contract; local-only until separately authorized
 
@@ -86,6 +86,13 @@ workflow, and canonical open-data resources without candidate bodies. It does no
 recommend a strategy, publish or broadcast a claim, or trade. It creates no
 receipt, evidence, marketing approval, or authority, and every public research
 resource map advertises it.
+
+The public human-readable examined-candidate index at
+`/api/research/intake/evidence/index.md` completes that brief's next-click
+journey without forcing a reader into JSON. It renders all compact examined
+rows in pinned source order with evidence status, gate-evaluated flag, decision
+date and summary, and exact public detail link. The JSON index remains the
+machine contract. It does not rank or recommend a strategy, publish a claim, or trade. It creates no evidence, receipt, marketing state, or authority.
 
 The authenticated human-readable research cycle brief at
 `/api/admin/research-intake/brief.md` renders that gate beside the shared

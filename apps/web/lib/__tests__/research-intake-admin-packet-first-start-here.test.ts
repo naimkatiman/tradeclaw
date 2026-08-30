@@ -117,12 +117,12 @@ describe('protected packet-first startHere action', () => {
         sha256: 'b196b34b8bacb345d3f1ed17227e88ef16ec3a59982ebc593919f8ffd651bb08',
       },
       publicOverview: {
-        bytes: 7_687,
-        sha256: '78c190acd7c5b25c9447fb7ecb3dc3ff913699f8c13c54bfc5ead7cac08eca6f',
+        bytes: 7_749,
+        sha256: 'ad38ae1c4caa50b7e21afd524e8ff188346b34cee535e108f9245de0722d5870',
       },
       publicIndex: {
-        bytes: 19_587,
-        sha256: '612e8c139f33f1539dc80251a0ad81e00e9c032063b40b7bfbf032ffd2160452',
+        bytes: 19_649,
+        sha256: 'af7a440f6306d82ab2fac0935ce7444ee93d8cb68e92cbac22113cfedf137431',
       },
       publicCatalogCsv: {
         bytes: 37_418,
