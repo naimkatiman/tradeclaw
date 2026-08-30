@@ -78,9 +78,9 @@ describe('GET /api/admin/research-intake/review/[taskId] real admin-cookie bound
       },
     });
     expect(body.startHere).toMatchObject({
-      href: '/api/admin/research-intake/review/TC-255',
-      targetResource: 'marketing-review-item',
-      targetIsCurrentResource: true,
+      href: '/api/admin/research-intake/review/TC-255/packet.md',
+      targetResource: 'marketing-review-packet',
+      targetIsCurrentResource: false,
     });
     expect(body.access).toEqual({
       mode: 'admin-read-only',

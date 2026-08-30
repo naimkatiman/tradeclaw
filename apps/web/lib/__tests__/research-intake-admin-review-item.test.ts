@@ -95,7 +95,7 @@ function fingerprint(body: string): { bytes: number; sha256: string } {
 }
 
 describe('protected exact marketing review item', () => {
-  it('adds one direct exact-review link to the next action and every visible queue item', () => {
+  it('adds one direct packet-first action and exact links for every visible queue item', () => {
     const overview = adminIntake.buildResearchIntakeAdminOverviewPayload(AUDIT_AT);
     const review = adminIntake.buildResearchIntakeAdminReviewPayload(AUDIT_AT);
 
@@ -118,16 +118,16 @@ describe('protected exact marketing review item', () => {
       '/api/admin/research-intake/review/TC-259/packet.md',
     ]);
     expect(overview.startHere).toMatchObject({
-      href: '/api/admin/research-intake/review/TC-255',
-      targetResource: 'marketing-review-item',
+      href: '/api/admin/research-intake/review/TC-255/packet.md',
+      targetResource: 'marketing-review-packet',
       targetIsCurrentResource: false,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     });
     expect(review.startHere).toMatchObject({
-      href: '/api/admin/research-intake/review/TC-255',
-      targetResource: 'marketing-review-item',
+      href: '/api/admin/research-intake/review/TC-255/packet.md',
+      targetResource: 'marketing-review-packet',
       targetIsCurrentResource: false,
     });
   });
@@ -190,9 +190,9 @@ describe('protected exact marketing review item', () => {
 
     const firstAtAudit = builder('TC-255', AUDIT_AT);
     expect(firstAtAudit?.startHere).toMatchObject({
-      href: '/api/admin/research-intake/review/TC-255',
-      targetResource: 'marketing-review-item',
-      targetIsCurrentResource: true,
+      href: '/api/admin/research-intake/review/TC-255/packet.md',
+      targetResource: 'marketing-review-packet',
+      targetIsCurrentResource: false,
     });
     expect(firstAtAudit?.navigation).toEqual({
       order: 'oldest-visible-human-review-handoff',
@@ -210,8 +210,8 @@ describe('protected exact marketing review item', () => {
     });
     const lastAtAudit = builder('TC-259', AUDIT_AT);
     expect(lastAtAudit?.startHere).toMatchObject({
-      href: '/api/admin/research-intake/review/TC-255',
-      targetResource: 'marketing-review-item',
+      href: '/api/admin/research-intake/review/TC-255/packet.md',
+      targetResource: 'marketing-review-packet',
       targetIsCurrentResource: false,
     });
     expect(lastAtAudit?.navigation).toMatchObject({

@@ -19,7 +19,8 @@ export type ResearchIntakeStartHereTargetResource =
   | 'evidence-index'
   | 'evidence'
   | 'marketing-review'
-  | 'marketing-review-item';
+  | 'marketing-review-item'
+  | 'marketing-review-packet';
 
 interface ResearchIntakeStartHereBase {
   label: string;
@@ -50,7 +51,7 @@ export interface ResearchIntakeAdminStartHereInput {
   availableDrafts: number;
   publicationApprovedDrafts: number;
   nextReviewHeadline: string | null;
-  nextReviewHref: string | null;
+  nextReviewPacketHref: string | null;
   evidenceCount: number;
   resources: {
     catalog: string;
@@ -59,7 +60,6 @@ export interface ResearchIntakeAdminStartHereInput {
     marketingReview: string;
   };
   currentResource: ResearchIntakeCurrentResource;
-  currentResourceHref: string | null;
 }
 
 const FALSE_AUTHORITY = Object.freeze({
@@ -144,8 +144,13 @@ export function buildResearchIntakeAdminStartHere(
   }
 
   if (input.availableDrafts > 0) {
-    if (input.nextReviewHeadline === null || input.nextReviewHref === null) {
-      throw new Error('a visible marketing-review queue requires an exact next review');
+    if (
+      input.nextReviewHeadline === null ||
+      input.nextReviewPacketHref === null
+    ) {
+      throw new Error(
+        'a visible marketing-review queue requires an exact next review packet',
+      );
     }
     const draftNoun = countNoun(input.availableDrafts, 'draft', 'drafts');
     const approvalNoun = countNoun(
@@ -156,14 +161,12 @@ export function buildResearchIntakeAdminStartHere(
     return Object.freeze({
       audience: 'admin',
       kind: 'review-marketing-drafts',
-      label: `Review next draft: ${input.nextReviewHeadline}`,
+      label: `Review next draft packet: ${input.nextReviewHeadline}`,
       reason:
-        `The oldest visible human-review handoff is first in an observation-consistent queue of ${input.availableDrafts} ${draftNoun} with ${input.publicationApprovedDrafts} ${approvalNoun}. Review remains manual and this guidance creates no approval.`,
-      href: input.nextReviewHref,
-      targetResource: 'marketing-review-item',
-      targetIsCurrentResource:
-        input.currentResource === 'marketing-review-item' &&
-        input.currentResourceHref === input.nextReviewHref,
+        `The oldest visible human-review handoff is first in an observation-consistent queue of ${input.availableDrafts} ${draftNoun} with ${input.publicationApprovedDrafts} ${approvalNoun}. Open its protected Markdown packet; review remains manual and this guidance creates no approval.`,
+      href: input.nextReviewPacketHref,
+      targetResource: 'marketing-review-packet',
+      targetIsCurrentResource: false,
       itemCount: input.availableDrafts,
       ...FALSE_AUTHORITY,
     });

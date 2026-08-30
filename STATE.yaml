@@ -1,11 +1,140 @@
 project: tradeclaw
-updated: 2026-08-30T13:33:36+08:00
+updated: 2026-08-30T13:38:42+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_packet_first_start_here_2026_08_30:
+  at: 2026-08-30T13:53:42+08:00
+  agent: TradeClaw PM agent
+  status: ready_for_local_implementation_commit
+  scope: Make the protected Markdown review packet the one server-authored manual-review action across every admin research projection without creating a receipt, review decision, approval, or external action
+  base_commit: f38c7cbc090e2f30470dd02e6fc547ca71f03cef
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-264
+  current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-264
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T06:00:00.000Z
+  gate_observed_at: 2026-08-30T05:38:42.785Z
+  gate_decision: TC-264 remains the sole current-window receipt and the expected legacy duplicate is the only historical conflict, so this turn may change only deterministic protected navigation, documentation, tests, and state before the exact 06:00Z rollover
+  library_pattern: MemoryCore execution-first guidance says the authored next action should lead directly to the concrete operator artifact; reuse the existing startHere priority contract and verified packet rather than create another workflow abstraction
+  measured_gap:
+    protected_json_projections_with_manual_review_start_here: 7
+    current_start_here_target: /api/admin/research-intake/review/TC-255
+    current_target_resource: marketing-review-item
+    exact_review_target_is_circular: true
+    exact_review_json_bytes: 7161
+    markdown_packet_bytes: 3527
+    smaller_packet_already_linked: true
+    problem: >-
+      The server now provides a human-readable packet, but its canonical
+      startHere action still sends admins to the larger nested JSON item. The
+      exact JSON also marks that circular target as current, so the easiest
+      manual-review artifact is discoverable only through a secondary link.
+  decision: >-
+    Point every protected manual-review startHere action directly to the oldest
+    visible handoff's packet.md link, classify the target as
+    marketing-review-packet, and report targetIsCurrentResource=false because
+    no protected JSON response is the attachment. Keep exact JSON and packet
+    links, queue order, receipt/conflict priority, visibility, and authority
+    unchanged.
+  packet_first_contract:
+    kind: review-marketing-drafts
+    href: /api/admin/research-intake/review/TC-255/packet.md
+    target_resource: marketing-review-packet
+    target_is_current_for_all_json_projections: false
+    selection: oldest-visible-human-review-handoff
+    packet_is_observation_safe: true
+    receipt_conflict_priority_preserved: true
+    awaiting_receipt_priority_preserved: true
+    review_completion_invented: false
+    publication_approved: false
+    automatic_action: false
+    trading_approved: false
+    external_actions: none
+  expected_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake-start-here.ts
+    - apps/web/lib/research-intake-admin.ts
+    - focused and affected deterministic tests
+  frozen_boundaries:
+    packet_body_or_route_changed: false
+    candidate_source_audit_replication_cost_or_evidence_state_changed: false
+    research_receipt_preregistration_return_or_artifact_changed: false
+    marketing_handoff_or_draft_content_changed: false
+    review_decision_completion_or_approval_state_changed: false
+    public_payload_openapi_or_csv_changed: false
+    rendered_ui_changed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_strategy_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  verification_strategy: Observe focused failures for all seven protected packet-first targets, non-circular exact semantics, conflict/awaiting priority, packet byte identity, public and CSV byte identity, and README guidance; then implement centrally and run affected receipts, source reconstruction, static checks, the full repository suite, and mandatory production build
+  intentional_red_verification: PASS - the focused 4-test suite failed exactly 2 assertions for the absent packet-first target and README guidance; conflict and awaiting-receipt priority plus packet, public JSON, and all CSV byte boundaries already passed
+  intentional_red_command: npx jest --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-admin-packet-first-start-here.test.ts
+  intentional_red_result: 1 suite failed; 2 tests failed and 2 passed for the two intended missing behaviors only
+  implementation:
+    central_selector: All seven protected JSON projections now derive the oldest visible handoff's existing packet.md link from one shared builder
+    manual_action_label: Review next draft packet
+    target_resource: marketing-review-packet
+    target_is_current_resource: false for every protected JSON projection
+    exact_review_links_preserved: true
+    receipt_and_conflict_priority_preserved: true
+    readme_guidance_added: true
+  focused_green_command: npx jest --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-admin-packet-first-start-here.test.ts apps/web/lib/__tests__/research-intake-start-here.test.ts apps/web/lib/__tests__/research-intake-admin-review-item.test.ts apps/web/lib/__tests__/research-intake-admin-next-review.test.ts apps/web/lib/__tests__/research-intake-overview.test.ts apps/web/app/api/admin/research-intake/overview/__tests__/auth-boundary.test.ts apps/web/app/api/admin/research-intake/review/[taskId]/__tests__/auth-boundary.test.ts
+  focused_green_result: PASS - 7 suites and 33 tests; all seven projections target TC-255/packet.md, the exact item is non-circular, conflict and awaiting-receipt priority remain intact, and packet, public JSON, and all four CSV hashes remain frozen
+  protected_overview_fingerprint_after_intended_start_here_change:
+    bytes: 11275
+    sha256: 10129efe3d335c5f45b6c7f7d95c5fa65ea874c0a9e3178798e928487f274f6d
+  first_widened_library_result: 31 of 39 suites and 188 of 196 tests passed; all 8 failures are frozen protected JSON fingerprints moving by exactly the packet-first startHere delta, while public, CSV, receipt, packet, navigation, result-view, and authority contracts passed
+  first_widened_library_expected_movements:
+    protected_catalog_bytes: 77416 -> 77471
+    protected_candidate_bytes: 13408 -> 13463
+    protected_evidence_bytes: 84778 -> 84833
+    protected_review_bytes: 31191 -> 31246
+    protected_evidence_index_bytes: 23986 -> 24041
+    no_matches_catalog_bytes: 28252 -> 28307
+    out_of_range_catalog_bytes: 27886 -> 27941
+    shared_delta_bytes: 55
+  widened_library_verification: PASS - 39 suites and 196 tests
+  widened_route_and_auth_verification: PASS - all 25 public and protected research-intake route suites and 95 tests, including real admin-cookie boundaries and packet.md attachment behavior
+  source_reconstruction_verification: PASS - 61 pinned candidates reconstructed with frozen category counts, gross-of-cost source basis, and discovery-only TradeClaw treatment
+  typecheck_web: PASS
+  lint: PASS - 0 errors and 21 inherited warnings; no warning originates in this change
+  full_repository_suite: PASS - Jest printed its complete result with 312 passed runnable suites, 2237 passing tests, 26 skipped tests, 3 skipped suites, and 1 passing snapshot in 80.69 seconds
+  full_repository_runner_exit: The repository's inherited open handle kept Jest alive after the complete success summary; two empty 30-second polls produced no output, so only the already-finished runner process was interrupted
+  product_failure_observed: false
+  production_build: PASS - npm run build compiled signals, trading-agents, and Next.js, then generated all 331 static pages including the protected packet.md route
+  production_build_warnings: inherited middleware deprecation, three NFT tracing warnings, url.parse deprecations, and the existing edge-runtime static-generation notice
+  docker_compose_flow_changed: false
+  final_diff_check: PASS - no whitespace errors and no generated build artifacts in the 19-path worktree change
+  state_yaml_parse: PASS
+  final_gate_audit:
+    observed_at: 2026-08-30T05:53:42.549Z
+    cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+    cycle_status: complete
+    sole_current_receipt: TC-264
+    next_rollover_at: 2026-08-30T06:00:00.000Z
+    expected_legacy_duplicate_windows:
+      - 2026-08-29T06:00:00.000Z/PT3H
+    additional_duplicate_windows: []
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_posting: false
+    automatic_trading: false
+    start_here_href: /api/admin/research-intake/review/TC-255/packet.md
+    start_here_automatic_action: false
+    start_here_grants_publication_authority: false
+    start_here_grants_trading_authority: false
+  publication_or_external_action_taken: none
+  push_merge_deploy_taken: false
+  next_action: Commit the verified implementation locally, then record its exact commit in a state-only closure commit and save the completed slice to shared MemoryCore.
+  safety: No candidate, receipt, return, preregistration, research artifact, packet body, draft content, review decision, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_admin_markdown_review_packet_2026_08_30:
   at: 2026-08-30T13:33:36+08:00

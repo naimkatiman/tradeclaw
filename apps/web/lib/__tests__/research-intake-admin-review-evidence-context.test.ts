@@ -187,20 +187,20 @@ describe('protected marketing-review evidence context', () => {
       publicCandidate: fingerprint(buildResearchIntakePublicCandidatePayload(TC260_CANDIDATE_ID)),
     }).toEqual({
       protectedCatalog: {
-        bytes: 77_416,
-        sha256: '339af4ac006db2ebe07d8420aa7c5b70d54f924f749848b70873794884b392ee',
+        bytes: 77_471,
+        sha256: '231f16354bf56106fbc0033955d3a72c887976c83a5131c72df1c0a7d9c5bcaa',
       },
       protectedCandidate: {
-        bytes: 13_408,
-        sha256: '8b1ca8a6e337f492bd317da26d78deee699a1d47a14bd4ac664e941ae86b7aa6',
+        bytes: 13_463,
+        sha256: '7b6df369cdd80d10ae94dda8d950dbcd2b483bff488e1d2c004214fe8c7533a6',
       },
       protectedEvidence: {
-        bytes: 84_778,
-        sha256: 'ae615d1afb9df3700e21f7e5c65641fdb05400453d2d8894f8e129eb8b0a8e00',
+        bytes: 84_833,
+        sha256: '0f70fe7fe3a4e0f01cbc911e5eb358b8c26613130d034a8fd59d62e6c5163961',
       },
       protectedReview: {
-        bytes: 31_191,
-        sha256: '374b1e4f5dcedd7238d87aa346d437382c33110eac38534697a89ecced45685e',
+        bytes: 31_246,
+        sha256: '095f3bf052858c10e138e84fd37346985e0d327fbe4140ff7942f657e9b92d2d',
       },
       publicCatalog: {
         bytes: 113_858,

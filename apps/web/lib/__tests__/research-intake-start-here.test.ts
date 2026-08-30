@@ -35,7 +35,8 @@ interface StartHere {
     | 'evidence-index'
     | 'evidence'
     | 'marketing-review'
-    | 'marketing-review-item';
+    | 'marketing-review-item'
+    | 'marketing-review-packet';
   targetIsCurrentResource: boolean;
   itemCount: number;
   automaticAction: false;
@@ -186,21 +187,21 @@ describe('research intake start-here guidance', () => {
     const expected = {
       audience: 'admin',
       kind: 'review-marketing-drafts',
-      label: 'Review next draft: A high-turnover Bitcoin trend idea failed after realistic costs',
+      label: 'Review next draft packet: A high-turnover Bitcoin trend idea failed after realistic costs',
       reason:
-        'The oldest visible human-review handoff is first in an observation-consistent queue of 4 drafts with 0 publication approvals. Review remains manual and this guidance creates no approval.',
-      href: '/api/admin/research-intake/review/TC-255',
-      targetResource: 'marketing-review-item',
+        'The oldest visible human-review handoff is first in an observation-consistent queue of 4 drafts with 0 publication approvals. Open its protected Markdown packet; review remains manual and this guidance creates no approval.',
+      href: '/api/admin/research-intake/review/TC-255/packet.md',
+      targetResource: 'marketing-review-packet',
       itemCount: 4,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     } as const;
 
-    payloads.forEach((payload, index) => {
+    payloads.forEach((payload) => {
       expect(startHere(payload)).toEqual({
         ...expected,
-        targetIsCurrentResource: index === 5,
+        targetIsCurrentResource: false,
       });
     });
   });
@@ -213,7 +214,7 @@ describe('research intake start-here guidance', () => {
       availableDrafts: 0,
       publicationApprovedDrafts: 0,
       nextReviewHeadline: null,
-      nextReviewHref: null,
+      nextReviewPacketHref: null,
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
@@ -222,7 +223,6 @@ describe('research intake start-here guidance', () => {
         marketingReview: '/api/admin/research-intake/review',
       },
       currentResource: 'evidence',
-      currentResourceHref: null,
     })).toEqual({
       audience: 'admin',
       kind: 'inspect-complete-evidence',
@@ -247,7 +247,7 @@ describe('research intake start-here guidance', () => {
       availableDrafts: 0,
       publicationApprovedDrafts: 0,
       nextReviewHeadline: null,
-      nextReviewHref: null,
+      nextReviewPacketHref: null,
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
@@ -256,7 +256,6 @@ describe('research intake start-here guidance', () => {
         marketingReview: '/api/admin/research-intake/review',
       },
       currentResource: 'evidence-index',
-      currentResourceHref: null,
     })).toEqual({
       audience: 'admin',
       kind: 'browse-evidence-index',

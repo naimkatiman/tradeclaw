@@ -1157,7 +1157,6 @@ function buildResearchIntakeAdminObservation(at: Date | string | number) {
 function buildResearchIntakeAdminProjectionStartHere(
   observation: ReturnType<typeof buildResearchIntakeAdminObservation>,
   currentResource: ResearchIntakeCurrentResource,
-  currentResourceHref: string | null = null,
 ): ResearchIntakeAdminStartHere {
   const nextReviewHandoff = observation.marketingReview.handoffs[0] ?? null;
   return buildResearchIntakeAdminStartHere({
@@ -1168,13 +1167,12 @@ function buildResearchIntakeAdminProjectionStartHere(
     publicationApprovedDrafts:
       observation.marketingReview.summary.publicationApprovedDrafts,
     nextReviewHeadline: nextReviewHandoff?.draft.title ?? null,
-    nextReviewHref: nextReviewHandoff
-      ? buildResearchIntakeAdminReviewItemHref(nextReviewHandoff.taskId)
+    nextReviewPacketHref: nextReviewHandoff
+      ? buildResearchIntakeAdminReviewPacketHref(nextReviewHandoff.taskId)
       : null,
     evidenceCount: RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS.length,
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
     currentResource,
-    currentResourceHref,
   });
 }
 
@@ -1791,7 +1789,6 @@ export function buildResearchIntakeAdminReviewItemPayload(
     startHere: buildResearchIntakeAdminProjectionStartHere(
       observation,
       'marketing-review-item',
-      buildResearchIntakeAdminReviewItemHref(reviewItem.handoff.taskId),
     ),
     researchLoop: observation.researchLoop,
     navigation: {

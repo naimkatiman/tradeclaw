@@ -135,7 +135,7 @@ describe('compact research intake overview contract', () => {
       audience: 'admin',
       kind: 'review-marketing-drafts',
       itemCount: 4,
-      targetResource: 'marketing-review-item',
+      targetResource: 'marketing-review-packet',
       targetIsCurrentResource: false,
       automaticAction: false,
       grantsPublicationAuthority: false,
@@ -147,8 +147,8 @@ describe('compact research intake overview contract', () => {
     expect(overview).not.toHaveProperty('records');
     expect(overview).not.toHaveProperty('items');
     expect(fingerprint(overview)).toEqual({
-      bytes: 11_220,
-      sha256: '689f051a1d381d13e81e28e204aee156a95aca259670702d53ccd14ce0999d9e',
+      bytes: 11_275,
+      sha256: '10129efe3d335c5f45b6c7f7d95c5fa65ea874c0a9e3178798e928487f274f6d',
     });
   });
 
@@ -179,7 +179,7 @@ describe('compact research intake overview contract', () => {
       /ResearchIntakeCurrentResource\s*=\s*\|\s*'overview'[\s\S]*'marketing-review'\s*\|\s*'marketing-review-item';/,
     );
     expect(source).toMatch(
-      /ResearchIntakeStartHereTargetResource\s*=\s*\|\s*'catalog'\s*\|\s*'evidence-index'\s*\|\s*'evidence'\s*\|\s*'marketing-review'\s*\|\s*'marketing-review-item';/,
+      /ResearchIntakeStartHereTargetResource\s*=\s*\|\s*'catalog'\s*\|\s*'evidence-index'\s*\|\s*'evidence'\s*\|\s*'marketing-review'\s*\|\s*'marketing-review-item'\s*\|\s*'marketing-review-packet';/,
     );
     expect(source).not.toContain('ResearchIntakeStartHereTargetResource = Exclude<');
   });

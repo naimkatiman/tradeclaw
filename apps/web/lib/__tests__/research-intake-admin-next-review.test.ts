@@ -157,7 +157,7 @@ describe('protected next marketing review', () => {
     expect(overview.startHere).toMatchObject({
       audience: 'admin',
       kind: 'review-marketing-drafts',
-      label: 'Review next draft: A high-turnover Bitcoin trend idea failed after realistic costs',
+      label: 'Review next draft packet: A high-turnover Bitcoin trend idea failed after realistic costs',
       itemCount: 4,
       automaticAction: false,
       grantsPublicationAuthority: false,
