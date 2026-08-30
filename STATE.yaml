@@ -1,11 +1,76 @@
 project: tradeclaw
-updated: 2026-08-30T23:35:32+08:00
+updated: 2026-08-30T23:47:51+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_readme_evidence_count_guard_2026_08_30:
+  at: 2026-08-30T23:47:51+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Repair the stale public README research status after TC-268 and make future catalog-count drift fail against the compiled evidence desk
+  branch: agent/research-intake-desk-20260829
+  base_commit: fb009dfb3b0dd7be30c2b5c561ecd170f2678b8b
+  receipt_neutral: true
+  cycle_id: 2026-08-30T15:00:00.000Z/PT3H
+  new_research_receipt: false
+  gate_observed_at: 2026-08-30T15:39:40.600Z
+  gate_snapshot: >-
+    TC-268 is the sole current-window receipt, the current window is complete,
+    and the receipt gate denies another intake before exact
+    2026-08-30T18:00:00.000Z. The ledger holds 13 receipts across 12 windows,
+    with only the expected historical 2026-08-29T06:00:00.000Z/PT3H
+    duplicate and no additional duplicate.
+  defect:
+    readme_catalog_claim: 48 untouched / 9 source-audit no-go
+    authoritative_catalog: 47 untouched / 10 source-audit no-go
+    readme_examined_claim: 13 compact decisions
+    authoritative_examined_total: 14
+    cause: The README contract asserted the previous hardcoded numbers, so the full repository suite proved stale copy instead of parity with compiled evidence.
+  selected_improvement:
+    - Derive the README status contract from buildResearchIntakePublicOverviewPayload rather than duplicating catalog numbers in the test.
+    - Keep the useful exact catalog composition in README and make a future receipt fail until that public claim is updated.
+    - Replace the nonessential exact examined-index count with durable every-decision wording so ordinary evidence growth does not create needless prose drift.
+  red_contract:
+    file: apps/web/app/__tests__/readme-research-intake-discoverability.test.ts
+    command: npm test -- --runInBand --runTestsByPath apps/web/app/__tests__/readme-research-intake-discoverability.test.ts --silent
+    result: EXPECTED_RED - 0/2 tests passed
+    proves: The contract derives 47 untouched and 10 no-go records from the compiled public overview and independently rejects the stale 13-decision prose; both failures point only to README.md.
+  implementation:
+    readme_catalog_status: 47 untouched / 10 source-audit no-go / 1 QA-only INCONCLUSIVE / 3 cost- or stability-failed
+    examined_index_wording: every compact decision in pinned source order
+    derived_contract: Both the pinned catalog total and complete composition now derive from buildResearchIntakePublicOverviewPayload inside the README test.
+    runtime_change: false
+  focused_green:
+    command: npm test -- --runInBand --runTestsByPath apps/web/app/__tests__/readme-research-intake-discoverability.test.ts --silent
+    result: PASS - 1 suite / 2 tests
+  broader_green:
+    research_domain: PASS - 53 suites / 272 tests
+    public_and_admin_routes: PASS - 31 suites / 113 tests
+    pinned_source: PASS - all 61 candidates reconstruct at source commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+    web_typecheck: PASS
+    lint: PASS - zero errors and 21 inherited warnings; no warning points to this increment
+    full_repository: PASS - 339 runnable suites, 2431 tests, and 1 snapshot; 3 suites and 26 tests skipped; the inherited post-summary Jest open handle was manually terminated only after complete green totals printed
+    production_build: PASS - the required root build compiled signals, trading-agents, and the Next.js app and generated all 333/333 static pages; only inherited middleware deprecation, whole-project Turbopack trace, edge-runtime static-generation, and Node url.parse warnings remained
+  final_integrity:
+    focused_replay: PASS - 1 suite / 2 tests
+    readme_parity: PASS - compiled 61 total / 47 discovered / 10 no-go / 1 inconclusive / 3 failed composition is asserted directly; stale 48/9 and 13-decision wording is absent
+    state_yaml: PASS
+    diff_check: PASS
+    changed_path_scope: PASS - exactly README.md, its derived parity contract, and STATE.yaml are changed
+    docker_compose_unchanged: true
+    rendered_ui_changed: false
+    runtime_or_auth_changed: false
+    receipt_or_marketing_state_changed: false
+    gate_observed_at: 2026-08-30T15:47:43.534Z
+    gate: PASS - TC-268 remains the sole current-window receipt, another receipt is denied until exact 2026-08-30T18:00:00.000Z, only the expected historical duplicate exists, four drafts remain human-review-only, zero are approved, and the current window has no marketing handoff
+  verification: PASS - focused README parity passes 2/2; research-domain tests pass 272/272; public/admin routes pass 113/113; pinned source reconstruction passes 61/61; all 339 runnable repository suites and 2431 tests pass; typecheck, lint, README parity, STATE, scope, diff, gate, and the required 333-page production build pass
+  shared_library_search: No reusable README count-drift, generated-status-block, or canonical documentation-parity pattern was found under the shared MemoryCore library.
+  safety_boundary: No candidate, source audit, return, receipt, preregistration, evidence artifact, marketing draft, rendered UI, auth, runtime, database, Docker, billing, signal, allocation, broadcast, broker, execution, or trading behavior will change.
+  next_step: Stage the exact verified three-path increment, commit locally, record the commit in STATE, save shared project memory, and wait for the exact 18:00Z intake boundary.
 
 research_tc268_commodity_correlation_momentum_2026_08_30:
   at: 2026-08-30T23:35:32+08:00

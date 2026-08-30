@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { buildResearchIntakePublicOverviewPayload } from '../../lib/research-intake-public';
 
 function readmeSection(start: string, end: string): string {
   const readme = readFileSync(resolve(__dirname, '../../../../README.md'), 'utf8');
@@ -16,15 +17,16 @@ function readmeSection(start: string, end: string): string {
 describe('README systematic-research intake discoverability', () => {
   it('frames the complete pinned intake separately from TradeClaw evidence', () => {
     const research = readmeSection('## Research status', '## Quick start');
+    const { catalogSummary } = buildResearchIntakePublicOverviewPayload();
 
-    expect(research).toMatch(/pinned 61-candidate intake/i);
+    expect(research).toMatch(new RegExp(`pinned ${catalogSummary.total}-candidate intake`, 'i'));
     expect(research).toContain('https://github.com/paperswithbacktest/awesome-systematic-trading');
     expect(research).toMatch(/original source order/i);
     expect(research).toMatch(
       /upstream figures[\s\S]*gross discovery metadata[\s\S]*not TradeClaw performance/i,
     );
-    expect(research).toMatch(
-      /48 untouched discoveries[\s\S]*9 source-audit no-go records[\s\S]*1 QA-only INCONCLUSIVE replication[\s\S]*3 cost- or stability-failed replications/i,
+    expect(research).toContain(
+      `The catalog currently separates ${catalogSummary.discovered} untouched discoveries, ${catalogSummary.sourceNoGo} source-audit no-go records (not local performance failures), ${catalogSummary.inconclusive} QA-only INCONCLUSIVE replication, and ${catalogSummary.failed} cost- or stability-failed replications.`,
     );
     expect(research).toMatch(/source-audit no-go records[\s\S]*not local performance failures/i);
     expect(research).toMatch(/grants neither publication nor trading authority/i);
@@ -33,15 +35,21 @@ describe('README systematic-research intake discoverability', () => {
 
   it('provides a copy-paste no-key endpoint and canonical exploration links', () => {
     const api = readmeSection('## API', '## Notifications');
+    const { catalogSummary } = buildResearchIntakePublicOverviewPayload();
 
     expect(api).toMatch(/No key required on the public research routes/i);
     expect(api).toMatch(
       /resources[\s\S]*links\.candidate[\s\S]*plainLanguageSummary[\s\S]*same classifier counts/i,
     );
     expect(api).toMatch(/convenience copy, not evidence or authority/i);
+    expect(api).toMatch(/examined-candidate index[\s\S]*preserves every compact decision/i);
+    expect(api).not.toMatch(/preserves all \d+ compact decisions/i);
     expect(api).toContain("curl https://tradeclaw.win/api/research/intake");
     expect(api).toMatch(
-      /all 61 pinned discovery candidates[\s\S]*completed TradeClaw evidence overlays/i,
+      new RegExp(
+        `all ${catalogSummary.total} pinned discovery candidates[\\s\\S]*completed TradeClaw evidence overlays`,
+        'i',
+      ),
     );
     expect(api).toContain('curl https://tradeclaw.win/api/research/intake/evidence');
     expect(api).toMatch(
