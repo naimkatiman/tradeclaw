@@ -170,7 +170,7 @@ describe('protected marketing-review evidence context', () => {
     }
   });
 
-  it('freezes every intentional shared-summary JSON receipt and the untouched candidate', () => {
+  it('freezes intentional shared-summary and packet-link receipts plus the untouched candidate', () => {
     expect({
       protectedCatalog: fingerprint(buildResearchIntakeAdminPayload(
         new URLSearchParams(),
@@ -187,8 +187,8 @@ describe('protected marketing-review evidence context', () => {
       publicCandidate: fingerprint(buildResearchIntakePublicCandidatePayload(TC260_CANDIDATE_ID)),
     }).toEqual({
       protectedCatalog: {
-        bytes: 77_348,
-        sha256: '389e2e303c0918d944714d81d7654f1917a41b81520d3130152ec2d44e7121c3',
+        bytes: 77_416,
+        sha256: '339af4ac006db2ebe07d8420aa7c5b70d54f924f749848b70873794884b392ee',
       },
       protectedCandidate: {
         bytes: 13_408,
@@ -199,8 +199,8 @@ describe('protected marketing-review evidence context', () => {
         sha256: 'ae615d1afb9df3700e21f7e5c65641fdb05400453d2d8894f8e129eb8b0a8e00',
       },
       protectedReview: {
-        bytes: 30_783,
-        sha256: '5d59e98b213e4bac0d3b58fc32d31c01a8c90af2c5c8a81b2a685f1244f2d3e3',
+        bytes: 31_191,
+        sha256: '374b1e4f5dcedd7238d87aa346d437382c33110eac38534697a89ecced45685e',
       },
       publicCatalog: {
         bytes: 113_858,

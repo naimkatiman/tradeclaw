@@ -1,11 +1,192 @@
 project: tradeclaw
-updated: 2026-08-30T13:10:29+08:00
+updated: 2026-08-30T13:32:41+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_markdown_review_packet_2026_08_30:
+  at: 2026-08-30T13:32:41+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Give a protected admin one exact human-readable Markdown packet for an observation-visible marketing review without creating review, approval, publication, or external-action state
+  base_commit: e31d2e1052ba677ae3a93e5546ad3b34d98e4787
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-264
+  current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-264
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T06:00:00.000Z
+  gate_observed_at: 2026-08-30T05:16:08.090Z
+  gate_decision: TC-264 remains the sole current-window receipt and the expected legacy duplicate is the only historical conflict, so this turn may add only a deterministic protected read artifact, direct links, documentation, tests, and state before the exact 06:00Z rollover
+  library_search: MemoryCore has audience-tier and generic workflow formats but no reusable Markdown review-packet, protected exact-export, or marketing-handoff architecture; keep the formatter and route contract project-specific until verified
+  measured_gap:
+    exact_tc255_json_bytes_at_frozen_observation: 7093
+    draft_body_characters: 684
+    top_level_json_sections: 7
+    direct_human_readable_artifact_present: false
+    markdown_route_present: false
+    problem: >-
+      The exact protected review now identifies the correct oldest-visible item,
+      but the admin must still parse 7,093 bytes of nested JSON to extract a
+      684-character draft, its evidence provenance, and its false-authority
+      controls before performing the required human review.
+  decision: >-
+    Add a protected exact GET
+    /api/admin/research-intake/review/[taskId]/packet.md that authenticates
+    before reading the task ID or clock and formats only the already-visible
+    exact review item as deterministic Markdown. Link the packet from
+    nextReview and every complete/exact queue item. The packet will separate
+    provenance, draft copy, manual checks, and false authority without recording
+    a decision or creating publication state.
+  packet_contract:
+    route: /api/admin/research-intake/review/[taskId]/packet.md
+    method: GET-only
+    access: admin-read-only
+    cache: private-no-store
+    cors: none
+    authentication_before_params_and_clock: true
+    selection: exact-canonical-visible-task-id
+    not_found: generic-non-reflective-404
+    not_yet_visible_is_not_found: true
+    content_type: text/markdown-utf8
+    content_disposition: attachment-canonical-task-filename
+    source_of_truth: existing-exact-review-payload
+    sections:
+      - human-review-warning
+      - queue-and-provenance
+      - candidate-and-evidence
+      - draft-under-review
+      - evidence-files-and-links
+      - required-manual-checks
+      - false-authority-controls
+    direct_link_fields:
+      - nextReview.links.reviewPacket
+      - queue.items[].links.reviewPacket
+      - exact reviewItem.links.reviewPacket
+    review_decision_invented: false
+    review_completion_invented: false
+    publication_approved: false
+    automatic_publication: false
+    automatic_posting: false
+    trading_approved: false
+    external_actions: none
+  expected_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/research-marketing-review-packet.ts
+    - apps/web/app/api/admin/research-intake/review/[taskId]/packet.md/route.ts
+    - focused and affected deterministic tests
+  frozen_boundaries:
+    candidate_source_audit_replication_cost_or_evidence_state_changed: false
+    research_receipt_preregistration_return_or_artifact_changed: false
+    marketing_handoff_or_draft_content_changed: false
+    review_decision_completion_or_approval_state_changed: false
+    public_payload_openapi_or_csv_changed: false
+    rendered_ui_changed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_strategy_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  verification_strategy: Observe focused failures for the absent formatter, reviewPacket links, exact packet route, visibility and auth boundaries, generic 404, Markdown headers and safety copy, GET-only behavior, public exclusion, unchanged CSV bytes, and README handoff; then implement centrally and run affected deterministic receipts, source reconstruction, static checks, the full repository suite, and mandatory production build
+  intentional_red_verification: >-
+    PASS - the two focused library suites failed 6 assertions only because the
+    formatter export, reviewPacket links, and packet route were absent, while
+    their existing visibility and boundary assertions passed. The dedicated
+    route suite separately failed 4/4 assertions only because the route did not
+    exist. Across both runs, all ten intended missing-contract assertions were
+    observed before implementation.
+  focused_green_verification: >-
+    PASS - 3 suites and 12/12 tests prove canonical observation visibility,
+    deterministic Markdown sections, all four direct packet links, auth before
+    path parameters and the clock, signed-cookie delivery, query independence,
+    generic future/unknown/non-canonical 404 parity, private no-store headers,
+    no CORS, GET-only behavior, public exclusion, unchanged CSV byte boundaries,
+    and the README handoff.
+  measured_outcome_at_frozen_observation:
+    exact_tc255_json_bytes: 7161
+    exact_tc255_json_sha256: ff527d062f6a52baf26b5b06a0fd20b204ff43b827e7b6c66e3ec1482dba38d9
+    complete_review_json_bytes: 31191
+    complete_review_json_sha256: 374b1e4f5dcedd7238d87aa346d437382c33110eac38534697a89ecced45685e
+    tc255_markdown_packet_bytes: 3527
+    tc255_markdown_packet_sha256: 869f59b3ca4b332f34b2a0b60f39b56e8d67d0ec3503d663e687d2b381ee9ffb
+    tc255_markdown_packet_lines: 65
+    packet_vs_exact_json_reduction_percent: 50.75
+    packet_vs_complete_queue_reduction_percent: 88.69
+    all_four_visible_packets_built: true
+    unknown_packet_is_null: true
+  protected_receipt_movement_proof: >-
+    PASS - recursively removing only reviewPacket from the current default and
+    complete catalog, overview, evidence index, complete review queue, exact
+    TC-255 review, no-match catalog, and out-of-range catalog restores every
+    prior byte count and SHA-256 exactly. No other protected field moved.
+  adjacent_library_verification: >-
+    PASS - all 38 research-intake, research-loop, and research-marketing library
+    suites pass with 192/192 tests after freezing the intentional protected JSON
+    receipt movement.
+  route_auth_and_openapi_verification: >-
+    PASS - all 25 public/protected research-intake route, signed-cookie boundary,
+    exact packet, and OpenAPI suites pass with 97/97 tests. The packet route is
+    protected and the public OpenAPI surface remains unchanged.
+  static_verification: >-
+    PASS - source reconstruction validates the pinned awesome-systematic-trading
+    source and all 61 candidates, web typecheck passes, and lint reports zero
+    errors with the same 21 inherited warnings.
+  full_test_verification: >-
+    PASS - the complete repository suite reports 311 runnable suites with
+    2233/2233 tests and the snapshot passing; three suites and 26 tests remain
+    intentionally skipped. Expected fail-closed test logs are informational.
+  build_verification: >-
+    PASS - the mandatory production build compiled successfully, registered the
+    dynamic protected /api/admin/research-intake/review/[taskId]/packet.md route,
+    and generated all 331/331 static pages. Existing middleware, traced-file,
+    edge-runtime, and url.parse warnings remain informational.
+  final_audit:
+    observed_at: 2026-08-30T05:32:28.487Z
+    branch: agent/research-intake-desk-20260829
+    head_before_implementation_commit: e31d2e1052ba677ae3a93e5546ad3b34d98e4787
+    changed_files: 17
+    changed_path_scope: README, STATE, protected research-intake link builder, exact Markdown formatter and route, and deterministic tests only
+    yaml_parse: pass
+    diff_check: pass
+    current_window_id: 2026-08-30T03:00:00.000Z/PT3H
+    current_window_status: complete
+    current_window_receipts:
+      - TC-264
+    next_rollover_at: 2026-08-30T06:00:00.000Z
+    receipt_integrity: historical-conflict-only
+    expected_legacy_duplicate_windows:
+      - 2026-08-29T06:00:00.000Z/PT3H
+    additional_duplicate_windows: []
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_trading: false
+    public_receipts:
+      catalog: 113858/d1472f9063673568c37df87293eecac0f049ebb03ead1678c5856fd63993cbc1
+      overview: 7637/2696bd48c4e94712d1616a7af86ddea799c34d389caba289a1aaad341938e821
+      evidence_index: 16892/31d3e5fde66eddc73bdcee156baebe90fccc0a45e928bc432067db9ca068a811
+      evidence: 56318/21f0cbebf89d0c0e8edb016bafd834b71b5ba0d25bc90575c5e8151b0ddede54
+      tc260_candidate: 9832/9fd74f0dc12286f42de3b78cd723c50d39b1f57ff5f852ef6cfb089d4d9e4965
+      openapi: 39955/3fcda938046038484cce62ae618afafc833de407bbf3fb60f571faa61b6aef63
+    csv_receipts:
+      public_catalog: 37128/afd082b0dc564675bb0c781898fd2d15c624c3ea5dc0e8cdcb69b02bf453edef
+      public_evidence: 7415/704187190f0eb96753066495bac241c76e1770b9cc0562798f08b0322d93102f
+      protected_evidence: 17543/43518ae9b99cd4fd7ffea64f744d49c4e628a32b1f8beb8c3c004e86b877d4c6
+      protected_review: 7094/c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+    protected_receipts:
+      catalog: 77416/339af4ac006db2ebe07d8420aa7c5b70d54f924f749848b70873794884b392ee
+      complete_catalog: 156536/75c62c64d2e509171f837c511409e9edaacc84878cc3edfcc98f43bf212d13c1
+      overview: 11220/689f051a1d381d13e81e28e204aee156a95aca259670702d53ccd14ce0999d9e
+      evidence_index: 23986/c45a0b924821400fa46f8a996cf8f234ea2cdeb8925f7b9efa17cce7bcf552c3
+      complete_review: 31191/374b1e4f5dcedd7238d87aa346d437382c33110eac38534697a89ecced45685e
+      exact_tc255_review: 7161/ff527d062f6a52baf26b5b06a0fd20b204ff43b827e7b6c66e3ec1482dba38d9
+      tc255_markdown_packet: 3527/869f59b3ca4b332f34b2a0b60f39b56e8d67d0ec3503d663e687d2b381ee9ffb
+    public_openapi_and_csv_boundaries_unchanged: true
+  next_action: Stage the exact 17-path scope, prove the staged diff clean, and create the local implementation commit; then record its hash in a state-only closure commit and save MemoryCore.
+  safety: No candidate, receipt, return, preregistration, research artifact, draft content, review decision, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_admin_exact_marketing_review_2026_08_30:
   at: 2026-08-30T13:10:29+08:00

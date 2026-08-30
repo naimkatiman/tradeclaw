@@ -133,6 +133,7 @@ describe('protected research catalog record links', () => {
     expect(review.queue.items[0].links).toEqual({
       ...expectedLinks(review.queue.items[0].candidate.id),
       reviewItem: '/api/admin/research-intake/review/TC-255',
+      reviewPacket: '/api/admin/research-intake/review/TC-255/packet.md',
     });
     expect(publicCatalog.records.every((record) => (
       JSON.stringify(record.links) === JSON.stringify({

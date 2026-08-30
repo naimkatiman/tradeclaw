@@ -63,6 +63,7 @@ interface ExactReviewPayload {
       adminCandidate: string;
       publicCandidate: string;
       reviewItem: string;
+      reviewPacket: string;
     };
     controls: {
       publicationApproved: false;
@@ -102,12 +103,19 @@ describe('protected exact marketing review item', () => {
       adminCandidate: `/api/admin/research-intake/${TC255}`,
       publicCandidate: `/api/research/intake/${TC255}`,
       reviewItem: '/api/admin/research-intake/review/TC-255',
+      reviewPacket: '/api/admin/research-intake/review/TC-255/packet.md',
     });
     expect(review.queue.items.map((item) => item.links.reviewItem)).toEqual([
       '/api/admin/research-intake/review/TC-255',
       '/api/admin/research-intake/review/TC-257',
       '/api/admin/research-intake/review/TC-258',
       '/api/admin/research-intake/review/TC-259',
+    ]);
+    expect(review.queue.items.map((item) => item.links.reviewPacket)).toEqual([
+      '/api/admin/research-intake/review/TC-255/packet.md',
+      '/api/admin/research-intake/review/TC-257/packet.md',
+      '/api/admin/research-intake/review/TC-258/packet.md',
+      '/api/admin/research-intake/review/TC-259/packet.md',
     ]);
     expect(overview.startHere).toMatchObject({
       href: '/api/admin/research-intake/review/TC-255',
@@ -162,7 +170,10 @@ describe('protected exact marketing review item', () => {
         queuePosition: 1,
         candidate: { id: TC255 },
         handoff: { taskId: 'TC-255' },
-        links: { reviewItem: '/api/admin/research-intake/review/TC-255' },
+        links: {
+          reviewItem: '/api/admin/research-intake/review/TC-255',
+          reviewPacket: '/api/admin/research-intake/review/TC-255/packet.md',
+        },
         controls: {
           publicationApproved: false,
           automaticPublication: false,
@@ -246,6 +257,12 @@ describe('protected exact marketing review item', () => {
     );
     expect(JSON.stringify(buildResearchIntakePublicEvidenceIndexPayload())).not.toContain(
       'reviewItem',
+    );
+    expect(JSON.stringify(buildResearchIntakePublicOverviewPayload())).not.toContain(
+      'reviewPacket',
+    );
+    expect(JSON.stringify(buildResearchIntakePublicEvidenceIndexPayload())).not.toContain(
+      'reviewPacket',
     );
     expect({
       publicCatalog: fingerprint(buildResearchIntakeCsv()),

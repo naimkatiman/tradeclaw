@@ -291,6 +291,7 @@ export interface ResearchIntakeCandidateLinks {
 
 export interface ResearchIntakeAdminReviewLinks extends ResearchIntakeCandidateLinks {
   reviewItem: string;
+  reviewPacket: string;
 }
 
 export interface ResearchIntakeAdminCatalogRecord extends ResearchIntakeAdminRecord {
@@ -1203,6 +1204,12 @@ function buildResearchIntakeAdminReviewItemHref(
   return `${RESEARCH_INTAKE_ADMIN_RESOURCES.marketingReview}/${encodeURIComponent(taskId)}`;
 }
 
+function buildResearchIntakeAdminReviewPacketHref(
+  taskId: ResearchLoopMarketingHandoff['taskId'],
+): string {
+  return `${buildResearchIntakeAdminReviewItemHref(taskId)}/packet.md`;
+}
+
 function buildResearchIntakeAdminReviewLinks(
   candidateId: string,
   taskId: ResearchLoopMarketingHandoff['taskId'],
@@ -1210,6 +1217,7 @@ function buildResearchIntakeAdminReviewLinks(
   return {
     ...buildResearchIntakeCandidateLinks(candidateId),
     reviewItem: buildResearchIntakeAdminReviewItemHref(taskId),
+    reviewPacket: buildResearchIntakeAdminReviewPacketHref(taskId),
   };
 }
 

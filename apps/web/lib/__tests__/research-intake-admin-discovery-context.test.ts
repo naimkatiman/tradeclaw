@@ -134,7 +134,7 @@ describe('protected research discovery context parity', () => {
     expect(protectedCatalog).toEqual(publicCatalog);
   });
 
-  it('keeps every unrelated public, protected-catalog, and CSV receipt byte-identical', () => {
+  it('freezes the protected packet-link movement while keeping public and CSV receipts byte-identical', () => {
     expect({
       protectedCatalog: fingerprint(buildResearchIntakeAdminPayload(
         new URLSearchParams(),
@@ -153,8 +153,8 @@ describe('protected research discovery context parity', () => {
       )),
     }).toEqual({
       protectedCatalog: {
-        bytes: 77_348,
-        sha256: '389e2e303c0918d944714d81d7654f1917a41b81520d3130152ec2d44e7121c3',
+        bytes: 77_416,
+        sha256: '339af4ac006db2ebe07d8420aa7c5b70d54f924f749848b70873794884b392ee',
       },
       publicCatalog: {
         bytes: 113_858,

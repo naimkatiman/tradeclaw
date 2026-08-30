@@ -51,6 +51,7 @@ interface NextReviewView {
     adminCandidate: string;
     publicCandidate: string;
     reviewItem: string;
+    reviewPacket: string;
   };
   controls: {
     humanReviewRequired: true;
@@ -115,6 +116,7 @@ describe('protected next marketing review', () => {
         adminCandidate: `/api/admin/research-intake/${TC255}`,
         publicCandidate: `/api/research/intake/${TC255}`,
         reviewItem: '/api/admin/research-intake/review/TC-255',
+        reviewPacket: '/api/admin/research-intake/review/TC-255/packet.md',
       },
       controls: {
         humanReviewRequired: true,

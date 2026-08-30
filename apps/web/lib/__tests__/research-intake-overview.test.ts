@@ -147,8 +147,8 @@ describe('compact research intake overview contract', () => {
     expect(overview).not.toHaveProperty('records');
     expect(overview).not.toHaveProperty('items');
     expect(fingerprint(overview)).toEqual({
-      bytes: 11_152,
-      sha256: '453b2f02bd7af0a831d1b6bb82294257d266e550ece7f06c236717a3c67db823',
+      bytes: 11_220,
+      sha256: '689f051a1d381d13e81e28e204aee156a95aca259670702d53ccd14ce0999d9e',
     });
   });
 

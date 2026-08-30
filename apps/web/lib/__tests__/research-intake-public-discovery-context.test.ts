@@ -231,8 +231,8 @@ describe('public research-intake discovery context', () => {
       new URLSearchParams(),
       DETERMINISTIC_AT,
     ))).toEqual({
-      bytes: 77_348,
-      sha256: '389e2e303c0918d944714d81d7654f1917a41b81520d3130152ec2d44e7121c3',
+      bytes: 77_416,
+      sha256: '339af4ac006db2ebe07d8420aa7c5b70d54f924f749848b70873794884b392ee',
     });
     const protectedEvidence = buildResearchIntakeAdminEvidencePayload(DETERMINISTIC_AT);
     expect(protectedEvidence.catalogEvidenceStateSummary).toEqual(
