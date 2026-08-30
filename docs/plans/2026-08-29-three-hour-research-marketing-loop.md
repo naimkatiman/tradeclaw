@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Task: TC-256 through TC-263
+Task: TC-256 through TC-264
 
 Status: active operating contract; local-only until separately authorized
 
@@ -74,7 +74,7 @@ filters and pagination. It lists every server-authored draft whose evidence was
 available at the observation instant, plus the latest handoff and any handoff in
 the current UTC window. Each entry says whether it came from a cycle receipt or
 the explicit pre-loop TC-255 closure; TC-255 keeps a null cycle ID, so the API
-does not invent historical receipt coverage. TC-256, TC-260, TC-261, TC-262, and TC-263 remain absent
+does not invent historical receipt coverage. TC-256, TC-260, TC-261, TC-262, TC-263, and TC-264 remain absent
 because their source-audit no-go receipts deliberately produced no drafts. Summary counts separate
 pre-loop and receipt-backed evidence and keep publication-approved drafts at
 zero. `review-ready` means only that factual copy exists for a human to inspect;
@@ -272,9 +272,24 @@ or returns. TC-263 remains `not-tested`, with no result artifact or marketing
 draft. Its receipt is
 `docs/research/2026-08-30-cryptocurrency-as-money-source-audit.md`.
 
+TC-264 selected the paper's rolling-versus-expanding commodity-ratio study for
+source feasibility rather than its upstream figures. The daily signal, seven-
+year window, `1.25` z-threshold, confirmation filter, 15-trading-day hold, and
+flat cost sensitivity are understandable at a research-concept level. Exact
+replay nevertheless stopped at source audit: the paper does not pin its
+Investing.com files, futures contracts or rolls, denominator vehicles, causal
+fills, overlapping-entry accounting, or realized friction ledger. It also says
+parameters were selected on the full 2000-2026 sample before presenting the
+2016-2026 period as out of sample, and its February 2026 publication leaves no
+meaningful prospective sample for a roughly two-trade-per-year primary rule.
+The discovery clone compounds the mismatch by running `1990-2026` and showing a
+current short SPX position. TC-264 therefore remains `not-tested`, with no
+preregistration, return, result artifact, or marketing draft. Its receipt is
+`docs/research/2026-08-30-rolling-vs-expanding-mean-reversion-source-audit.md`.
+
 Do not open another catalog receipt before the exact
-`2026-08-30T03:00:00.000Z` boundary. The TC-263 no-go does not authorize a proxy
-grid backtest, marketing claim, publication, signal, allocation, broadcast,
+`2026-08-30T06:00:00.000Z` boundary. The TC-264 no-go does not authorize a proxy
+commodity backtest, marketing claim, publication, signal, allocation, broadcast,
 broker action, or execution change.
 
 ## Marketing handoff

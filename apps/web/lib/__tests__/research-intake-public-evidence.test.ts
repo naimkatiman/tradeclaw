@@ -32,12 +32,12 @@ describe('public research evidence index', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 52,
-        sourceAudited: 5,
+        discovered: 51,
+        sourceAudited: 6,
         replicated: 4,
         failed: 3,
         inconclusive: 1,
-        sourceNoGo: 5,
+        sourceNoGo: 6,
       },
       evidenceIndex: {
         selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
@@ -46,17 +46,17 @@ describe('public research evidence index', () => {
         includesEveryAvailableOverlay: true,
       },
       evidenceSummary: {
-        total: 9,
+        total: 10,
         discovered: 0,
-        sourceAudited: 5,
+        sourceAudited: 6,
         preregistered: 0,
         replicated: 4,
         prospective: 0,
         passed: 0,
         failed: 3,
         inconclusive: 1,
-        untested: 5,
-        sourceNoGo: 5,
+        untested: 6,
+        sourceNoGo: 6,
       },
     });
     expect(payload.workflow).toHaveLength(5);
@@ -66,6 +66,7 @@ describe('public research evidence index', () => {
       'TC-262',
       'TC-259',
       'TC-257',
+      'TC-264',
       'TC-255',
       'TC-261',
       'TC-258',
@@ -76,7 +77,7 @@ describe('public research evidence index', () => {
     expect(payload.records.map((record) => record.sourcePosition)).toEqual(
       [...payload.records].map((record) => record.sourcePosition).sort((left, right) => left - right),
     );
-    expect(new Set(payload.records.map((record) => record.id))).toHaveProperty('size', 9);
+    expect(new Set(payload.records.map((record) => record.id))).toHaveProperty('size', 10);
     expect(payload.records.every((record) => record.evidenceBasis !== 'upstream-gross-discovery-only'))
       .toBe(true);
     expect(buildResearchIntakePublicEvidencePayload()).toEqual(payload);
@@ -112,7 +113,7 @@ describe('public research evidence index', () => {
       },
     });
 
-    for (const id of ['TC-256', 'TC-260', 'TC-261', 'TC-262', 'TC-263']) {
+    for (const id of ['TC-256', 'TC-260', 'TC-261', 'TC-262', 'TC-263', 'TC-264']) {
       expect(byTask.get(id)).toMatchObject({
         stage: 'source-audited',
         verdict: 'not-tested',

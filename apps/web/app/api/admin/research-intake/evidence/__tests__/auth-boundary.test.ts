@@ -53,6 +53,7 @@ describe('GET /api/admin/research-intake/evidence real admin-cookie boundary', (
       'TC-262',
       'TC-259',
       'TC-257',
+      'TC-264',
       'TC-255',
       'TC-261',
       'TC-258',

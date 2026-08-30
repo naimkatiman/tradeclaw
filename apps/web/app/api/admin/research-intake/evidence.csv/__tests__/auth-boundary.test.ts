@@ -29,7 +29,7 @@ describe('GET /api/admin/research-intake/evidence.csv real admin-cookie boundary
     expect(response.headers.get('vary')).toBe('Cookie, Authorization');
   });
 
-  it('accepts the signed admin cookie and returns all nine examined rows', async () => {
+  it('accepts the signed admin cookie and returns all ten examined rows', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-29T18:00:40.000Z'));
     const secret = 'integration-only-secret';
     process.env.ADMIN_SECRET = secret;
@@ -49,8 +49,9 @@ describe('GET /api/admin/research-intake/evidence.csv real admin-cookie boundary
     );
     expect(response.headers.get('cache-control')).toBe('private, no-store, max-age=0');
     expect(response.headers.get('vary')).toBe('Cookie, Authorization');
-    expect(body.split('\r\n')).toHaveLength(10);
+    expect(body.split('\r\n')).toHaveLength(11);
     expect(body).toContain('TC-262');
+    expect(body).toContain('TC-264');
     expect(body).toContain('TC-261');
     expect(body).toContain('2026-08-29T18:00:40.000Z');
     expect(body).not.toContain('modeled-historical-pass');

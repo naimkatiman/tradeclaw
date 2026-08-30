@@ -1,11 +1,154 @@
 project: tradeclaw
-updated: 2026-08-30T10:34:58+08:00
+updated: 2026-08-30T11:35:47+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_mean_reversion_source_audit_2026_08_30:
+  at: 2026-08-30T11:35:47+08:00
+  agent: TradeClaw PM agent
+  status: done_source_audit_no_go_verified_pending_local_commit
+  scope: Screen and source-audit exactly one untouched awesome-systematic-trading candidate in the new 03:00Z UTC window before any preregistration, return, artifact, or marketing work
+  base_commit: 6843e371d59481714786f51380515e486cb6c7dd
+  implementation_commit: pending-local-implementation-commit
+  branch: agent/research-intake-desk-20260829
+  cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+  started_at: 2026-08-30T03:00:47.7987745Z
+  completed_at: 2026-08-30T03:35:47.5006972Z
+  ends_at: 2026-08-30T06:00:00.000Z
+  task_id: TC-264
+  candidate_id: rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation
+  source_position: 26
+  one_based_catalog_row: 27
+  stage_before: discovered
+  stage_after: source-audited
+  receipt_created: true
+  receipt_recorded_at: 2026-08-30T03:10:26.781Z
+  preregistration_frozen: false
+  returns_opened: false
+  return_calculated: false
+  artifact_created: false
+  marketing_draft: none
+  external_actions: none
+  gate_observed_at: 2026-08-30T03:00:15.3476428Z
+  gate_state: awaiting-receipt with TC-263 as latest receipt, zero current-window receipts, and no unexpected duplicate windows
+  selection_basis: >-
+    Selected on accessible primary-source bytes, a low-frequency explicit
+    rolling-versus-expanding mean-reversion comparison, plausible public
+    commodity inputs, source-defined cross-asset validation, and bounded audit
+    scope. Upstream Sharpe, t-statistic, volatility, years, catalog row, and
+    clone output were not used as a performance rank or TradeClaw evidence.
+  screened_alternatives:
+    - candidate_id: do-risk-preferences-drive-momentum-in-cryptocurrencies
+      decision: demoted-before-returns
+      reason: The open-access article explicitly says the survivorship-free source data cannot be shared, blocking an independently hashable exact universe before rule and cost reconstruction.
+    - candidate_id: any-role-for-mean-reversion-in-short-term-asset
+      decision: demoted-before-returns
+      reason: The older primary full text was not accessible from the official record during screening, and the study depends on multi-asset expected-return and covariance estimation rather than one bounded public rule.
+    - candidate_id: regime-aware-risk-management-in-concentrated-equity-portfolios-evidence-from-the-magnificent-seven
+      decision: demoted-before-returns
+      reason: The February 2026 paper has essentially no post-publication holdout and an ex-post concentrated universe; inspect only if the clearer cross-asset commodity rule fails source feasibility.
+  primary_source:
+    ssrn_record: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6217778
+    doi: https://doi.org/10.2139/ssrn.6217778
+    author: Akshit Gupta
+    document_bytes: 636787
+    document_pages: 19
+    document_sha256: 94ce5ddb4c6f211989440b087cf7f9fcc368907bb0f0d8955058a0cb935197e6
+    extracted_text_bytes: 50556
+    extracted_text_sha256: e1188a944503603ec29bd02c50f68c13f92b62dec081a413a0f229608f49b70b
+    discovery_html_bytes: 203968
+    discovery_html_sha256: ae252fd968872a8932e67b4e48aa75c88188ae9aad305a3e811ced1e50145455
+    written_at: 2026-02-10
+    posted_at: 2026-02-18
+    redistribution_rights_established: false
+  source_audit:
+    disposition: no-go
+    research_path: docs/research/2026-08-30-rolling-vs-expanding-mean-reversion-source-audit.md
+    research_bytes_lf: 12553
+    research_sha256: 7262373f8db0fb01ef63eaa817c468bb3d180490bfb48438fc8720ac681c9db3
+    tradeclaw_backtest_run: false
+    performance_verdict: not-tested
+    published_parameter_combinations_swept: 72
+    published_primary_trades: 47
+    published_cross_asset_pairs: 5
+    published_pooled_trades: 350
+    source_selected_parameters_using_full_sample: true
+    untouched_holdout_available: false
+    exact_source_bytes_supplied: false
+    futures_contracts_and_rolls_pinned: false
+    executable_fills_and_overlap_rules_supplied: false
+    complete_cost_ledger_supplied: false
+    reason: >-
+      Exact replay would require invented Investing.com bytes, futures contracts
+      and rolls, tradable denominator vehicles, alignment, causal fills,
+      overlapping-position accounting, complete costs, and an evaluation
+      protocol untouched by the full-sample 72-combination sweep. A public-data
+      implementation would therefore be a materially new hypothesis.
+  source_clone_mismatch: >-
+    The discovery clone shows a 1990-2026 daily strategy, negative net worth,
+    drawdown above 1,200 percent, and a current SPX short, while the paper begins
+    in 2000 and describes event-conditioned long-denominator commodity-ratio
+    trades held for 15 trading days. Clone output was neither a specification
+    nor a selection or verdict input.
+  catalog_result:
+    total_candidates: 61
+    discovered: 51
+    source_audited: 6
+    replicated: 4
+    source_no_go: 6
+    examined_with_tradeclaw_record: 10
+    performance_gates_evaluated: 3
+    performance_gates_not_evaluated: 58
+  intentional_red_verification: >-
+    PASS - the new TC-264 contract ran three tests and all three failed only on
+    the intentionally missing overlay, 52-to-51 and 5-to-6 catalog transitions,
+    and sole 03:00Z receipt before implementation.
+  focused_verification: >-
+    PASS - all 29 research-intake suites pass 150/150 tests; all three
+    research-loop suites pass 18/18; and all 24 public/protected route, auth,
+    README, and publication-boundary suites pass 89/89.
+  source_and_static_verification: >-
+    PASS - the pinned-source verifier reconstructs 61/61 candidates from commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a.
+    Signals and the full web TypeScript graph compile; lint exits zero with the
+    same 21 inherited warnings and no new error.
+  full_test_verification: >-
+    PASS - all 303 runnable suites and all 2,200 runnable tests pass with one
+    passing snapshot; the inherited three suites and 26 tests remain skipped.
+    Jest used the repository's known force-exit handling only after green totals.
+  production_build_verification: >-
+    PASS - npm run build compiles signals, trading-agents, and the Next.js
+    production application and generates all 331/331 static pages. Only the
+    existing middleware, three Turbopack broad-trace, edge-runtime, and Node
+    url.parse deprecation notices remain non-fatal.
+  changed_path_manifest:
+    count: 47
+    state_paths: 1
+    documentation_paths: 3
+    read_model_implementation_paths: 3
+    deterministic_test_paths: 40
+    rendered_ui_paths: 0
+    docker_dependency_database_or_migration_paths: 0
+    signal_strategy_allocation_broadcast_broker_or_execution_paths: 0
+  source_file_cleanup: >-
+    PASS - after hashes, full-text audit, and decisive-page visual inspection,
+    the exact all-rights-reserved PDF, discovery HTML, extracted text, and seven
+    rendered PNGs were removed from the temporary workspace directory and were
+    not vendored.
+  docker_compose_verification: >-
+    NOT RUN - Docker CLI is absent locally. Docker Compose, manifests,
+    lockfiles, databases, and migrations have zero diff, so the supported
+    PostgreSQL Compose flow is preserved.
+  next_rollover_at: 2026-08-30T06:00:00.000Z
+  final_gate_observed_at: 2026-08-30T03:35:47.5006972Z
+  final_gate_decision: TC-264 is the sole 03:00Z receipt; create no second candidate, return, preregistration, artifact, or marketing draft before the exact 06:00Z rollover.
+  next_action: Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns.
+  safety: No return, preregistration, result artifact, marketing draft, rendered UI, publication, signal, allocation, broadcast, broker, execution, billing, push, merge, or deployment action occurred.
 
 research_compact_evidence_index_2026_08_30:
   at: 2026-08-30T10:13:00+08:00
@@ -5555,6 +5698,33 @@ research_intake_desk_2026_08_29:
     trading_approved: false
     external_actions: none
     next_action: Archive the exact-source no-go; any venue-specific cryptocurrency grid study must begin as a separately hashed hypothesis in a later UTC window before returns
+  cycle_9:
+    id: 2026-08-30T03:00:00.000Z/PT3H
+    recorded_at: 2026-08-30T03:10:26.781Z
+    task_id: TC-264
+    implementation_commit: pending-local-implementation-commit
+    started_at: 2026-08-30T03:00:47.7987745Z
+    ends_at: 2026-08-30T06:00:00.000Z
+    candidate_id: rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    source_audit_sha256: 7262373f8db0fb01ef63eaa817c468bb3d180490bfb48438fc8720ac681c9db3
+    source_pdf_sha256: 94ce5ddb4c6f211989440b087cf7f9fcc368907bb0f0d8955058a0cb935197e6
+    evidence_paths:
+      - docs/research/2026-08-30-rolling-vs-expanding-mean-reversion-source-audit.md
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    next_action: Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00

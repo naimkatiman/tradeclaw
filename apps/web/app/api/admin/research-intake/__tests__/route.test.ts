@@ -140,7 +140,7 @@ describe('GET /api/admin/research-intake', () => {
               {
                 value: 'discovered',
                 label: 'Discovered',
-                count: 52,
+                count: 51,
                 selected: false,
                 href: '/api/admin/research-intake?stage=discovered&page=1&limit=25',
               },
@@ -180,7 +180,7 @@ describe('GET /api/admin/research-intake', () => {
               {
                 value: 'no-go',
                 label: 'No-go',
-                count: 5,
+                count: 6,
                 selected: false,
                 href:
                   '/api/admin/research-intake?sourceAuditDisposition=no-go&page=1&limit=25',
@@ -243,23 +243,23 @@ describe('GET /api/admin/research-intake', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 52,
-        sourceAudited: 5,
+        discovered: 51,
+        sourceAudited: 6,
         replicated: 4,
         failed: 3,
         inconclusive: 1,
         untested: 57,
-        sourceNoGo: 5,
+        sourceNoGo: 6,
       },
       catalogEvidenceStateSummary: {
         totalCandidates: 61,
-        withTradeClawRecord: 9,
+        withTradeClawRecord: 10,
         performanceGatesEvaluated: 3,
         performanceGatesNotEvaluated: 58,
       },
       filteredEvidenceStateSummary: {
         totalCandidates: 61,
-        withTradeClawRecord: 9,
+        withTradeClawRecord: 10,
         performanceGatesEvaluated: 3,
         performanceGatesNotEvaluated: 58,
       },
@@ -400,7 +400,7 @@ describe('GET /api/admin/research-intake', () => {
     ).toBe(true);
   });
 
-  it('exposes all five source-audit no-go records without relabeling any as a local failure', async () => {
+  it('exposes all six source-audit no-go records without relabeling any as a local failure', async () => {
     mockedAdmin.mockResolvedValue(null);
 
     const response = await GET(
@@ -409,15 +409,16 @@ describe('GET /api/admin/research-intake', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.pagination).toMatchObject({ totalRecords: 5, returnedRecords: 5 });
+    expect(body.pagination).toMatchObject({ totalRecords: 6, returnedRecords: 6 });
     expect(body.filteredSummary).toMatchObject({
-      sourceAudited: 5,
-      sourceNoGo: 5,
+      sourceAudited: 6,
+      sourceNoGo: 6,
       failed: 0,
-      untested: 5,
+      untested: 6,
     });
     expect(body.records.map((record: { id: string }) => record.id)).toEqual([
       'properties-of-the-most-diversified-portfolio',
+      'rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation',
       'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
       'price-overreactions-in-the-cryptocurrency-market',
       'cryptocurrency-as-money-a-trading-strategy-solution',
@@ -430,18 +431,26 @@ describe('GET /api/admin/research-intake', () => {
       publishedRule: { cadence: 'semiannual', rebalanceMonths: [5, 11] },
     });
     expect(body.records[1].tradeClawSourceAudit).toMatchObject({
+      taskId: 'TC-264',
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      primarySource: {
+        documentSha256: '94ce5ddb4c6f211989440b087cf7f9fcc368907bb0f0d8955058a0cb935197e6',
+      },
+    });
+    expect(body.records[2].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-261',
       disposition: 'no-go',
       tradeClawBacktestRun: false,
       currentDataReceipt: { pivxPriceUsdAvailable: false },
     });
-    expect(body.records[2].tradeClawSourceAudit).toMatchObject({
+    expect(body.records[3].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-256',
       disposition: 'no-go',
       tradeClawBacktestRun: false,
       publishedResult: { conclusion: 'no-exploitable-profit' },
     });
-    expect(body.records[3].tradeClawSourceAudit).toMatchObject({
+    expect(body.records[4].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-263',
       disposition: 'no-go',
       tradeClawBacktestRun: false,
@@ -451,7 +460,7 @@ describe('GET /api/admin/research-intake', () => {
         defaultSteps: 7,
       },
     });
-    expect(body.records[4].tradeClawSourceAudit).toMatchObject({
+    expect(body.records[5].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-260',
       disposition: 'no-go',
       tradeClawBacktestRun: false,

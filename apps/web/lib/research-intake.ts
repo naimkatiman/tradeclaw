@@ -563,6 +563,74 @@ export interface TradeClawCryptocurrencyAsMoneySourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawRollingVsExpandingSourceAuditEvidence {
+  taskId: 'TC-264';
+  auditDate: '2026-08-30';
+  researchPath: 'docs/research/2026-08-30-rolling-vs-expanding-mean-reversion-source-audit.md';
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  primarySource: {
+    title: 'Rolling vs. Expanding Windows in Mean-Reversion Strategies: Evidence from Gold-Silver and Cross-Asset Validation';
+    authors: readonly ['Akshit Gupta'];
+    discoveryUrl: 'https://paperswithbacktest.com/strategies/rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation';
+    discoveryHtmlSha256: string;
+    discoveryHtmlBytes: 203968;
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6217778';
+    doi: 'https://doi.org/10.2139/ssrn.6217778';
+    documentSha256: string;
+    documentBytes: 636787;
+    documentPages: 19;
+    extractedTextSha256: string;
+    extractedTextBytes: 50556;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    structure: 'long-denominator-commodity-ratio-mean-reversion';
+    signalFrequency: 'daily-close-lagged-one-trading-day';
+    windowYears: 7;
+    thresholdZ: 1.25;
+    confirmationDeclinePct: 2;
+    confirmationLookbackTradingDays: 10;
+    holdingPeriodTradingDays: 15;
+    earlyExit: false;
+    parameterCombinationsSwept: 72;
+    finalVixThreshold: 20;
+    finalVixOverweight: 1.15;
+  };
+  selectionAndValidation: {
+    parametersSelectedUsingFullSample: true;
+    temporalSplit: '2005-2015/2016-2026-retrospective';
+    primaryTrades: 47;
+    crossAssetPairs: 5;
+    pooledTrades: 350;
+    postPublicationHoldoutFrozen: false;
+  };
+  sourceCloneMismatch: {
+    primaryCadence: 'event-driven-daily-signal-with-15-trading-day-hold';
+    cloneCadence: 'daily';
+    primarySample: '2000-01-01/2026-02-09';
+    cloneSample: '1990-2026';
+    cloneCurrentPosition: 'SPX-short-304';
+  };
+  inputProvenance: {
+    exactSourceBytesSupplied: false;
+    investingComSeriesPinned: false;
+    futuresContractsPinned: false;
+    rollRulesSupplied: false;
+    executableFillRulesSupplied: false;
+    overlappingPositionRulesSupplied: false;
+  };
+  publishedCostTreatment: {
+    baselinePerSideBasisPoints: 10;
+    sensitivityMaxPerSideBasisPoints: 50;
+    deterministicTradeLedgerSupplied: false;
+    completeFrictionModelSupplied: false;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -685,6 +753,7 @@ export type TradeClawResearchSourceAuditEvidence =
   | TradeClawCryptoFactorSourceAuditEvidence
   | TradeClawMostDiversifiedPortfolioSourceAuditEvidence
   | TradeClawCryptocurrencyAsMoneySourceAuditEvidence
+  | TradeClawRollingVsExpandingSourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -768,6 +837,8 @@ const CRYPTO_FACTOR_INVESTING_ID =
   'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space';
 const MOST_DIVERSIFIED_PORTFOLIO_ID = 'properties-of-the-most-diversified-portfolio';
 const CRYPTOCURRENCY_AS_MONEY_ID = 'cryptocurrency-as-money-a-trading-strategy-solution';
+const ROLLING_VS_EXPANDING_MEAN_REVERSION_ID =
+  'rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -1103,6 +1174,93 @@ const TC263_CRYPTOCURRENCY_AS_MONEY_SOURCE_AUDIT: TradeClawCryptocurrencyAsMoney
   ],
   reason:
     'The source communicates a useful grid concept but omits the executable formulas, venue and immutable event data, causal limit-order fills, complete costs, and fixed evaluation protocol needed for exact independent replay; a venue-specific implementation would be a materially new hypothesis.',
+};
+
+const TC264_ROLLING_VS_EXPANDING_SOURCE_AUDIT: TradeClawRollingVsExpandingSourceAuditEvidence = {
+  taskId: 'TC-264',
+  auditDate: '2026-08-30',
+  researchPath: 'docs/research/2026-08-30-rolling-vs-expanding-mean-reversion-source-audit.md',
+  researchSha256: '7262373f8db0fb01ef63eaa817c468bb3d180490bfb48438fc8720ac681c9db3',
+  disposition: 'no-go',
+  tradeClawBacktestRun: false,
+  primarySource: {
+    title:
+      'Rolling vs. Expanding Windows in Mean-Reversion Strategies: Evidence from Gold-Silver and Cross-Asset Validation',
+    authors: ['Akshit Gupta'],
+    discoveryUrl:
+      'https://paperswithbacktest.com/strategies/rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation',
+    discoveryHtmlSha256:
+      'ae252fd968872a8932e67b4e48aa75c88188ae9aad305a3e811ced1e50145455',
+    discoveryHtmlBytes: 203968,
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6217778',
+    doi: 'https://doi.org/10.2139/ssrn.6217778',
+    documentSha256: '94ce5ddb4c6f211989440b087cf7f9fcc368907bb0f0d8955058a0cb935197e6',
+    documentBytes: 636787,
+    documentPages: 19,
+    extractedTextSha256:
+      'e1188a944503603ec29bd02c50f68c13f92b62dec081a413a0f229608f49b70b',
+    extractedTextBytes: 50556,
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    structure: 'long-denominator-commodity-ratio-mean-reversion',
+    signalFrequency: 'daily-close-lagged-one-trading-day',
+    windowYears: 7,
+    thresholdZ: 1.25,
+    confirmationDeclinePct: 2,
+    confirmationLookbackTradingDays: 10,
+    holdingPeriodTradingDays: 15,
+    earlyExit: false,
+    parameterCombinationsSwept: 72,
+    finalVixThreshold: 20,
+    finalVixOverweight: 1.15,
+  },
+  selectionAndValidation: {
+    parametersSelectedUsingFullSample: true,
+    temporalSplit: '2005-2015/2016-2026-retrospective',
+    primaryTrades: 47,
+    crossAssetPairs: 5,
+    pooledTrades: 350,
+    postPublicationHoldoutFrozen: false,
+  },
+  sourceCloneMismatch: {
+    primaryCadence: 'event-driven-daily-signal-with-15-trading-day-hold',
+    cloneCadence: 'daily',
+    primarySample: '2000-01-01/2026-02-09',
+    cloneSample: '1990-2026',
+    cloneCurrentPosition: 'SPX-short-304',
+  },
+  inputProvenance: {
+    exactSourceBytesSupplied: false,
+    investingComSeriesPinned: false,
+    futuresContractsPinned: false,
+    rollRulesSupplied: false,
+    executableFillRulesSupplied: false,
+    overlappingPositionRulesSupplied: false,
+  },
+  publishedCostTreatment: {
+    baselinePerSideBasisPoints: 10,
+    sensitivityMaxPerSideBasisPoints: 50,
+    deterministicTradeLedgerSupplied: false,
+    completeFrictionModelSupplied: false,
+  },
+  blockers: [
+    'The exact Investing.com files, stable tickers, retrieval timestamp, revisions, time zones, calendars, and redistribution rights are not frozen.',
+    'Copper and Brent futures contracts, continuation method, expiry selection, roll dates, adjustment, and carry or collateral treatment are unspecified.',
+    'The executable denominator vehicle is not fixed, so spot, ETF, and futures returns remain materially different hypotheses.',
+    'Ratio units, cross-market holiday alignment, missing-close behavior, and the exact seven-year window convention are not executable.',
+    'The next entry price, order type, session, and exit-price timestamp are not defined after the lagged close signal.',
+    'Overlapping signals, cooldowns, repeated-entry capital, and concurrent-ratio netting rules are omitted.',
+    'Confirmation endpoints, z-score variance convention, equality behavior, and numerical rounding are not frozen.',
+    'The flat cost sensitivity has no realized trade ledger and omits spread, slippage, rolls, financing, collateral yield, taxes, and impact.',
+    'The primary parameters were chosen after a 72-combination full-sample sweep, including a downstream choice between the 1.25 and 1.5 thresholds.',
+    'The 2016-2026 temporal split is retrospective because the paper says parameters were selected on the full 2000-2026 sample.',
+    'The February 2026 publication leaves no meaningful prospective sample for a rule reporting about two primary trades per year.',
+    'Cross-asset pooling shares the unpinned source family and pre-publication process, and the final VIX sizing rule is adopted after pooled testing.',
+    'The dynamic discovery clone contradicts the paper sample, exposure, and current instrument while its implementation is not an accepted specification.',
+  ],
+  reason:
+    'The high-level low-frequency ratio rule is understandable, but exact replay would require invented vendor series, futures rolls, tradable vehicles, causal fills, overlap accounting, complete costs, and an untouched evaluation protocol; a public-data implementation would be a materially new hypothesis.',
 };
 
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
@@ -1681,7 +1839,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
                     ? TC262_MOST_DIVERSIFIED_PORTFOLIO_SOURCE_AUDIT
                     : candidate.id === CRYPTOCURRENCY_AS_MONEY_ID
                       ? TC263_CRYPTOCURRENCY_AS_MONEY_SOURCE_AUDIT
-                      : null;
+                      : candidate.id === ROLLING_VS_EXPANDING_MEAN_REVERSION_ID
+                        ? TC264_ROLLING_VS_EXPANDING_SOURCE_AUDIT
+                        : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {
@@ -1725,11 +1885,13 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         stage: 'source-audited' as const,
         verdict: 'not-tested' as const,
         costStatus: 'unassessed' as const,
-        nextAction: tradeClawSourceAudit.taskId === 'TC-263'
-          ? 'Archive the exact-source no-go; any new venue-specific cryptocurrency grid hypothesis must freeze rules, event data, costs, controls, and holdout in a later UTC window before returns.'
-          : tradeClawSourceAudit.taskId === 'TC-262'
-            ? 'Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns.'
-            : 'Archive the published specification as a source-audited no-go; preregister only a materially new hypothesis with explicit rules, data, costs, and holdout.',
+        nextAction: tradeClawSourceAudit.taskId === 'TC-264'
+          ? 'Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns.'
+          : tradeClawSourceAudit.taskId === 'TC-263'
+            ? 'Archive the exact-source no-go; any new venue-specific cryptocurrency grid hypothesis must freeze rules, event data, costs, controls, and holdout in a later UTC window before returns.'
+            : tradeClawSourceAudit.taskId === 'TC-262'
+              ? 'Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns.'
+              : 'Archive the published specification as a source-audited no-go; preregister only a materially new hypothesis with explicit rules, data, costs, and holdout.',
         marketingDisposition: 'none' as const,
         tradeClawSourceAudit,
         tradeClawEvidence: null,

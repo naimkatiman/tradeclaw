@@ -127,19 +127,19 @@ describe('TC-263 cryptocurrency-as-money source audit', () => {
     const summary = summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE);
     expect(summary).toMatchObject({
       total: 61,
-      discovered: 52,
-      sourceAudited: 5,
+      discovered: 51,
+      sourceAudited: 6,
       replicated: 4,
       passed: 0,
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 5,
+      sourceNoGo: 6,
     });
   });
 
   it('records the sole 00:00Z receipt without creating marketing or authority', () => {
-    expect(RESEARCH_LOOP_RECEIPTS.at(-1)).toEqual({
+    expect(RESEARCH_LOOP_RECEIPTS.find((receipt) => receipt.taskId === 'TC-263')).toEqual({
       cycleId: '2026-08-30T00:00:00.000Z/PT3H',
       recordedAt: '2026-08-30T00:09:58.762Z',
       taskId: 'TC-263',

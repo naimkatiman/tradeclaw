@@ -24,7 +24,7 @@ describe('README systematic-research intake discoverability', () => {
       /upstream figures[\s\S]*gross discovery metadata[\s\S]*not TradeClaw performance/i,
     );
     expect(research).toMatch(
-      /52 untouched discoveries[\s\S]*5 source-audit no-go records[\s\S]*1 QA-only INCONCLUSIVE replication[\s\S]*3 cost- or stability-failed replications/i,
+      /51 untouched discoveries[\s\S]*6 source-audit no-go records[\s\S]*1 QA-only INCONCLUSIVE replication[\s\S]*3 cost- or stability-failed replications/i,
     );
     expect(research).toMatch(/source-audit no-go records[\s\S]*not local performance failures/i);
     expect(research).toMatch(/grants neither publication nor trading authority/i);
@@ -45,13 +45,13 @@ describe('README systematic-research intake discoverability', () => {
     );
     expect(api).toContain('curl https://tradeclaw.win/api/research/intake/evidence');
     expect(api).toMatch(
-      /all nine examined candidates[\s\S]*failures[\s\S]*no-go audits[\s\S]*inconclusive/i,
+      /all ten examined candidates[\s\S]*failures[\s\S]*no-go audits[\s\S]*inconclusive/i,
     );
     expect(api).toContain(
       'curl https://tradeclaw.win/api/research/intake/evidence.csv -o tradeclaw-systematic-research-evidence-2026-08-30.csv',
     );
     expect(api).toMatch(
-      /nine-row evidence spreadsheet[\s\S]*failures[\s\S]*no-go audits[\s\S]*inconclusive/i,
+      /ten-row evidence spreadsheet[\s\S]*failures[\s\S]*no-go audits[\s\S]*inconclusive/i,
     );
     expect(api).toContain(
       'curl https://tradeclaw.win/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation',

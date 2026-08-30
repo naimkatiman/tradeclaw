@@ -13,7 +13,8 @@ export type ResearchLoopReceiptTaskId =
   | 'TC-260'
   | 'TC-261'
   | 'TC-262'
-  | 'TC-263';
+  | 'TC-263'
+  | 'TC-264';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -239,6 +240,27 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Archive the exact-source no-go; any venue-specific cryptocurrency grid study must begin as a separately hashed hypothesis in a later UTC window before returns',
+  },
+  {
+    cycleId: '2026-08-30T03:00:00.000Z/PT3H',
+    recordedAt: '2026-08-30T03:10:26.781Z',
+    taskId: 'TC-264',
+    candidateId:
+      'rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-30-rolling-vs-expanding-mean-reversion-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns',
   },
 ] as const;
 

@@ -146,8 +146,8 @@ describe('compact research intake evidence-index contract', () => {
       /"(?:sourceUrl|upstreamGrossSharpe|upstreamTStatistic|upstreamVolatilityPct|upstreamYearsTested|tradeClawSourceAudit|tradeClawEvidence|nextAction|marketingDisposition|marketingReviewDraft|meaning|evidencePath|artifactPath)"/,
     );
     expect(fingerprint(payload)).toEqual({
-      bytes: 13_168,
-      sha256: '0d22d5c16cf8252632917f3a72ad6fa77b47374f1c547dfe677a3365b5579204',
+      bytes: 13_941,
+      sha256: 'a009d9a3a369b266cc9b0b7c2fbc21752ef1d721f883f56748f264ff58eee4ce',
     });
   });
 
@@ -179,8 +179,8 @@ describe('compact research intake evidence-index contract', () => {
       /"(?:receipts|latestReceipt|marketingHandoff|draft|tradeClawSourceAudit|tradeClawEvidence|meaning|evidencePath|artifactPath)"/,
     );
     expect(fingerprint(payload)).toEqual({
-      bytes: 16_547,
-      sha256: 'b453223c94c7d88af86dccb0552865d968be82cc4e47537b6cb30d09b4bf4131',
+      bytes: 17_539,
+      sha256: '491b3daec5e52d55008b961530b1324a19538391832858aff2507ad6eefa724c',
     });
   });
 
