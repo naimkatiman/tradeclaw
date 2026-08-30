@@ -14,7 +14,9 @@ const TC261_CANDIDATE_ID =
 
 interface CandidateLinks {
   adminCandidate: string;
+  adminCandidateBrief: string;
   publicCandidate: string;
+  publicCandidateBrief: string;
 }
 
 interface CatalogRecordWithLinks {
@@ -31,7 +33,9 @@ function expectedLinks(candidateId: string): CandidateLinks {
   const encodedCandidateId = encodeURIComponent(candidateId);
   return {
     adminCandidate: `/api/admin/research-intake/${encodedCandidateId}`,
+    adminCandidateBrief: `/api/admin/research-intake/${encodedCandidateId}/brief.md`,
     publicCandidate: `/api/research/intake/${encodedCandidateId}`,
+    publicCandidateBrief: `/api/research/intake/${encodedCandidateId}/brief.md`,
   };
 }
 
@@ -102,17 +106,17 @@ describe('protected research catalog record links', () => {
       DETERMINISTIC_AT,
     )).map(({ id, links }) => ({ id, links })));
 
-    expect(Buffer.byteLength(defaultLinks, 'utf8')).toBe(7_361);
+    expect(Buffer.byteLength(defaultLinks, 'utf8')).toBe(13_376);
     expect(createHash('sha256').update(defaultLinks).digest('hex')).toBe(
-      '7a09efc5ac17cdf2fb386f5d3a908273b91c83f40a86505dd4c423e01c9800b6',
+      'f711ed5b1377cd2a913e731e3e35c60d65786ff22e45e1c4ed0b7637e0242aed',
     );
-    expect(Buffer.byteLength(completeLinks, 'utf8')).toBe(18_527);
+    expect(Buffer.byteLength(completeLinks, 'utf8')).toBe(33_582);
     expect(createHash('sha256').update(completeLinks).digest('hex')).toBe(
-      '0423769d0e57426d1ff6ebe5e7a64d515f057429bb75a74ede852395bea2ca72',
+      '159f610359a27f322cf83346675c4d528cd15cddb10a4c9905f05a2e46968609',
     );
-    expect(Buffer.byteLength(filteredLinks, 'utf8')).toBe(901);
+    expect(Buffer.byteLength(filteredLinks, 'utf8')).toBe(1_634);
     expect(createHash('sha256').update(filteredLinks).digest('hex')).toBe(
-      'c72e01661d06584ead6ef1c198655b028cb2f6c4596967c03a9f22721b45ed39',
+      '9141becd95fb96cde94cca531355f97a20ad8b3185722522ab291073a69f1f5d',
     );
   });
 

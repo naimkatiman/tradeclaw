@@ -43,7 +43,9 @@ interface AdminEvidenceIndexItem {
   };
   links: {
     adminCandidate: string;
+    adminCandidateBrief: string;
     publicCandidate: string;
+    publicCandidateBrief: string;
   };
 }
 
@@ -190,8 +192,8 @@ describe('compact research intake evidence-index contract', () => {
       /"(?:receipts|latestReceipt|marketingHandoff|draft|tradeClawSourceAudit|tradeClawEvidence|meaning|evidencePath|artifactPath)"/,
     );
     expect(fingerprint(payload)).toEqual({
-      bytes: 30_011,
-      sha256: 'ceb23244a4503baaac76dd00ad096198eb5761546fc156f515ad5d0fa0215c47',
+      bytes: 33_404,
+      sha256: '8b2be85486744ef4d9ea6ab16296343c4a811e6efbf94f2aa7e027291aaa107d',
     });
   });
 

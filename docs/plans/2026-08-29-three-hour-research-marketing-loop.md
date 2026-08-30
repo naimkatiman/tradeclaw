@@ -107,6 +107,15 @@ complete JSON graph before acting. It does not create or authorize a receipt,
 complete a review, record an owner decision, publish, post, or trade. Every
 protected resource map advertises it; public JSON/OpenAPI and every CSV omit it.
 
+Every protected candidate-link set also advertises the protected human-readable
+exact candidate record at
+`/api/admin/research-intake/{candidateId}/brief.md`. It renders the decision,
+frozen manual next action, observation-visible receipt and review state,
+repository evidence, and source-order navigation from the same exact admin
+payload. The JSON record and safe public formats remain separate links. The
+brief does not create a receipt, change research state, complete a review,
+publish, post, or trade; it grants neither publication nor trading authority.
+
 The sibling `marketingReview` projection is also independent of candidate
 filters and pagination. It lists every server-authored draft whose evidence was
 available at the observation instant, plus the latest handoff and any handoff in

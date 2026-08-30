@@ -1,11 +1,79 @@
 project: tradeclaw
-updated: 2026-08-30T23:48:56+08:00
+updated: 2026-08-31T00:12:06+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_candidate_brief_2026_08_30:
+  at: 2026-08-31T00:12:06+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_implementation_commit_pending
+  scope: Add a protected human-readable exact-candidate brief so an admin can move from the compact evidence desk to the full decision record without decoding raw JSON
+  branch: agent/research-intake-desk-20260829
+  base_commit: 81ae6124b21cdedf245fc11e3b450a8cdd9a8b6d
+  receipt_neutral: true
+  cycle_id: 2026-08-30T15:00:00.000Z/PT3H
+  new_research_receipt: false
+  gate_observed_at: 2026-08-30T15:51:22.786Z
+  gate_snapshot: >-
+    TC-268 is the sole current-window receipt, the current window is complete,
+    and another receipt is denied until exact 2026-08-30T18:00:00.000Z. The
+    ledger holds 13 receipts across 12 windows, with only the expected historical
+    2026-08-29T06:00:00.000Z/PT3H duplicate and no additional duplicate.
+  gap_evidence:
+    public_human_record: /api/research/intake/[candidateId]/brief.md
+    protected_machine_record: /api/admin/research-intake/[candidateId]
+    protected_human_record: absent
+    admin_link_contract: Exposes only adminCandidate and publicCandidate, so the evidence index and exact admin record terminate at JSON.
+  selected_improvement:
+    - Render one observation-consistent Markdown brief from the existing protected exact-candidate payload.
+    - Expose its canonical link on admin candidate, catalog, evidence-index, evidence, and review projections.
+    - Authenticate before reading path parameters, the server clock, or candidate state; keep the route private, no-store, GET-only, generic on misses, and authority-neutral.
+  red_contract:
+    file: apps/web/lib/__tests__/research-intake-admin-candidate-brief.test.ts
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-admin-candidate-brief.test.ts --silent
+    result: EXPECTED_RED - 0/6 tests passed
+    proves: The protected exact-candidate Markdown builder and route are absent, protected candidate links do not advertise either exact human format, and README/loop documentation stops at the raw-JSON admin journey; the same contract freezes existing public catalog and evidence bytes.
+  implementation:
+    builder: apps/web/lib/research-intake-admin-candidate-brief.ts
+    route: /api/admin/research-intake/[candidateId]/brief.md
+    exact_links: adminCandidate, adminCandidateBrief, publicCandidate, publicCandidateBrief
+    content: One protected observation joins the evidence status and decision, source-audit disposition, frozen manual next action, visible receipt and review state, repository paths, upstream gross context, and source-order navigation.
+    auth_and_cache: Authentication precedes path parameters, server clock, and research state; authorized responses are private/no-store inline Markdown and non-canonical IDs share one non-reflective 404.
+    authority: Read-only presentation only; false receipt, review-decision, publication, posting, and trading controls remain explicit.
+  focused_green:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-admin-candidate-brief.test.ts apps/web/app/api/admin/research-intake/[candidateId]/brief.md/__tests__/route.test.ts apps/web/app/api/admin/research-intake/[candidateId]/brief.md/__tests__/auth-boundary.test.ts --silent
+    result: PASS - 3 suites / 13 tests
+  adjacent_contract_reconciliation:
+    initial_result: EXPECTED RED - 14 suites / 18 assertions detected only the intentional protected link additions while 328 suites and 2426 tests passed; public and CSV guards stayed unchanged.
+    changes: Added the canonical adminCandidateBrief and publicCandidateBrief expectations and regenerated only protected catalog, overview, evidence-index, evidence, exact-candidate, review, and result-view fingerprints.
+    affected_replay: PASS - 14 suites / 90 tests
+  web_typecheck: PASS
+  lint: PASS - zero errors and 21 inherited warnings; no warning points to this increment
+  full_repository: PASS - 342 runnable suites, 2444 tests, and 1 snapshot; 3 suites and 26 tests skipped; the inherited post-summary Jest open handle was manually terminated only after complete green totals printed
+  pinned_source: PASS - all 61 candidates reconstruct at source commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+  review_evidence_integrity: PASS - TC-255, TC-257, TC-258, and TC-259 preregistration, result, and artifact bytes match every frozen manifest
+  production_build: PASS - the required root build compiled signals, trading-agents, and the Next.js app; generated all 333/333 static pages; and listed /api/admin/research-intake/[candidateId]/brief.md as a dynamic route. Only inherited middleware deprecation, whole-project Turbopack trace, edge-runtime static-generation, and Node url.parse warnings remained.
+  final_integrity:
+    focused_replay: PASS - 3 suites / 13 tests after the production build
+    state_yaml: PASS
+    diff_check: PASS
+    changed_path_scope: PASS - 23 paths are limited to the protected builder and route, five new focused tests, protected link-contract/fingerprint updates, README/loop documentation, and STATE.yaml
+    public_bytes: PASS - public catalog remains 140878 bytes / 4c48acd73a18d967bbf039e7109188c136b0f76d011b4e6da5754cb37326d3ec and public evidence remains 82070 bytes / 43d0257b89f0011979269732dd45e8fd8672c9f6aa35bb691255cd396f2076cf
+    route_boundary: PASS - GET-only, auth before path/clock/state, signed admin cookie accepted, malformed or absent grant denied, private/no-store, no CORS, and generic non-reflective 404
+    docker_compose_unchanged: true
+    rendered_ui_changed: false
+    public_openapi_changed: false
+    receipt_or_marketing_state_changed: false
+    gate_observed_at: 2026-08-30T16:11:46.866Z
+    gate: PASS - TC-268 remains the sole current-window receipt, the current window is complete, another receipt is denied until exact 2026-08-30T18:00:00.000Z, only the expected historical duplicate exists, four drafts remain human-review-only, zero are approved, and the current window has no marketing handoff
+  verification: PASS - focused brief/auth tests pass 13/13; affected protected contracts pass 90/90; all 342 runnable repository suites and 2444 tests pass; typecheck, lint, pinned-source reconstruction, review-evidence integrity, public-byte parity, STATE, scope, diff, gate, and the required 333-page production build pass
+  shared_library_search: No reusable protected exact-candidate Markdown brief or admin human-record pattern was found under the shared MemoryCore library.
+  safety_boundary: No candidate, source audit, return, receipt, research verdict, evidence artifact, marketing decision, publication, posting, billing, signal, allocation, broker, execution, or trading state will change.
+  next_step: Commit the verified 23-path implementation locally, record its exact commit in a STATE-only closure, save shared MemoryCore, and wait for the exact 2026-08-30T18:00:00.000Z intake boundary.
 
 research_readme_evidence_count_guard_2026_08_30:
   at: 2026-08-30T23:48:56+08:00

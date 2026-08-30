@@ -291,7 +291,9 @@ export interface ResearchIntakeAdminRecord extends ResearchIntakeRecord {
 
 export interface ResearchIntakeCandidateLinks {
   adminCandidate: string;
+  adminCandidateBrief: string;
   publicCandidate: string;
+  publicCandidateBrief: string;
 }
 
 export interface ResearchIntakeAdminReviewLinks extends ResearchIntakeCandidateLinks {
@@ -487,6 +489,7 @@ export interface ResearchIntakeAdminCandidatePayload {
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
   catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   navigation: ResearchIntakeCandidateNavigation;
+  links: ResearchIntakeCandidateLinks;
   record: ResearchIntakeAdminRecord;
   candidateWorkflow: {
     receiptCount: number;
@@ -1310,9 +1313,13 @@ function toAdminRecord(
 }
 
 function buildResearchIntakeCandidateLinks(candidateId: string): ResearchIntakeCandidateLinks {
+  const adminCandidate = buildResearchIntakeCandidateHref(candidateId, 'admin');
+  const publicCandidate = buildResearchIntakeCandidateHref(candidateId, 'public');
   return {
-    adminCandidate: buildResearchIntakeCandidateHref(candidateId, 'admin'),
-    publicCandidate: buildResearchIntakeCandidateHref(candidateId, 'public'),
+    adminCandidate,
+    adminCandidateBrief: `${adminCandidate}/brief.md`,
+    publicCandidate,
+    publicCandidateBrief: `${publicCandidate}/brief.md`,
   };
 }
 
@@ -2315,6 +2322,7 @@ export function buildResearchIntakeAdminCandidatePayload(
       SYSTEMATIC_RESEARCH_INTAKE,
     ),
     navigation,
+    links: buildResearchIntakeCandidateLinks(candidate.id),
     record: toAdminRecord(candidate, candidateWorkflow.marketingHandoff !== null),
     candidateWorkflow,
   };

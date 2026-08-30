@@ -49,7 +49,9 @@ interface NextReviewView {
   };
   links: {
     adminCandidate: string;
+    adminCandidateBrief: string;
     publicCandidate: string;
+    publicCandidateBrief: string;
     reviewItem: string;
     reviewPacket: string;
   };
@@ -114,7 +116,9 @@ describe('protected next marketing review', () => {
       },
       links: {
         adminCandidate: `/api/admin/research-intake/${TC255}`,
+        adminCandidateBrief: `/api/admin/research-intake/${TC255}/brief.md`,
         publicCandidate: `/api/research/intake/${TC255}`,
+        publicCandidateBrief: `/api/research/intake/${TC255}/brief.md`,
         reviewItem: '/api/admin/research-intake/review/TC-255',
         reviewPacket: '/api/admin/research-intake/review/TC-255/packet.md',
       },

@@ -61,7 +61,9 @@ interface ExactReviewPayload {
     handoff: { taskId: string; draft: { body: string } };
     links: {
       adminCandidate: string;
+      adminCandidateBrief: string;
       publicCandidate: string;
+      publicCandidateBrief: string;
       reviewItem: string;
       reviewPacket: string;
     };
@@ -101,7 +103,9 @@ describe('protected exact marketing review item', () => {
 
     expect(overview.marketingReview.nextReview?.links).toEqual({
       adminCandidate: `/api/admin/research-intake/${TC255}`,
+      adminCandidateBrief: `/api/admin/research-intake/${TC255}/brief.md`,
       publicCandidate: `/api/research/intake/${TC255}`,
+      publicCandidateBrief: `/api/research/intake/${TC255}/brief.md`,
       reviewItem: '/api/admin/research-intake/review/TC-255',
       reviewPacket: '/api/admin/research-intake/review/TC-255/packet.md',
     });
