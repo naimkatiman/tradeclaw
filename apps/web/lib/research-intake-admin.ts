@@ -627,6 +627,49 @@ export interface ResearchIntakeAdminReviewProtocol {
   checks: readonly ResearchIntakeAdminReviewCheck[];
 }
 
+export interface ResearchIntakeAdminCandidateClaimReference {
+  source: 'protected-candidate-json';
+  path: string;
+  jsonPointer: string;
+  rawValue: unknown;
+  renderedValue: string;
+}
+
+export interface ResearchIntakeAdminPreregistrationClaimReference {
+  source: 'preregistration-file';
+  path: string;
+  locator: string;
+  renderedValue: string;
+}
+
+export type ResearchIntakeAdminClaimReference =
+  | ResearchIntakeAdminCandidateClaimReference
+  | ResearchIntakeAdminPreregistrationClaimReference;
+
+export interface ResearchIntakeAdminClaim {
+  id: string;
+  statement: string;
+  references: readonly ResearchIntakeAdminClaimReference[];
+}
+
+export interface ResearchIntakeAdminClaimVerification {
+  schemaVersion: 1;
+  status: 'manual-cross-check-required';
+  mappingPurpose: 'draft-claim-to-canonical-evidence-navigation';
+  sourceOfTruth: 'result-and-artifact-files';
+  verificationRecorded: false;
+  mutationSupported: false;
+  grantsPublicationAuthority: false;
+  grantsTradingAuthority: false;
+  files: {
+    candidateJsonHref: string;
+    preregistrationPath: string;
+    resultPath: string;
+    artifactPath: string;
+  };
+  claims: readonly ResearchIntakeAdminClaim[];
+}
+
 export interface ResearchIntakeAdminReviewItemPayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
@@ -643,6 +686,7 @@ export interface ResearchIntakeAdminReviewItemPayload {
     next: ResearchIntakeAdminReviewNavigationItem | null;
   };
   reviewProtocol: ResearchIntakeAdminReviewProtocol;
+  claimVerification: ResearchIntakeAdminClaimVerification;
   reviewItem: ResearchIntakeAdminReviewItem;
 }
 
@@ -1473,6 +1517,441 @@ export const RESEARCH_INTAKE_ADMIN_REVIEW_PROTOCOL: ResearchIntakeAdminReviewPro
     ]),
   });
 
+function reviewSignedPercent(ratio: number): string {
+  const value = ratio * 100;
+  return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+}
+
+function freezeReviewClaim(
+  id: string,
+  statement: string,
+  references: readonly ResearchIntakeAdminClaimReference[],
+): ResearchIntakeAdminClaim {
+  return Object.freeze({
+    id,
+    statement,
+    references: Object.freeze(references),
+  });
+}
+
+function buildResearchIntakeAdminClaimVerification(
+  candidate: ResearchIntakeRecord,
+  reviewItem: ResearchIntakeAdminReviewItem,
+): ResearchIntakeAdminClaimVerification {
+  const evidence = candidate.tradeClawEvidence;
+  if (!evidence || evidence.taskId !== reviewItem.handoff.taskId) {
+    throw new Error(
+      `marketing review ${reviewItem.handoff.taskId} has no claim-verification evidence`,
+    );
+  }
+  if (
+    evidence.resultPath !== reviewItem.handoff.draft.resultPath ||
+    evidence.artifactPath !== reviewItem.handoff.draft.artifactPath
+  ) {
+    throw new Error(
+      `marketing review ${reviewItem.handoff.taskId} has mismatched evidence files`,
+    );
+  }
+
+  const files = Object.freeze({
+    candidateJsonHref: reviewItem.links.adminCandidate,
+    preregistrationPath: evidence.preregistrationPath,
+    resultPath: evidence.resultPath,
+    artifactPath: evidence.artifactPath,
+  });
+  const candidateReference = (
+    jsonPointer: string,
+    rawValue: unknown,
+    renderedValue: string,
+  ): ResearchIntakeAdminCandidateClaimReference => Object.freeze({
+    source: 'protected-candidate-json',
+    path: files.candidateJsonHref,
+    jsonPointer,
+    rawValue,
+    renderedValue,
+  });
+  const preregistrationReference = (
+    locator: string,
+    renderedValue: string,
+  ): ResearchIntakeAdminPreregistrationClaimReference => Object.freeze({
+    source: 'preregistration-file',
+    path: files.preregistrationPath,
+    locator,
+    renderedValue,
+  });
+
+  let claims: readonly ResearchIntakeAdminClaim[];
+
+  if (evidence.taskId === 'TC-255') {
+    const roundTripFeeAndSlippage = 2 * (
+      evidence.costs.feePctPerSide + evidence.costs.slippagePctPerSide
+    );
+    claims = [
+      freezeReviewClaim(
+        'tc255-btc-full-history',
+        `BTC full-history gross return was ${reviewSignedPercent(evidence.btc.grossCompoundedReturn)}, net return was ${reviewSignedPercent(evidence.btc.netCompoundedReturn)}, across ${evidence.btc.completedTrades.toLocaleString('en-US')} completed trades.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/btc/grossCompoundedReturn',
+            evidence.btc.grossCompoundedReturn,
+            reviewSignedPercent(evidence.btc.grossCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/netCompoundedReturn',
+            evidence.btc.netCompoundedReturn,
+            reviewSignedPercent(evidence.btc.netCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/completedTrades',
+            evidence.btc.completedTrades,
+            evidence.btc.completedTrades.toLocaleString('en-US'),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc255-eth-full-history',
+        `ETH full-history gross return was ${reviewSignedPercent(evidence.eth.grossCompoundedReturn)} and net return was ${reviewSignedPercent(evidence.eth.netCompoundedReturn)}.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/eth/grossCompoundedReturn',
+            evidence.eth.grossCompoundedReturn,
+            reviewSignedPercent(evidence.eth.grossCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/eth/netCompoundedReturn',
+            evidence.eth.netCompoundedReturn,
+            reviewSignedPercent(evidence.eth.netCompoundedReturn),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc255-fixed-portfolio',
+        `The preregistered fixed 50/50 BTC/ETH portfolio returned ${reviewSignedPercent(evidence.portfolio.netCompoundedReturn)} net over the full history and ${reviewSignedPercent(evidence.portfolio.holdoutNetCompoundedReturn)} net in holdout.`,
+        [
+          preregistrationReference(
+            'Frozen portfolio and decision gates: independent 50/50 BTC/ETH sleeves',
+            '50/50',
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/portfolio/netCompoundedReturn',
+            evidence.portfolio.netCompoundedReturn,
+            reviewSignedPercent(evidence.portfolio.netCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/portfolio/holdoutNetCompoundedReturn',
+            evidence.portfolio.holdoutNetCompoundedReturn,
+            reviewSignedPercent(evidence.portfolio.holdoutNetCompoundedReturn),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc255-fold-stability',
+        `Both BTC and ETH recorded ${evidence.btc.positiveFolds} of ${evidence.btc.totalFolds} positive chronological folds.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/btc/positiveFolds',
+            evidence.btc.positiveFolds,
+            String(evidence.btc.positiveFolds),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/totalFolds',
+            evidence.btc.totalFolds,
+            String(evidence.btc.totalFolds),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/eth/positiveFolds',
+            evidence.eth.positiveFolds,
+            String(evidence.eth.positiveFolds),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/eth/totalFolds',
+            evidence.eth.totalFolds,
+            String(evidence.eth.totalFolds),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc255-cost-boundary',
+        `BTC mean gross return per trade renders as ${reviewSignedPercent(evidence.btc.meanGrossTradeReturn)}; the draft's ${roundTripFeeAndSlippage.toFixed(2)}% round-trip fee and slippage equals 2 × (${evidence.costs.feePctPerSide.toFixed(2)}% fee + ${evidence.costs.slippagePctPerSide.toFixed(2)}% slippage) before funding.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/btc/meanGrossTradeReturn',
+            evidence.btc.meanGrossTradeReturn,
+            reviewSignedPercent(evidence.btc.meanGrossTradeReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/costs/feePctPerSide',
+            evidence.costs.feePctPerSide,
+            `${evidence.costs.feePctPerSide.toFixed(2)}%`,
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/costs/slippagePctPerSide',
+            evidence.costs.slippagePctPerSide,
+            `${evidence.costs.slippagePctPerSide.toFixed(2)}%`,
+          ),
+        ],
+      ),
+    ];
+  } else if (evidence.taskId === 'TC-257') {
+    const observedBps = evidence.qa.maximumErrorPct * 100;
+    const toleranceBps = evidence.qa.frozenTolerancePct * 100;
+    claims = [
+      freezeReviewClaim(
+        'tc257-qa-check-count',
+        `${evidence.qa.suppliedYieldChecksAboveTolerance} of ${evidence.qa.suppliedYieldChecks.toLocaleString('en-US')} official curve checks exceeded the preregistered tolerance.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/qa/suppliedYieldChecksAboveTolerance',
+            evidence.qa.suppliedYieldChecksAboveTolerance,
+            String(evidence.qa.suppliedYieldChecksAboveTolerance),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/qa/suppliedYieldChecks',
+            evidence.qa.suppliedYieldChecks,
+            evidence.qa.suppliedYieldChecks.toLocaleString('en-US'),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc257-evaluation-window',
+        `Input QA covered ${evidence.qa.evaluationMonths} evaluation months; the maximum reconstruction error occurred on ${evidence.qa.maximumErrorDate}.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/qa/evaluationMonths',
+            evidence.qa.evaluationMonths,
+            String(evidence.qa.evaluationMonths),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/qa/maximumErrorDate',
+            evidence.qa.maximumErrorDate,
+            evidence.qa.maximumErrorDate,
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc257-qa-tolerance-breach',
+        `The maximum curve error rendered as ${observedBps.toFixed(4)} bp, above the frozen ${toleranceBps.toFixed(2)} bp tolerance.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/qa/maximumErrorPct',
+            evidence.qa.maximumErrorPct,
+            `${observedBps.toFixed(4)} bp`,
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/qa/frozenTolerancePct',
+            evidence.qa.frozenTolerancePct,
+            `${toleranceBps.toFixed(2)} bp`,
+          ),
+        ],
+      ),
+    ];
+  } else if (evidence.taskId === 'TC-258') {
+    claims = [
+      freezeReviewClaim(
+        'tc258-rule-and-holdout-window',
+        'The preregistered MAX10/MIN10 rule uses the draft shorthand 2022-2026 for the frozen 2022-02-04 through 2026-07-31 holdout.',
+        [
+          preregistrationReference(
+            'Objective and frozen configurations: MAX10 OR MIN10',
+            'MAX10/MIN10',
+          ),
+          preregistrationReference(
+            'Frozen windows and folds: holdout 2022-02-04 through 2026-07-31',
+            '2022-2026',
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc258-paper-window-control',
+        `The zero-cost paper-window control annualized at ${reviewSignedPercent(evidence.paperWindowGrossControl.annualizedReturn)} versus the source audit target of ${reviewSignedPercent(evidence.paperWindowGrossControl.sourceTargetAnnualizedReturn)}.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/paperWindowGrossControl/annualizedReturn',
+            evidence.paperWindowGrossControl.annualizedReturn,
+            reviewSignedPercent(evidence.paperWindowGrossControl.annualizedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/paperWindowGrossControl/sourceTargetAnnualizedReturn',
+            evidence.paperWindowGrossControl.sourceTargetAnnualizedReturn,
+            reviewSignedPercent(
+              evidence.paperWindowGrossControl.sourceTargetAnnualizedReturn,
+            ),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc258-btc-full-and-holdout',
+        `BTC returned ${reviewSignedPercent(evidence.btc.grossCompoundedReturn)} gross and ${reviewSignedPercent(evidence.btc.netCompoundedReturn)} net over full history; holdout moved from ${reviewSignedPercent(evidence.btc.holdoutGrossCompoundedReturn)} gross to ${reviewSignedPercent(evidence.btc.holdoutFeeOnlyCompoundedReturn)} with the fee alone and ${reviewSignedPercent(evidence.btc.holdoutNetCompoundedReturn)} under the ${evidence.costs.headlineTotalPctPerSide.toFixed(2)}%-per-side headline cost.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/btc/grossCompoundedReturn',
+            evidence.btc.grossCompoundedReturn,
+            reviewSignedPercent(evidence.btc.grossCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/netCompoundedReturn',
+            evidence.btc.netCompoundedReturn,
+            reviewSignedPercent(evidence.btc.netCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/holdoutGrossCompoundedReturn',
+            evidence.btc.holdoutGrossCompoundedReturn,
+            reviewSignedPercent(evidence.btc.holdoutGrossCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/holdoutFeeOnlyCompoundedReturn',
+            evidence.btc.holdoutFeeOnlyCompoundedReturn,
+            reviewSignedPercent(evidence.btc.holdoutFeeOnlyCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/holdoutNetCompoundedReturn',
+            evidence.btc.holdoutNetCompoundedReturn,
+            reviewSignedPercent(evidence.btc.holdoutNetCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/costs/headlineTotalPctPerSide',
+            evidence.costs.headlineTotalPctPerSide,
+            `${evidence.costs.headlineTotalPctPerSide.toFixed(2)}%`,
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc258-eth-holdout-and-folds',
+        `ETH holdout moved from ${reviewSignedPercent(evidence.eth.holdoutGrossCompoundedReturn)} gross to ${reviewSignedPercent(evidence.eth.holdoutNetCompoundedReturn)} net; both assets recorded ${evidence.btc.positiveFolds} of ${evidence.btc.totalFolds} positive chronological folds.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/eth/holdoutGrossCompoundedReturn',
+            evidence.eth.holdoutGrossCompoundedReturn,
+            reviewSignedPercent(evidence.eth.holdoutGrossCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/eth/holdoutNetCompoundedReturn',
+            evidence.eth.holdoutNetCompoundedReturn,
+            reviewSignedPercent(evidence.eth.holdoutNetCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/positiveFolds',
+            evidence.btc.positiveFolds,
+            String(evidence.btc.positiveFolds),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/btc/totalFolds',
+            evidence.btc.totalFolds,
+            String(evidence.btc.totalFolds),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/eth/positiveFolds',
+            evidence.eth.positiveFolds,
+            String(evidence.eth.positiveFolds),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/eth/totalFolds',
+            evidence.eth.totalFolds,
+            String(evidence.eth.totalFolds),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc258-intraday-cost-no-go',
+        `The excluded intraday lane's published-result break-even cost was ${evidence.intradayCostNoGo.breakEvenCostPctPerSide.toFixed(4)}% per side.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/intradayCostNoGo/breakEvenCostPctPerSide',
+            evidence.intradayCostNoGo.breakEvenCostPctPerSide,
+            `${evidence.intradayCostNoGo.breakEvenCostPctPerSide.toFixed(4)}%`,
+          ),
+        ],
+      ),
+    ];
+  } else {
+    const holdoutLabel = '2023-2026';
+    claims = [
+      freezeReviewClaim(
+        'tc259-rule-cost-and-holdout-window',
+        `The preregistered MA40 rule uses a 40-month moving average and a ${evidence.costs.headlineSideBps} bp-per-side headline roll cost; ${holdoutLabel} abbreviates the frozen 2023-02 through 2026-07 holdout.`,
+        [
+          preregistrationReference(
+            'Frozen signal and required artifact: 40-month canonical average / MA40',
+            'MA40',
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/costs/headlineSideBps',
+            evidence.costs.headlineSideBps,
+            `${evidence.costs.headlineSideBps} bp`,
+          ),
+          preregistrationReference(
+            'Frozen calendar and windows: post-publication holdout 2023-02 through 2026-07',
+            holdoutLabel,
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc259-full-history',
+        `The canonical full-history headline return was ${reviewSignedPercent(evidence.full.headlineCompoundedReturn)}.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/full/headlineCompoundedReturn',
+            evidence.full.headlineCompoundedReturn,
+            reviewSignedPercent(evidence.full.headlineCompoundedReturn),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc259-stability-and-holdout',
+        `Only ${evidence.stability.passingPaperFolds}/${evidence.stability.totalPaperFolds} (${evidence.stability.passingPaperFolds} of ${evidence.stability.totalPaperFolds}) paper folds beat both benchmarks; canonical holdout returned ${reviewSignedPercent(evidence.holdout.headlineCompoundedReturn)} versus ${reviewSignedPercent(evidence.holdout.alwaysOneMonthHeadlineCompoundedReturn)} for the identically costed one-month sleeve.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/stability/passingPaperFolds',
+            evidence.stability.passingPaperFolds,
+            String(evidence.stability.passingPaperFolds),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/stability/totalPaperFolds',
+            evidence.stability.totalPaperFolds,
+            String(evidence.stability.totalPaperFolds),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/holdout/headlineCompoundedReturn',
+            evidence.holdout.headlineCompoundedReturn,
+            reviewSignedPercent(evidence.holdout.headlineCompoundedReturn),
+          ),
+          candidateReference(
+            '/record/tradeClawEvidence/holdout/alwaysOneMonthHeadlineCompoundedReturn',
+            evidence.holdout.alwaysOneMonthHeadlineCompoundedReturn,
+            reviewSignedPercent(
+              evidence.holdout.alwaysOneMonthHeadlineCompoundedReturn,
+            ),
+          ),
+        ],
+      ),
+      freezeReviewClaim(
+        'tc259-prior-only-control',
+        `The frozen prior-only ambiguity control returned ${reviewSignedPercent(evidence.holdout.priorOnlyHeadlineCompoundedReturn)} in holdout.`,
+        [
+          candidateReference(
+            '/record/tradeClawEvidence/holdout/priorOnlyHeadlineCompoundedReturn',
+            evidence.holdout.priorOnlyHeadlineCompoundedReturn,
+            reviewSignedPercent(evidence.holdout.priorOnlyHeadlineCompoundedReturn),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  return Object.freeze({
+    schemaVersion: 1,
+    status: 'manual-cross-check-required',
+    mappingPurpose: 'draft-claim-to-canonical-evidence-navigation',
+    sourceOfTruth: 'result-and-artifact-files',
+    verificationRecorded: false,
+    mutationSupported: false,
+    grantsPublicationAuthority: false,
+    grantsTradingAuthority: false,
+    files,
+    claims: Object.freeze(claims),
+  });
+}
+
 function recordForAdminReviewHandoff(
   handoff: ResearchLoopMarketingHandoff,
 ): ResearchIntakeRecord {
@@ -1829,6 +2308,7 @@ export function buildResearchIntakeAdminReviewItemPayload(
   if (currentIndex < 0) return null;
 
   const reviewItem = items[currentIndex];
+  const candidate = recordForAdminReviewHandoff(reviewItem.handoff);
   const previousItem = items[currentIndex - 1] ?? null;
   const nextItem = items[currentIndex + 1] ?? null;
 
@@ -1859,6 +2339,10 @@ export function buildResearchIntakeAdminReviewItemPayload(
         : null,
     },
     reviewProtocol: RESEARCH_INTAKE_ADMIN_REVIEW_PROTOCOL,
+    claimVerification: buildResearchIntakeAdminClaimVerification(
+      candidate,
+      reviewItem,
+    ),
     reviewItem,
   };
 }

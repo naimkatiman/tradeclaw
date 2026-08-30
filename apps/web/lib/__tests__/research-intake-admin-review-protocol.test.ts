@@ -90,7 +90,7 @@ describe('protected exact-review protocol', () => {
     expect(new Set(protocols[0]?.checks.map((check) => check.id)).size).toBe(4);
   });
 
-  it('renders packet checks from the structured protocol without changing packet or queue bytes', () => {
+  it('renders packet checks from the structured protocol while preserving queue bytes', () => {
     const protocol = reviewProtocol('TC-255');
     const packet = buildResearchMarketingReviewPacket('TC-255', AUDIT_AT);
     if (!packet) throw new Error('TC-255 packet fixture is missing');
@@ -112,8 +112,8 @@ describe('protected exact-review protocol', () => {
       )),
     }).toEqual({
       packet: {
-        bytes: 3_527,
-        sha256: '869f59b3ca4b332f34b2a0b60f39b56e8d67d0ec3503d663e687d2b381ee9ffb',
+        bytes: 6_070,
+        sha256: '4827be6e4de261b10460ad1ca2822e9d9840063e45974d1714e0581c7801c535',
       },
       queue: {
         bytes: 31_246,

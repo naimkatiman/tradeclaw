@@ -84,6 +84,17 @@ describe('GET /api/admin/research-intake/review/[taskId] real admin-cookie bound
       mutationSupported: false,
     });
     expect(body.reviewProtocol.checks).toHaveLength(4);
+    expect(body.claimVerification).toMatchObject({
+      schemaVersion: 1,
+      status: 'manual-cross-check-required',
+      mappingPurpose: 'draft-claim-to-canonical-evidence-navigation',
+      sourceOfTruth: 'result-and-artifact-files',
+      verificationRecorded: false,
+      mutationSupported: false,
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    });
+    expect(body.claimVerification.claims).toHaveLength(5);
     expect(body.startHere).toMatchObject({
       href: '/api/admin/research-intake/review/TC-255/packet.md',
       targetResource: 'marketing-review-packet',

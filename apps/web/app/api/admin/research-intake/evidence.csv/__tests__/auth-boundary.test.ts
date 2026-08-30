@@ -29,7 +29,7 @@ describe('GET /api/admin/research-intake/evidence.csv real admin-cookie boundary
     expect(response.headers.get('vary')).toBe('Cookie, Authorization');
   });
 
-  it('accepts the signed admin cookie and returns all ten examined rows', async () => {
+  it('accepts the signed admin cookie and returns all examined rows', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-29T18:00:40.000Z'));
     const secret = 'integration-only-secret';
     process.env.ADMIN_SECRET = secret;

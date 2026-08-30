@@ -22,16 +22,39 @@ function nullableText(value: string | null): string {
   return value === null ? 'not recorded' : oneLine(value);
 }
 
+function formatClaimReference(
+  reference: ResearchIntakeAdminReviewItemPayload['claimVerification']['claims'][number]['references'][number],
+): string {
+  if (reference.source === 'protected-candidate-json') {
+    return `- Protected candidate JSON ${inlineCode(reference.jsonPointer)}: ${inlineCode(reference.renderedValue)}`;
+  }
+  return `- Preregistration ${inlineCode(reference.locator)}: ${inlineCode(reference.renderedValue)}`;
+}
+
 function formatResearchMarketingReviewPacket(
   payload: ResearchIntakeAdminReviewItemPayload,
 ): string {
-  const { navigation, researchLoop, reviewItem, reviewProtocol } = payload;
+  const {
+    claimVerification,
+    navigation,
+    researchLoop,
+    reviewItem,
+    reviewProtocol,
+  } = payload;
   const { candidate, controls, handoff, links, receipt } = reviewItem;
   const { draft } = handoff;
   const { evidenceState } = candidate;
   const requiredChecks = reviewProtocol.checks.map(
     (check) => `- ${check.instruction}`,
   );
+  const numericClaims = claimVerification.claims.flatMap((claim) => [
+    `### ${inlineCode(claim.id)}`,
+    '',
+    claim.statement,
+    '',
+    ...claim.references.map(formatClaimReference),
+    '',
+  ]);
   const receiptDescription = receipt === null
     ? 'none (pre-loop closure)'
     : `${inlineCode(receipt.taskId)}, recorded ${receipt.recordedAt}, cycle ${inlineCode(receipt.cycleId)}`;
@@ -84,6 +107,16 @@ function formatResearchMarketingReviewPacket(
     `- Exact review JSON: ${inlineCode(links.reviewItem)}`,
     `- This Markdown packet: ${inlineCode(links.reviewPacket)}`,
     '',
+    '## Numeric claim map (manual cross-check required)',
+    '',
+    '> This map is navigation assistance, not independent verification or approval.',
+    '',
+    `- Result source of truth: ${inlineCode(claimVerification.files.resultPath)}`,
+    `- Artifact source of truth: ${inlineCode(claimVerification.files.artifactPath)}`,
+    `- Protected candidate JSON: ${inlineCode(claimVerification.files.candidateJsonHref)}`,
+    `- Preregistration: ${inlineCode(claimVerification.files.preregistrationPath)}`,
+    '',
+    ...numericClaims,
     '## Required manual checks',
     '',
     ...requiredChecks,

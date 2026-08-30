@@ -5,7 +5,7 @@ import * as route from '../route';
 const PUBLIC_CACHE = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400';
 
 describe('GET /api/research/intake/evidence.csv', () => {
-  it('downloads the complete ten-row evidence spreadsheet with public caching', async () => {
+  it('downloads the complete examined-candidate evidence spreadsheet with public caching', async () => {
     const response = route.GET();
     const body = await response.text();
 

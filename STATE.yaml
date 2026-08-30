@@ -1,11 +1,124 @@
 project: tradeclaw
-updated: 2026-08-30T15:02:12+08:00
+updated: 2026-08-30T15:26:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_exact_review_claim_map_2026_08_30:
+  at: 2026-08-30T15:10:00+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_ready_for_local_commit
+  scope: Add one structured numeric claim-to-evidence map to exact protected marketing reviews, render it in the existing Markdown packet, and remove stale examined-row counts from README handoff copy
+  base_commit: 0a3290f2a606ad25eb5d8ddceab8d447d523eb96
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T06:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-265
+  current_cycle_ends_at: 2026-08-30T09:00:00.000Z
+  observed_at: 2026-08-30T07:10:00.537Z
+  receipt_neutral: true
+  new_research_receipt: false
+  audit_basis: >-
+    Exact protected reviews now expose a four-check manual protocol, but the
+    numeric-check instruction still makes an admin hunt through draft prose,
+    protected candidate JSON, and result/artifact files without a structured
+    claim-to-field map. README also still says ten examined rows after TC-265
+    made the canonical evidence set eleven, proving that hard-coded handoff
+    counts drift during the three-hour intake loop.
+  selected_improvement:
+    exact_protected_review_only: true
+    structured_numeric_claim_map: true
+    task_specific_stable_claim_ids: true
+    canonical_candidate_json_pointers: true
+    result_and_artifact_paths_remain_source_of_truth: true
+    packet_renders_same_claim_map: true
+    readme_examined_count_wording_becomes_drift_safe: true
+    manual_cross_check_required: true
+    verification_recorded: false
+    mutation_supported: false
+    authority_granted: false
+  success_contract:
+    - Every observation-visible exact review maps each numeric draft assertion to stable canonical evidence fields and their rendered values.
+    - The map explicitly states that it is navigation assistance, not independent verification, approval, or publication authority.
+    - The Markdown packet renders from the exact-review map rather than duplicating task-specific claim prose.
+    - Queue, nextReview, compact overview/index, public JSON/OpenAPI, and all CSV payloads remain free of the exact-only map.
+    - README evidence commands remain truthful without a hard-coded examined-row count that changes each receipt.
+  frozen_boundaries:
+    current_receipt_changed: false
+    research_candidate_stage_or_verdict_changed: false
+    return_preregistration_result_or_marketing_handoff_changed: false
+    review_queue_payload_changed: false
+    next_review_payload_changed: false
+    public_payload_or_openapi_changed: false
+    csv_payload_changed: false
+    exact_review_payload_changed: true
+    markdown_packet_changed: true
+    rendered_ui_changed: false
+    auth_or_route_semantics_changed: false
+    docker_dependency_database_or_migration_changed: false
+    review_completion_approval_or_owner_decision_recorded: false
+    publication_posting_billing_signal_allocation_broadcast_broker_execution_or_trading_changed: false
+  library_search: MemoryCore contains no reusable claim-to-evidence, numeric-review, or manual-cross-check pattern; reuse the existing exact-review, evidence-overlay, and packet contracts without creating a shared architecture before this slice is proven.
+  red_contract:
+    path: apps/web/lib/__tests__/research-intake-admin-review-claim-verification.test.ts
+    companion_path: apps/web/app/__tests__/readme-research-intake-discoverability.test.ts
+    run_at: 2026-08-30T07:11:00.000Z
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-review-claim-verification.test.ts apps/web/app/__tests__/readme-research-intake-discoverability.test.ts
+    result: EXPECTED RED - six of eight tests failed only for the four absent task maps, absent packet section, and stale hard-coded README count; the exact-only compact/public/CSV exclusion boundaries already passed
+    failed_tests: 6
+    passing_boundary_tests: 2
+    unexpected_failures: 0
+  implementation_checkpoint:
+    exact_review_claim_map_added: true
+    claim_map_schema_version: 1
+    status: manual-cross-check-required
+    mapping_purpose: draft-claim-to-canonical-evidence-navigation
+    source_of_truth: result-and-artifact-files
+    stable_claim_counts:
+      TC-255: 5
+      TC-257: 3
+      TC-258: 5
+      TC-259: 4
+    protected_candidate_json_pointers_resolve: true
+    preregistration_files_exist: true
+    every_numeric_draft_token_covered: true
+    deeply_frozen: true
+    packet_renders_same_map: true
+    verification_recorded: false
+    mutation_supported: false
+    publication_or_trading_authority_granted: false
+    queue_bytes_unchanged: 31246
+    queue_sha256_unchanged: e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea
+    tc255_packet_bytes: 6070
+    tc255_packet_sha256: 4827be6e4de261b10460ad1ca2822e9d9840063e45974d1714e0581c7801c535
+    readme_examined_counts_drift_safe: true
+  focused_green_verification:
+    at: 2026-08-30T07:21:00.000Z
+    result: PASS - 5 suites and 20 tests cover all four claim maps, numeric-token completeness, resolved raw evidence values, frozen shape, exact-only exclusion, packet reuse, signed-admin-cookie delivery, protocol reuse, packet fingerprint, queue fingerprint, and drift-safe README wording
+    packet_change_expected: true
+    public_projection_or_csv_change: false
+  source_reconstruction_verification: PASS - exact pinned awesome-systematic-trading source reconstructs all 61 discovery candidates with frozen category counts and gross discovery-only treatment
+  static_verification: PASS - web TypeScript exits zero; full ESLint exits zero with the same 21 inherited warnings and no warning introduced by this slice
+  broad_test_verification: PASS assertions - 315 suites and 2250 tests passed, 3 suites and 26 tests skipped, and 1 snapshot passed in 80.318 seconds; Jest then reproduced the inherited post-summary open-handle condition and was interrupted only after the complete green summary
+  production_build_verification: PASS - npm run build compiled signals, trading-agents, and the Next.js production app, then generated all 331 static pages with exit code zero; only inherited middleware, NFT tracing, edge-runtime, and url.parse warnings appeared
+  deterministic_boundary_audit:
+    result: PASS
+    exact_tc255_json_bytes: 13180
+    exact_tc255_json_sha256: 8593dff818636fc8ed88671731700b290a4097fa43fbb9009434476f343ea324
+    claim_map_tc255_bytes: 5176
+    claim_map_tc255_sha256: ce4795029fb0820acee08aabb8c4f9b45412ed5fe23ad5b03e5db5d2e51ccec8
+    packet_tc255_bytes: 6070
+    packet_tc255_sha256: 4827be6e4de261b10460ad1ca2822e9d9840063e45974d1714e0581c7801c535
+    queue_bytes_unchanged: 31246
+    queue_sha256_unchanged: e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea
+    public_overview_index_and_all_csv_fingerprints_unchanged: true
+  docker_compose_verification: Existing deployment-surface integrity tests and the production build pass; Docker CLI remains unavailable locally, so no runtime Compose command was attempted and no Compose, database, dependency, or migration file changed.
+  recurring_goal_status: active
+  next_action: Commit the verified implementation locally, record its hash and the final receipt-gate snapshot in closure state, update shared MemoryCore, and keep the recurring goal active without opening another receipt before 2026-08-30T09:00:00.000Z.
+  safety: No mutation, review completion, approval, owner decision, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment is authorized.
 
 research_admin_exact_review_protocol_2026_08_30:
   at: 2026-08-30T14:49:30+08:00

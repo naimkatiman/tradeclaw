@@ -95,7 +95,7 @@ describe('protected packet-first startHere action', () => {
     });
   });
 
-  it('keeps the packet, public projections, and all CSV exports byte-identical', () => {
+  it('pins the enriched packet while keeping public projections and CSV exports byte-identical', () => {
     const packet = buildResearchMarketingReviewPacket('TC-255', AUDIT_AT);
     if (!packet) throw new Error('TC-255 packet fixture is missing');
 
@@ -113,8 +113,8 @@ describe('protected packet-first startHere action', () => {
       )),
     }).toEqual({
       packet: {
-        bytes: 3_527,
-        sha256: '869f59b3ca4b332f34b2a0b60f39b56e8d67d0ec3503d663e687d2b381ee9ffb',
+        bytes: 6_070,
+        sha256: '4827be6e4de261b10460ad1ca2822e9d9840063e45974d1714e0581c7801c535',
       },
       publicOverview: {
         bytes: 7_637,
