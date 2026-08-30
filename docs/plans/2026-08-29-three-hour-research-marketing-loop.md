@@ -134,6 +134,21 @@ publication action, and grants no publication, posting, signal, execution, or
 trading authority. Even a valid approval outcome only identifies a draft for a
 separate, separately authorized publication action.
 
+To bind that approved manual result to the content that was actually reviewed,
+run
+`npm run prepare:research-publication-action-request -- --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>`.
+The command revalidates the owner decision and current evidence, recovers the
+exact reviewed draft from the handoff's observation-bound protected projection,
+and emits one deterministic JSON artifact on stdout. It fingerprints the draft
+and complete request and binds the completed handoff, submitted decision,
+evidence manifest, and prior owner-request fingerprint. Decline, revision,
+invalid, tampered, stale-evidence, or unavailable-projection inputs produce no
+request. The owner label remains structural metadata; identity is not
+authenticated and no cryptographic signature is verified. The command does not
+select a publication target, does not enqueue the social queue, and does not
+publish or post. A separately authorized publication action is still required,
+and the artifact grants no publication, posting, execution, or trading authority.
+
 The retained history contains one known contract violation: TC-256 and TC-257
 both use `2026-08-29T06:00:00.000Z/PT3H`. Neither receipt may be deleted,
 renamed, or silently selected as canonical after the fact. The ledger labels
