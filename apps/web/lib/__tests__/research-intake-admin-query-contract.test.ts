@@ -251,13 +251,13 @@ describe('protected research catalog query and navigation contract', () => {
     expect(createHash('sha256').update(contract).digest('hex')).toBe(
       '83fc68d46e4965dfa622175c3c25a076bd2b625219e9eaa83ca5749061938c94',
     );
-    expect(Buffer.byteLength(defaultCatalog, 'utf8')).toBe(73_742);
+    expect(Buffer.byteLength(defaultCatalog, 'utf8')).toBe(73_802);
     expect(createHash('sha256').update(defaultCatalog).digest('hex')).toBe(
-      'aff25e683d4af3c7858c1f2a9a390e506841ee7acbfea51a227fed58c2ffc17c',
+      '5099d033a9d33d9814be7c0b4f1e845101eb192eabbff974f983b0815abdd100',
     );
-    expect(Buffer.byteLength(completeCatalog, 'utf8')).toBe(144_481);
+    expect(Buffer.byteLength(completeCatalog, 'utf8')).toBe(144_541);
     expect(createHash('sha256').update(completeCatalog).digest('hex')).toBe(
-      '2c5cff0f678da6dd6adac712743438edf1b2518e5179ae4c0bd76e8cc2092e6d',
+      '1e00091e39db12dab5cb6133c334f72ee3d6e6bd92b15ad88552ac2d5eb4ec14',
     );
   });
 });

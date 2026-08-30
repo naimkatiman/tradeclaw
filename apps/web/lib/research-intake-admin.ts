@@ -67,6 +67,7 @@ export const RESEARCH_INTAKE_ADMIN_QUERY_KEYS = Object.freeze([
 export const RESEARCH_INTAKE_ADMIN_RESOURCES = Object.freeze({
   overview: '/api/admin/research-intake/overview',
   catalog: '/api/admin/research-intake',
+  evidenceIndex: '/api/admin/research-intake/evidence/index',
   evidence: '/api/admin/research-intake/evidence',
   evidenceCsv: '/api/admin/research-intake/evidence.csv',
   marketingReview: '/api/admin/research-intake/review',
@@ -417,6 +418,44 @@ export interface ResearchIntakeAdminOverviewPayload {
   catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   evidenceSummary: ReturnType<typeof summarizeResearchIntake>;
   evidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
+}
+
+export type ResearchIntakeAdminEvidenceBasis =
+  | 'upstream-gross-discovery-only'
+  | 'tradeclaw-source-audit-only'
+  | 'tradeclaw-replication-record';
+
+export type ResearchIntakeAdminEvidenceIndexState = Pick<
+  ResearchIntakeEvidenceState,
+  'performanceEvidenceStatus' | 'label' | 'performanceGatesEvaluated' | 'taskId'
+>;
+
+export interface ResearchIntakeAdminEvidenceIndexItem {
+  evidencePosition: number;
+  candidate: Pick<
+    ResearchIntakeRecord,
+    | 'id'
+    | 'title'
+    | 'assetClass'
+    | 'sourcePosition'
+    | 'stage'
+    | 'verdict'
+    | 'costStatus'
+  > & {
+    evidenceBasis: ResearchIntakeAdminEvidenceBasis;
+    evidenceState: ResearchIntakeAdminEvidenceIndexState;
+  };
+  workflow: {
+    receiptCount: number;
+    hasMarketingHandoff: boolean;
+  };
+  links: ResearchIntakeCandidateLinks;
+}
+
+export interface ResearchIntakeAdminEvidenceIndexPayload
+  extends ResearchIntakeAdminOverviewPayload {
+  evidenceIndex: ResearchIntakeAdminEvidencePayload['evidenceIndex'];
+  items: readonly ResearchIntakeAdminEvidenceIndexItem[];
 }
 
 export interface ResearchIntakeAdminCandidatePayload {
@@ -1136,6 +1175,55 @@ function buildResearchIntakeAdminCandidateWorkflow(
   };
 }
 
+function evidenceBasisForAdmin(
+  record: ResearchIntakeRecord,
+): ResearchIntakeAdminEvidenceBasis {
+  if (record.tradeClawEvidence) return 'tradeclaw-replication-record';
+  if (record.tradeClawSourceAudit) return 'tradeclaw-source-audit-only';
+  return 'upstream-gross-discovery-only';
+}
+
+function compactAdminEvidenceState(
+  state: ResearchIntakeEvidenceState,
+): ResearchIntakeAdminEvidenceIndexState {
+  return {
+    performanceEvidenceStatus: state.performanceEvidenceStatus,
+    label: state.label,
+    performanceGatesEvaluated: state.performanceGatesEvaluated,
+    taskId: state.taskId,
+  };
+}
+
+function toAdminEvidenceIndexItem(
+  record: ResearchIntakeRecord,
+  index: number,
+  observation: ReturnType<typeof buildResearchIntakeAdminObservation>,
+): ResearchIntakeAdminEvidenceIndexItem {
+  const candidateWorkflow = buildResearchIntakeAdminCandidateWorkflow(
+    record,
+    observation,
+  );
+  return {
+    evidencePosition: index + 1,
+    candidate: {
+      id: record.id,
+      title: record.title,
+      assetClass: record.assetClass,
+      sourcePosition: record.sourcePosition,
+      stage: record.stage,
+      verdict: record.verdict,
+      costStatus: record.costStatus,
+      evidenceBasis: evidenceBasisForAdmin(record),
+      evidenceState: compactAdminEvidenceState(buildResearchIntakeEvidenceState(record)),
+    },
+    workflow: {
+      receiptCount: candidateWorkflow.receiptCount,
+      hasMarketingHandoff: candidateWorkflow.marketingHandoff !== null,
+    },
+    links: buildResearchIntakeCandidateLinks(record.id),
+  };
+}
+
 /**
  * Protected, record-free orientation projection. Receipt and review state is
  * observed once at `at`; candidate records, review handoffs, and draft bodies
@@ -1173,6 +1261,58 @@ export function buildResearchIntakeAdminOverviewPayload(
     evidenceStateSummary: summarizeResearchIntakeEvidenceStates(
       RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS,
     ),
+  };
+}
+
+/**
+ * Protected lightweight evidence list. One authenticated observation supplies
+ * receipt and handoff presence; complete workflow and evidence bodies remain
+ * on the existing candidate, evidence, and review resources.
+ */
+export function buildResearchIntakeAdminEvidenceIndexPayload(
+  at: Date | string | number = new Date(),
+): ResearchIntakeAdminEvidenceIndexPayload {
+  const observation = buildResearchIntakeAdminObservation(at);
+
+  return {
+    schemaVersion: 1,
+    access: {
+      mode: 'admin-read-only',
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    },
+    resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    startHere: buildResearchIntakeAdminProjectionStartHere(
+      observation,
+      'evidence-index',
+    ),
+    source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
+    selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
+    workflow: RESEARCH_INTAKE_WORKFLOW,
+    researchLoop: observation.researchLoop,
+    marketingReview: {
+      status: observation.marketingReview.status,
+      summary: observation.marketingReview.summary,
+      currentWindowDraftCount: observation.marketingReview.currentWindowHandoffs.length,
+      controls: observation.marketingReview.controls,
+    },
+    catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+    catalogEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      SYSTEMATIC_RESEARCH_INTAKE,
+    ),
+    evidenceSummary: summarizeResearchIntake(RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS),
+    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS,
+    ),
+    evidenceIndex: {
+      selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
+      order: 'pinned-source-order',
+      performanceRanked: false,
+      includesEveryAvailableOverlay: true,
+    },
+    items: RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS.map((record, index) => (
+      toAdminEvidenceIndexItem(record, index, observation)
+    )),
   };
 }
 

@@ -146,6 +146,7 @@ describe('systematic research intake public boundary', () => {
       'overview',
       'catalog',
       'catalogCsv',
+      'evidenceIndex',
       'evidence',
       'evidenceCsv',
     ]);

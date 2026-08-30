@@ -1,11 +1,189 @@
 project: tradeclaw
-updated: 2026-08-30T10:05:41+08:00
+updated: 2026-08-30T10:34:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_compact_evidence_index_2026_08_30:
+  at: 2026-08-30T10:13:00+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Bridge the compact overview to exact candidate detail with lightweight public and protected evidence indexes instead of forcing complete nested evidence-body downloads
+  base_commit: 2f80c260d1f583044d1d8b4f03262760637f88f6
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-263
+  current_cycle_id: 2026-08-30T00:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-263
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T03:00:00.000Z
+  gate_observed_at: 2026-08-30T02:13:00.6847774Z
+  gate_decision: The 03:00Z gate remains closed; implement only derived read-only indexes and create no candidate, receipt, return, preregistration, evidence artifact, or marketing draft
+  library_search: MemoryCore has no reusable compact evidence-index, summary-endpoint, first-screen, or read-model pattern for this gap
+  problem: >-
+    The compact public overview is 7598 bytes and the protected overview is
+    9462 bytes, but their evidence journey can still require the complete
+    47265-byte public or 74835-byte protected evidence desk merely to discover
+    candidate names, states, and exact detail links. This makes a simple list
+    client transfer nested audits, replications, receipts, handoffs, and draft
+    bodies it does not need.
+  fixed_observation: 2026-08-29T15:59:59.999Z
+  audited_payloads:
+    public_overview_bytes: 7598
+    public_complete_evidence_bytes: 47265
+    protected_overview_bytes: 9462
+    protected_complete_evidence_bytes: 74835
+    estimated_public_index_bytes: 13038
+    estimated_public_reduction_vs_complete_evidence: 72.4 percent
+    estimated_protected_index_bytes: 15970
+    estimated_protected_reduction_vs_complete_evidence: 78.7 percent
+  decision: >-
+    Add one deterministic, filter-free evidence-index JSON route per audience.
+    Reuse the overview context and complete evidence summaries, retain pinned
+    source order and false authority, expose only compact candidate identity,
+    classification, evidence-state label, task ID, and exact detail links, and
+    keep complete evidence bodies on the existing evidence and candidate routes.
+    The protected index may add only receipt count and handoff presence visible
+    at the single authenticated observation time.
+  public_contract:
+    route: GET /api/research/intake/evidence/index
+    query_policy: ignored
+    cache_control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+    authentication_required: false
+    order: pinned-source-order
+    performance_ranked: false
+    includes_every_available_overlay: true
+    item_fields: [evidencePosition, candidate, links]
+    candidate_fields: [id, title, assetClass, sourcePosition, stage, verdict, costStatus, evidenceBasis, evidenceState]
+    evidence_state_fields: [performanceEvidenceStatus, label, performanceGatesEvaluated, taskId]
+    forbidden_item_fields: [sourceUrl, upstreamGrossSharpe, upstreamTStatistic, upstreamVolatilityPct, upstreamYearsTested, tradeClawSourceAudit, tradeClawEvidence, nextAction, marketingDisposition, marketingReviewDraft]
+    openapi_documented: true
+  protected_contract:
+    route: GET /api/admin/research-intake/evidence/index
+    query_policy: ignored
+    cache_control: private, no-store, max-age=0
+    vary: Cookie, Authorization
+    authentication_before_clock_or_builder: true
+    item_fields: [evidencePosition, candidate, workflow, links]
+    workflow_fields: [receiptCount, hasMarketingHandoff]
+    forbidden_item_fields: [receipts, latestReceipt, marketingHandoff, draft, tradeClawSourceAudit, tradeClawEvidence]
+    public_openapi_documented: false
+  navigation_contract: >-
+    Add evidenceIndex to both resource maps and to the explicit current and
+    target resource unions. Overview, catalog, and candidate start guidance may
+    point to the compact evidence index; an already-open complete evidence desk
+    remains its own target. The index reports targetIsCurrentResource true for
+    itself and grants no automatic, publication, or trading authority.
+  compatibility_contract: Existing catalog, candidate, complete-evidence, CSV, review, Docker, dependency, database, migration, billing, rendered UI, signal, allocation, broadcast, broker, and execution shapes remain unchanged except for additive resource discovery and the intentional safer start target
+  verification_strategy: Freeze this contract in STATE, prove one-to-one intentional RED for builders/routes/auth/discovery/start-target/OpenAPI/README, implement the smallest projections and routes, then run widened intake/publication tests, pinned-source reconstruction, static checks, the full suite, and the required production build
+  intentional_red_verification: >-
+    PASS - the single focused contract suite ran six tests and all six failed
+    one-to-one on the frozen missing surfaces: public evidence-index builder,
+    protected evidence-index builder, audience resource maps and explicit target
+    union, public route, protected auth-first route, and public OpenAPI/README
+    discovery. No implementation source changed; only STATE and the new contract
+    test exist.
+  focused_green_verification: >-
+    PASS - eleven focused builder, navigation, route, real-cookie auth,
+    overview, OpenAPI-parity, and README suites pass 43/43. They retain all nine
+    adverse-inclusive entries in pinned source order, exact public/admin detail
+    links, compact evidence-state fields, auth-before-clock protected behavior,
+    private no-store and cacheable public headers, ignored query input, GET-only
+    surfaces, explicit evidence-index current/target types, false authority, and
+    public-only OpenAPI discovery. Web TypeScript also compiles.
+  implemented_payloads_at_2026_08_29T15_59_59_999Z:
+    public_index: 13168 bytes / 0d22d5c16cf8252632917f3a72ad6fa77b47374f1c547dfe677a3365b5579204
+    public_reduction_vs_complete_evidence: 72.2 percent
+    protected_index: 16547 bytes / b453223c94c7d88af86dccb0552865d968be82cc4e47537b6cb30d09b4bf4131
+    protected_reduction_vs_complete_evidence: 77.9 percent
+    public_overview: 7630 bytes / 04b3074f8eaa6db1d683ec51d593a4e0c5dcf252ba1ab80afbb92e763c6bf917
+    protected_overview: 9522 bytes / 6b22ab7726af4b741d0476309dd19b03349c5eeeaf59c1e86687b9c96d6ecf67
+  implemented_openapi: 39077 bytes / c352d719c54e93e4477863c5e324fa031b65c812983db2aa478c24543451b0ce
+  widened_red_verification: >-
+    EXPECTED RED - 302 matching intake, loop, route, README, research, and
+    publication-boundary suites ran 2223 tests: 2183 passed, 14 failed, and 26
+    remained skipped. The 14 failures across 10 suites are exact old audience
+    resource maps, public OpenAPI resource discovery, start-target expectations,
+    or whole-JSON byte/hash receipts whose only movement is the additive index
+    resource and compact start guidance. CSV receipts, evidence classifications,
+    source order, receipt timing, marketing joins and controls, auth, and every
+    publication, trading, and execution boundary stayed green. Jest reproduced
+    its known post-results open-handle hang and was interrupted only after the
+    complete result summary printed.
+  widened_green_verification: >-
+    PASS - all 56 explicitly selected intake, loop, route, middleware, README,
+    OpenAPI, and publication-boundary suites pass 270/270 after changing only
+    additive resource discovery, the intentional compact start target, and
+    affected whole-JSON receipts. CSV bytes, source order, evidence states and
+    summaries, filters, facets, pagination, receipt timing, marketing joins,
+    auth, and false publication/trading authority remain intact. The known
+    post-results open-handle hang recurred and was interrupted after green totals.
+  static_verification: >-
+    PASS - the independent pinned-source verifier reconstructs all 61 candidates
+    at upstream commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README
+    SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a,
+    retaining gross-of-trading-costs discovery-only treatment. Signals and web
+    TypeScript compile; full web lint exits zero with the same 21 inherited
+    warnings and no changed-file error; STATE parses; and git diff whitespace
+    validation passes.
+  full_test_verification: >-
+    PASS - Jest reported 302 runnable suites and 2197 passing tests with one
+    passing snapshot; the same three suites and 26 tests remain skipped. No
+    failure appeared. The repository reproduced its known post-results
+    open-handle hang, so the idle process was interrupted only after Jest printed
+    the complete green totals.
+  production_build_verification: >-
+    PASS - the required root build compiles signals, trading-agents, and Next.js
+    successfully and generates all 331/331 static entries. The public evidence
+    index appears as a one-hour revalidated static route and the protected peer
+    appears as a dynamic route. Only the existing middleware, Turbopack
+    broad-trace, edge-runtime, and Node url.parse deprecation warnings appear.
+  final_projection_receipts_at_2026_08_29T15_59_59_999Z:
+    public_index: 13168 bytes / 0d22d5c16cf8252632917f3a72ad6fa77b47374f1c547dfe677a3365b5579204
+    public_overview: 7630 bytes / 04b3074f8eaa6db1d683ec51d593a4e0c5dcf252ba1ab80afbb92e763c6bf917
+    public_catalog: 103670 bytes / f0ca50ef796a85311bb6f5f0eab4093e88cb7bef8d651f286007632de2a93879
+    public_candidate: 9542 bytes / 1f669a07d1e4e2479a4b06fd142d8b8dc016e8b17d11d775a866ef22f4eccb0a
+    public_evidence: 47316 bytes / 8d5931fb60c40463af4be4943bb4f7bf1c086d20f786a61cad0325b55877b51c
+    protected_index: 16547 bytes / b453223c94c7d88af86dccb0552865d968be82cc4e47537b6cb30d09b4bf4131
+    protected_overview: 9522 bytes / 6b22ab7726af4b741d0476309dd19b03349c5eeeaf59c1e86687b9c96d6ecf67
+    protected_catalog: 73802 bytes / 5099d033a9d33d9814be7c0b4f1e845101eb192eabbff974f983b0815abdd100
+    protected_candidate: 12965 bytes / 16bd5fadebb7738dc7d66f0f16d431116449f8af9b54cb381b7e6d2cbcee01fd
+    protected_evidence: 74895 bytes / 0f4f5971940b9efd2cb4ef829535c8b4b44aeb93a38dcf0a743cbb56b9f56ce6
+    protected_review: 27472 bytes / 200cb380211cd9d83dc664d1df8ff21c3ae0fdb8bb5362f604fc93463a759c8d
+  final_openapi_receipt: 39077 bytes / c352d719c54e93e4477863c5e324fa031b65c812983db2aa478c24543451b0ce
+  scope_verification: >-
+    PASS - the exact 25-file patch is limited to STATE, README API discovery,
+    the existing public/admin/start-here/OpenAPI read-model builders, two new
+    GET routes, three new route/auth tests, one focused index contract suite,
+    and thirteen intentional resource/start-target/whole-JSON expectation
+    suites. Git diff whitespace and STATE parsing pass. Docker Compose,
+    dependencies, lockfiles, databases, migrations, rendered UI, research
+    records, receipts, evidence, drafts, marketing state, signals, strategies,
+    allocation, broadcast, broker, and execution code have zero diff.
+  docker_compose_verification: >-
+    NOT RUN - this environment has no docker executable. The Compose path is
+    preserved by zero diff to every Compose, manifest, lockfile, database, and
+    migration surface; no container was started or changed.
+  implementation_result: >-
+    Public clients can move from the 7630-byte record-free overview to a
+    13168-byte complete nine-item evidence index, then open only one exact
+    candidate detail instead of transferring the 47316-byte nested evidence
+    desk. Authenticated admins receive the same source-ordered identity plus
+    receipt count and handoff presence in 16547 bytes instead of 74895 bytes,
+    with authentication before observation and no workflow bodies. Existing
+    complete evidence and CSV resources remain available; no performance sort,
+    automatic action, publication authority, or trading authority was added.
+  final_gate_observed_at: 2026-08-30T02:34:00.3716867Z
+  final_gate_decision: The exact 03:00Z rollover remains closed after all verification; TC-263 stays the sole current-window receipt and no research or marketing-loop artifact was created
+  frozen_boundaries:
+    source_catalog_candidate_evidence_verdict_receipt_or_draft_changed: false
+    candidate_or_csv_shape_changed: false
+    rendered_ui_changed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_strategy_allocation_broadcast_broker_or_execution_changed: false
 
 research_compact_overview_2026_08_30:
   at: 2026-08-30T09:44:11+08:00

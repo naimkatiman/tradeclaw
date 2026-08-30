@@ -31,6 +31,7 @@ export const RESEARCH_INTAKE_PUBLIC_RESOURCES = Object.freeze({
   overview: '/api/research/intake/overview',
   catalog: '/api/research/intake',
   catalogCsv: '/api/research/intake.csv',
+  evidenceIndex: '/api/research/intake/evidence/index',
   evidence: '/api/research/intake/evidence',
   evidenceCsv: '/api/research/intake/evidence.csv',
 } as const);
@@ -108,6 +109,35 @@ export type ResearchIntakePublicOverviewPayload = Omit<
   'evidenceSummary' | 'evidenceStateSummary'
 >;
 
+export type ResearchIntakeEvidenceIndexState = Pick<
+  ResearchIntakeEvidenceState,
+  'performanceEvidenceStatus' | 'label' | 'performanceGatesEvaluated' | 'taskId'
+>;
+
+export interface ResearchIntakePublicEvidenceIndexItem {
+  evidencePosition: number;
+  candidate: Pick<
+    ResearchIntakePublicRecord,
+    | 'id'
+    | 'title'
+    | 'assetClass'
+    | 'sourcePosition'
+    | 'stage'
+    | 'verdict'
+    | 'costStatus'
+    | 'evidenceBasis'
+  > & {
+    evidenceState: ResearchIntakeEvidenceIndexState;
+  };
+  links: ResearchIntakePublicRecordLinks;
+}
+
+export interface ResearchIntakePublicEvidenceIndexPayload
+  extends ResearchIntakePublicOverviewPayload {
+  evidenceIndex: ResearchIntakePublicEvidencePayload['evidenceIndex'];
+  items: readonly ResearchIntakePublicEvidenceIndexItem[];
+}
+
 function evidenceBasisFor(record: ResearchIntakeRecord): ResearchIntakePublicEvidenceBasis {
   if (record.tradeClawEvidence) return 'tradeclaw-replication-record';
   if (record.tradeClawSourceAudit) return 'tradeclaw-source-audit-only';
@@ -141,6 +171,39 @@ function toPublicRecord(record: ResearchIntakeRecord): ResearchIntakePublicRecor
   };
 }
 
+function compactEvidenceState(
+  state: ResearchIntakeEvidenceState,
+): ResearchIntakeEvidenceIndexState {
+  return {
+    performanceEvidenceStatus: state.performanceEvidenceStatus,
+    label: state.label,
+    performanceGatesEvaluated: state.performanceGatesEvaluated,
+    taskId: state.taskId,
+  };
+}
+
+function toPublicEvidenceIndexItem(
+  record: ResearchIntakeRecord,
+  index: number,
+): ResearchIntakePublicEvidenceIndexItem {
+  const projected = toPublicRecord(record);
+  return {
+    evidencePosition: index + 1,
+    candidate: {
+      id: projected.id,
+      title: projected.title,
+      assetClass: projected.assetClass,
+      sourcePosition: projected.sourcePosition,
+      stage: projected.stage,
+      verdict: projected.verdict,
+      costStatus: projected.costStatus,
+      evidenceBasis: projected.evidenceBasis,
+      evidenceState: compactEvidenceState(projected.evidenceState),
+    },
+    links: projected.links,
+  };
+}
+
 function buildResearchIntakePublicContext(
   currentResource: ResearchIntakeCurrentResource,
 ): Omit<ResearchIntakePublicPayload, 'records'> {
@@ -156,7 +219,7 @@ function buildResearchIntakePublicContext(
     resources: RESEARCH_INTAKE_PUBLIC_RESOURCES,
     startHere: buildResearchIntakePublicStartHere(
       RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS.length,
-      RESEARCH_INTAKE_PUBLIC_RESOURCES.evidence,
+      RESEARCH_INTAKE_PUBLIC_RESOURCES,
       currentResource,
     ),
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
@@ -191,6 +254,28 @@ export function buildResearchIntakePublicOverviewPayload(): ResearchIntakePublic
     evidenceStateSummary: summarizeResearchIntakeEvidenceStates(
       RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS,
     ),
+  };
+}
+
+/**
+ * Lightweight source-ordered bridge from overview to exact candidate detail.
+ * Complete source audits and replication bodies remain on the existing
+ * evidence and candidate resources.
+ */
+export function buildResearchIntakePublicEvidenceIndexPayload(): ResearchIntakePublicEvidenceIndexPayload {
+  return {
+    ...buildResearchIntakePublicContext('evidence-index'),
+    evidenceSummary: summarizeResearchIntake(RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS),
+    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS,
+    ),
+    evidenceIndex: {
+      selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
+      order: 'pinned-source-order',
+      performanceRanked: false,
+      includesEveryAvailableOverlay: true,
+    },
+    items: RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS.map(toPublicEvidenceIndexItem),
   };
 }
 

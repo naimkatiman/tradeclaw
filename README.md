@@ -202,13 +202,16 @@ Gate-approved signal → apps/web/lib/execution/executor.ts
 
 ## API
 
-No key required on the public research routes. Cache on your side; responses already carry short `s-maxage` headers. Start with the compact overview when you need evidence state and the next safe resource without candidate records. Authenticated admins have the same record-free orientation at `/api/admin/research-intake/overview`; it remains private, read-only, and outside the public OpenAPI surface.
+No key required on the public research routes. Cache on your side; responses already carry short `s-maxage` headers. Start with the compact overview when you need evidence state and the next safe resource without candidate records, then use the lightweight evidence index to choose exact candidate detail without downloading complete nested evidence. Authenticated admins have the same record-free orientation at `/api/admin/research-intake/overview` and a private workflow-aware index at `/api/admin/research-intake/evidence/index`; both remain read-only and outside the public OpenAPI surface.
 
 Research JSON is self-describing: use `resources` for sibling endpoints and each record's `links.candidate` for exact detail. `startHere` gives one server-authored evidence-first target; `targetResource` names it and `targetIsCurrentResource` prevents clients from turning an already-open target into a circular next link. It is navigation convenience, not a strategy recommendation, evidence claim, or authority. Every evidence-state summary includes `plainLanguageSummary`, generated from the same classifier counts in `statuses`; it adds convenience copy, not evidence or authority.
 
 ```bash
 # Compact evidence overview and safe next resource, with no candidate records
 curl https://tradeclaw.win/api/research/intake/overview
+
+# Compact evidence index with exact candidate-detail links and no nested research bodies
+curl https://tradeclaw.win/api/research/intake/evidence/index
 
 # All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
 curl https://tradeclaw.win/api/research/intake

@@ -3,6 +3,7 @@ import { buildOpenApiSpec } from '../openapi';
 import {
   RESEARCH_INTAKE_ADMIN_RESOURCES,
   buildResearchIntakeAdminCandidatePayload,
+  buildResearchIntakeAdminEvidenceIndexPayload,
   buildResearchIntakeAdminEvidencePayload,
   buildResearchIntakeAdminOverviewPayload,
   buildResearchIntakeAdminPayload,
@@ -27,6 +28,7 @@ describe('protected research intake resource discovery', () => {
       buildResearchIntakeAdminOverviewPayload(OBSERVED_AT),
       buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT),
       candidate,
+      buildResearchIntakeAdminEvidenceIndexPayload(OBSERVED_AT),
       buildResearchIntakeAdminEvidencePayload(OBSERVED_AT),
       buildResearchIntakeAdminReviewPayload(OBSERVED_AT),
     ];
@@ -34,6 +36,7 @@ describe('protected research intake resource discovery', () => {
     expect(RESEARCH_INTAKE_ADMIN_RESOURCES).toEqual({
       overview: '/api/admin/research-intake/overview',
       catalog: '/api/admin/research-intake',
+      evidenceIndex: '/api/admin/research-intake/evidence/index',
       evidence: '/api/admin/research-intake/evidence',
       evidenceCsv: '/api/admin/research-intake/evidence.csv',
       marketingReview: '/api/admin/research-intake/review',
@@ -64,6 +67,7 @@ describe('protected research intake resource discovery', () => {
       overview: '/api/research/intake/overview',
       catalog: '/api/research/intake',
       catalogCsv: '/api/research/intake.csv',
+      evidenceIndex: '/api/research/intake/evidence/index',
       evidence: '/api/research/intake/evidence',
       evidenceCsv: '/api/research/intake/evidence.csv',
     });

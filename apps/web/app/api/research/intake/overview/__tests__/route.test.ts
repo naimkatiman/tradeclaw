@@ -24,7 +24,9 @@ describe('GET /api/research/intake/overview', () => {
     expect(body.evidenceSummary.total).toBe(9);
     expect(body.startHere).toMatchObject({
       audience: 'public',
-      targetResource: 'evidence',
+      kind: 'browse-evidence-index',
+      href: '/api/research/intake/evidence/index',
+      targetResource: 'evidence-index',
       targetIsCurrentResource: false,
       automaticAction: false,
       grantsPublicationAuthority: false,

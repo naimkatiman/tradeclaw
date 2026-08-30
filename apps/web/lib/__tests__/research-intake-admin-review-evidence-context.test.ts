@@ -187,32 +187,32 @@ describe('protected marketing-review evidence context', () => {
       publicCandidate: fingerprint(buildResearchIntakePublicCandidatePayload(TC260_CANDIDATE_ID)),
     }).toEqual({
       protectedCatalog: {
-        bytes: 73_742,
-        sha256: 'aff25e683d4af3c7858c1f2a9a390e506841ee7acbfea51a227fed58c2ffc17c',
+        bytes: 73_802,
+        sha256: '5099d033a9d33d9814be7c0b4f1e845101eb192eabbff974f983b0815abdd100',
       },
       protectedCandidate: {
-        bytes: 12_905,
-        sha256: '9839e285e13135a14a151b45145758d0100fbed6dfd6805dc62ba9da37862a58',
+        bytes: 12_965,
+        sha256: '16bd5fadebb7738dc7d66f0f16d431116449f8af9b54cb381b7e6d2cbcee01fd',
       },
       protectedEvidence: {
-        bytes: 74_835,
-        sha256: '846c5813971dfe3a8698387d3963e8ff5a846a5aa5ceecfcb5d4169f04de0e44',
+        bytes: 74_895,
+        sha256: '0f4f5971940b9efd2cb4ef829535c8b4b44aeb93a38dcf0a743cbb56b9f56ce6',
       },
       protectedReview: {
-        bytes: 27_412,
-        sha256: '49328643b53efaffe25495003469f827b46fab3d3a3c36c33c7c48f97d3b139e',
+        bytes: 27_472,
+        sha256: '200cb380211cd9d83dc664d1df8ff21c3ae0fdb8bb5362f604fc93463a759c8d',
       },
       publicCatalog: {
-        bytes: 103_638,
-        sha256: '4c699409e133e65e5677245239e52eb0697331b3fc4f382bc0a5e06c64e2b5fb',
+        bytes: 103_670,
+        sha256: 'f0ca50ef796a85311bb6f5f0eab4093e88cb7bef8d651f286007632de2a93879',
       },
       publicEvidence: {
-        bytes: 47_265,
-        sha256: '738d0d1a9ddb7385c4f358f2eb7c8ec7f9e2d9d1e0a464edb38b881f98787cd2',
+        bytes: 47_316,
+        sha256: '8d5931fb60c40463af4be4943bb4f7bf1c086d20f786a61cad0325b55877b51c',
       },
       publicCandidate: {
-        bytes: 9_510,
-        sha256: 'a6cd7cbb768d846613cdef3cf3d5e383cb213c6fad5d3db6172d7a33d76d5dea',
+        bytes: 9_542,
+        sha256: '1f669a07d1e4e2479a4b06fd142d8b8dc016e8b17d11d775a866ef22f4eccb0a',
       },
     });
   });

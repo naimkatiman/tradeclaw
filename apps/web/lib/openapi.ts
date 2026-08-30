@@ -249,11 +249,22 @@ export function buildOpenApiSpec(): OpenApiSpec {
           type: "object",
           description:
             "Canonical sibling resources for the public systematic-research intake. Every path is read-only and requires no API key.",
-          required: ["overview", "catalog", "catalogCsv", "evidence", "evidenceCsv"],
+          required: [
+            "overview",
+            "catalog",
+            "catalogCsv",
+            "evidenceIndex",
+            "evidence",
+            "evidenceCsv",
+          ],
           properties: {
             overview: { type: "string", const: "/api/research/intake/overview" },
             catalog: { type: "string", const: "/api/research/intake" },
             catalogCsv: { type: "string", const: "/api/research/intake.csv" },
+            evidenceIndex: {
+              type: "string",
+              const: "/api/research/intake/evidence/index",
+            },
             evidence: { type: "string", const: "/api/research/intake/evidence" },
             evidenceCsv: {
               type: "string",
@@ -280,20 +291,29 @@ export function buildOpenApiSpec(): OpenApiSpec {
           ],
           properties: {
             audience: { type: "string", const: "public" },
-            kind: { type: "string", const: "inspect-complete-evidence" },
+            kind: {
+              type: "string",
+              enum: ["browse-evidence-index", "inspect-complete-evidence"],
+            },
             label: {
               type: "string",
-              example: `Start with ${OPENAPI_RESEARCH_EVIDENCE_COUNT} examined candidates`,
+              example: `Browse ${OPENAPI_RESEARCH_EVIDENCE_COUNT} examined candidates`,
             },
             reason: {
               type: "string",
               description:
-                "Explains why the complete adverse-inclusive evidence desk is the safe first view.",
+                "Explains why the complete source-ordered list or already-open evidence desk is the safe first view.",
             },
-            href: { type: "string", const: "/api/research/intake/evidence" },
+            href: {
+              type: "string",
+              enum: [
+                "/api/research/intake/evidence/index",
+                "/api/research/intake/evidence",
+              ],
+            },
             targetResource: {
               type: "string",
-              const: "evidence",
+              enum: ["evidence-index", "evidence"],
               description: "Stable identity of the resource targeted by this action.",
             },
             targetIsCurrentResource: {
@@ -706,6 +726,157 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
           },
         },
+        ResearchIntakeEvidenceIndexState: {
+          type: "object",
+          description:
+            "Compact candidate-level evidence classification. Meanings and false authority remain available once in the response summaries instead of being repeated per item.",
+          required: [
+            "performanceEvidenceStatus",
+            "label",
+            "performanceGatesEvaluated",
+            "taskId",
+          ],
+          properties: {
+            performanceEvidenceStatus: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/evidenceState/properties/performanceEvidenceStatus",
+            },
+            label: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/evidenceState/properties/label",
+            },
+            performanceGatesEvaluated: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/evidenceState/properties/performanceGatesEvaluated",
+            },
+            taskId: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/evidenceState/properties/taskId",
+            },
+          },
+        },
+        ResearchIntakeEvidenceIndexCandidate: {
+          type: "object",
+          description:
+            "Identity and claim-safe classification needed to choose one exact candidate detail resource. Upstream performance figures and nested evidence bodies are omitted.",
+          required: [
+            "id",
+            "title",
+            "assetClass",
+            "sourcePosition",
+            "stage",
+            "verdict",
+            "costStatus",
+            "evidenceBasis",
+            "evidenceState",
+          ],
+          properties: {
+            id: { $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/id" },
+            title: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/title",
+            },
+            assetClass: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/assetClass",
+            },
+            sourcePosition: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/sourcePosition",
+            },
+            stage: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/stage",
+            },
+            verdict: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/verdict",
+            },
+            costStatus: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/costStatus",
+            },
+            evidenceBasis: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/evidenceBasis",
+            },
+            evidenceState: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceIndexState",
+            },
+          },
+        },
+        ResearchIntakeEvidenceIndexItem: {
+          type: "object",
+          required: ["evidencePosition", "candidate", "links"],
+          properties: {
+            evidencePosition: {
+              type: "integer",
+              minimum: 1,
+              maximum: OPENAPI_RESEARCH_EVIDENCE_COUNT,
+            },
+            candidate: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceIndexCandidate",
+            },
+            links: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecordLinks",
+            },
+          },
+        },
+        ResearchIntakeEvidenceIndexResponse: {
+          type: "object",
+          description:
+            `Lightweight, deterministic list of all ${OPENAPI_RESEARCH_EVIDENCE_COUNT} examined candidates in pinned source order. It supplies exact detail links without repeating source audits or replication bodies.`,
+          required: [
+            "schemaVersion",
+            "access",
+            "resources",
+            "startHere",
+            "source",
+            "selectionPolicy",
+            "workflow",
+            "claimBoundary",
+            "catalogSummary",
+            "catalogEvidenceStateSummary",
+            "evidenceSummary",
+            "evidenceStateSummary",
+            "evidenceIndex",
+            "items",
+          ],
+          properties: {
+            schemaVersion: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/schemaVersion",
+            },
+            access: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/access" },
+            resources: {
+              $ref: "#/components/schemas/ResearchIntakePublicResources",
+            },
+            startHere: {
+              $ref: "#/components/schemas/ResearchIntakeStartHere",
+            },
+            source: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/source" },
+            selectionPolicy: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/selectionPolicy",
+            },
+            workflow: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/workflow",
+            },
+            claimBoundary: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/claimBoundary",
+            },
+            catalogSummary: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
+            },
+            catalogEvidenceStateSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
+            },
+            evidenceSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceResponse/properties/evidenceSummary",
+            },
+            evidenceStateSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
+            },
+            evidenceIndex: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceResponse/properties/evidenceIndex",
+            },
+            items: {
+              type: "array",
+              minItems: OPENAPI_RESEARCH_EVIDENCE_COUNT,
+              maxItems: OPENAPI_RESEARCH_EVIDENCE_COUNT,
+              items: {
+                $ref: "#/components/schemas/ResearchIntakeEvidenceIndexItem",
+              },
+            },
+          },
+        },
         ResearchIntakeEvidenceResponse: {
           type: "object",
           description:
@@ -977,6 +1148,29 @@ export function buildOpenApiSpec(): OpenApiSpec {
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ResearchIntakeOverviewResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/api/research/intake/evidence/index": {
+        get: {
+          tags: ["Research"],
+          operationId: "getResearchIntakeEvidenceIndex",
+          summary: "Browse the lightweight systematic-research evidence index",
+          description:
+            `Returns compact identity, evidence-state labels, and exact detail links for all ${OPENAPI_RESEARCH_EVIDENCE_COUNT} examined candidates in pinned source order. ` +
+            "No API key is required. The list is filter-free and never performance-ranked; complete source audits and replication bodies stay on the linked candidate and evidence resources.",
+          security: [],
+          responses: {
+            "200": {
+              description: "Compact adverse-inclusive public research evidence index",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/ResearchIntakeEvidenceIndexResponse",
+                  },
                 },
               },
             },

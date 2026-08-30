@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   buildResearchIntakeAdminCandidatePayload,
+  buildResearchIntakeAdminEvidenceIndexPayload,
   buildResearchIntakeAdminEvidencePayload,
   buildResearchIntakeAdminPayload,
   buildResearchIntakeAdminReviewPayload,
@@ -9,6 +10,7 @@ import {
 import { buildOpenApiSpec } from '../openapi';
 import {
   buildResearchIntakePublicCandidatePayload,
+  buildResearchIntakePublicEvidenceIndexPayload,
   buildResearchIntakePublicEvidencePayload,
   buildResearchIntakePublicPayload,
 } from '../research-intake-public';
@@ -19,6 +21,7 @@ const TC260 = 'a-risk-based-approach-to-tactical-asset-allocation';
 interface StartHere {
   audience: 'public' | 'admin';
   kind:
+    | 'browse-evidence-index'
     | 'inspect-complete-evidence'
     | 'resolve-receipt-conflict'
     | 'screen-current-window'
@@ -26,7 +29,7 @@ interface StartHere {
   label: string;
   reason: string;
   href: string;
-  targetResource: 'catalog' | 'evidence' | 'marketing-review';
+  targetResource: 'catalog' | 'evidence-index' | 'evidence' | 'marketing-review';
   targetIsCurrentResource: boolean;
   itemCount: number;
   automaticAction: false;
@@ -39,20 +42,21 @@ function startHere(payload: unknown): StartHere | undefined {
 }
 
 describe('research intake start-here guidance', () => {
-  it('gives every public JSON projection one evidence-first target with current-view context', () => {
+  it('gives public summary projections one compact target while preserving the open complete desk', () => {
     const catalog = buildResearchIntakePublicPayload();
     const candidate = buildResearchIntakePublicCandidatePayload(TC260);
+    const index = buildResearchIntakePublicEvidenceIndexPayload();
     const evidence = buildResearchIntakePublicEvidencePayload();
     if (!candidate) throw new Error('TC-260 public candidate fixture is missing');
 
-    const expected = {
+    const compactExpected = {
       audience: 'public',
-      kind: 'inspect-complete-evidence',
-      label: 'Start with 9 examined candidates',
+      kind: 'browse-evidence-index',
+      label: 'Browse 9 examined candidates',
       reason:
-        'This complete evidence desk includes every TradeClaw source audit and replication in pinned source order, including adverse and no-performance-result records. It is not performance-ranked.',
-      href: '/api/research/intake/evidence',
-      targetResource: 'evidence',
+        'This lightweight index includes every TradeClaw source audit and replication in pinned source order, with exact candidate-detail links and no performance ranking.',
+      href: '/api/research/intake/evidence/index',
+      targetResource: 'evidence-index',
       itemCount: 9,
       automaticAction: false,
       grantsPublicationAuthority: false,
@@ -62,14 +66,29 @@ describe('research intake start-here guidance', () => {
     for (const [payload, targetIsCurrentResource] of [
       [catalog, false],
       [candidate, false],
-      [evidence, true],
+      [index, true],
     ] as const) {
       expect(startHere(payload)).toEqual({
-        ...expected,
+        ...compactExpected,
         targetIsCurrentResource,
       });
       expect(JSON.stringify(payload)).not.toContain('/api/admin/research-intake');
     }
+
+    expect(startHere(evidence)).toEqual({
+      audience: 'public',
+      kind: 'inspect-complete-evidence',
+      label: 'Inspect 9 examined candidates',
+      reason:
+        'This complete evidence desk includes every TradeClaw source audit and replication in pinned source order, including adverse and no-performance-result records. It is not performance-ranked.',
+      href: '/api/research/intake/evidence',
+      targetResource: 'evidence',
+      targetIsCurrentResource: true,
+      itemCount: 9,
+      automaticAction: false,
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    });
   });
 
   it('makes a current-window receipt conflict the protected priority', () => {
@@ -79,6 +98,7 @@ describe('research intake start-here guidance', () => {
     const payloads = [
       buildResearchIntakeAdminPayload(new URLSearchParams(), at),
       candidate,
+      buildResearchIntakeAdminEvidenceIndexPayload(at),
       buildResearchIntakeAdminEvidencePayload(at),
       buildResearchIntakeAdminReviewPayload(at),
     ];
@@ -112,6 +132,7 @@ describe('research intake start-here guidance', () => {
     const payloads = [
       catalog,
       candidate,
+      buildResearchIntakeAdminEvidenceIndexPayload(at),
       buildResearchIntakeAdminEvidencePayload(at),
       buildResearchIntakeAdminReviewPayload(at),
     ];
@@ -146,6 +167,7 @@ describe('research intake start-here guidance', () => {
     const payloads = [
       buildResearchIntakeAdminPayload(new URLSearchParams(), at),
       candidate,
+      buildResearchIntakeAdminEvidenceIndexPayload(at),
       buildResearchIntakeAdminEvidencePayload(at),
       buildResearchIntakeAdminReviewPayload(at),
     ];
@@ -166,7 +188,7 @@ describe('research intake start-here guidance', () => {
     payloads.forEach((payload, index) => {
       expect(startHere(payload)).toEqual({
         ...expected,
-        targetIsCurrentResource: index === 3,
+        targetIsCurrentResource: index === 4,
       });
     });
   });
@@ -181,6 +203,7 @@ describe('research intake start-here guidance', () => {
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
+        evidenceIndex: '/api/admin/research-intake/evidence/index',
         evidence: '/api/admin/research-intake/evidence',
         marketingReview: '/api/admin/research-intake/review',
       },
@@ -193,6 +216,37 @@ describe('research intake start-here guidance', () => {
         'No higher-priority receipt or review action is present. Inspect the complete source-ordered evidence desk; it is not performance-ranked.',
       href: '/api/admin/research-intake/evidence',
       targetResource: 'evidence',
+      targetIsCurrentResource: true,
+      itemCount: 9,
+      automaticAction: false,
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    });
+  });
+
+  it('falls back to the lightweight protected index outside the complete desk', () => {
+    expect(buildResearchIntakeAdminStartHere({
+      currentWindowStatus: 'complete',
+      currentWindowId: '2026-08-30T00:00:00.000Z/PT3H',
+      currentWindowReceiptCount: 1,
+      availableDrafts: 0,
+      publicationApprovedDrafts: 0,
+      evidenceCount: 9,
+      resources: {
+        catalog: '/api/admin/research-intake',
+        evidenceIndex: '/api/admin/research-intake/evidence/index',
+        evidence: '/api/admin/research-intake/evidence',
+        marketingReview: '/api/admin/research-intake/review',
+      },
+      currentResource: 'evidence-index',
+    })).toEqual({
+      audience: 'admin',
+      kind: 'browse-evidence-index',
+      label: 'Browse 9 evidence records',
+      reason:
+        'No higher-priority receipt or review action is present. Browse the lightweight source-ordered evidence index, then open exact candidate detail as needed; it is not performance-ranked.',
+      href: '/api/admin/research-intake/evidence/index',
+      targetResource: 'evidence-index',
       targetIsCurrentResource: true,
       itemCount: 9,
       automaticAction: false,

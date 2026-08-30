@@ -94,8 +94,8 @@ describe('compact research intake overview contract', () => {
       /\"(?:records|items|researchLoop|marketingReview|latestReceipt|currentWindowReceipts|marketingReviewDraft)\"/,
     );
     expect(fingerprint(overview)).toEqual({
-      bytes: 7_598,
-      sha256: '93fe0b2f199e362fa67962e55c205c15ce9b6c8a8010a27b1c097f8e40a3ad81',
+      bytes: 7_630,
+      sha256: '04b3074f8eaa6db1d683ec51d593a4e0c5dcf252ba1ab80afbb92e763c6bf917',
     });
   });
 
@@ -146,8 +146,8 @@ describe('compact research intake overview contract', () => {
     expect(overview).not.toHaveProperty('records');
     expect(overview).not.toHaveProperty('items');
     expect(fingerprint(overview)).toEqual({
-      bytes: 9_462,
-      sha256: '3224869f33ff69a40b86218ceb42a9d465513bf9c9b08ea131bfdf1523dbdacb',
+      bytes: 9_522,
+      sha256: '6b22ab7726af4b741d0476309dd19b03349c5eeeaf59c1e86687b9c96d6ecf67',
     });
   });
 
@@ -156,12 +156,14 @@ describe('compact research intake overview contract', () => {
       overview: '/api/research/intake/overview',
       catalog: '/api/research/intake',
       catalogCsv: '/api/research/intake.csv',
+      evidenceIndex: '/api/research/intake/evidence/index',
       evidence: '/api/research/intake/evidence',
       evidenceCsv: '/api/research/intake/evidence.csv',
     });
     expect(adminIntake.RESEARCH_INTAKE_ADMIN_RESOURCES).toEqual({
       overview: '/api/admin/research-intake/overview',
       catalog: '/api/admin/research-intake',
+      evidenceIndex: '/api/admin/research-intake/evidence/index',
       evidence: '/api/admin/research-intake/evidence',
       evidenceCsv: '/api/admin/research-intake/evidence.csv',
       marketingReview: '/api/admin/research-intake/review',
@@ -173,10 +175,10 @@ describe('compact research intake overview contract', () => {
       'utf8',
     );
     expect(source).toMatch(
-      /ResearchIntakeCurrentResource\s*=\s*\|\s*'overview'[\s\S]*'marketing-review';/,
+      /ResearchIntakeCurrentResource\s*=\s*\|\s*'overview'[\s\S]*'evidence-index'[\s\S]*'marketing-review';/,
     );
     expect(source).toMatch(
-      /ResearchIntakeStartHereTargetResource\s*=\s*\|\s*'catalog'\s*\|\s*'evidence'\s*\|\s*'marketing-review';/,
+      /ResearchIntakeStartHereTargetResource\s*=\s*\|\s*'catalog'\s*\|\s*'evidence-index'\s*\|\s*'evidence'\s*\|\s*'marketing-review';/,
     );
     expect(source).not.toContain('ResearchIntakeStartHereTargetResource = Exclude<');
   });
@@ -258,6 +260,7 @@ describe('compact research intake overview contract', () => {
       'overview',
       'catalog',
       'catalogCsv',
+      'evidenceIndex',
       'evidence',
       'evidenceCsv',
     ]);
@@ -270,8 +273,8 @@ describe('compact research intake overview contract', () => {
       api.indexOf('curl https://tradeclaw.win/api/research/intake\n'),
     );
     expect(fingerprint(spec)).toEqual({
-      bytes: 34_014,
-      sha256: 'e09f341eb38660c76b749122a074fd665cdc04b52f068c32495a7ad687ea8a24',
+      bytes: 39_077,
+      sha256: 'c352d719c54e93e4477863c5e324fa031b65c812983db2aa478c24543451b0ce',
     });
   });
 });

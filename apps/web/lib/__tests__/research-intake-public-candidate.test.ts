@@ -166,8 +166,8 @@ describe('public research intake candidate projection', () => {
         sha256: '1757114bbad313f06440291ec13e4bec61b4644ecf42e204774e4dec9c7512f7',
       },
       lastPayload: {
-        bytes: 9_510,
-        sha256: 'a6cd7cbb768d846613cdef3cf3d5e383cb213c6fad5d3db6172d7a33d76d5dea',
+        bytes: 9_542,
+        sha256: '1f669a07d1e4e2479a4b06fd142d8b8dc016e8b17d11d775a866ef22f4eccb0a',
       },
     });
   });

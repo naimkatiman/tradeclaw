@@ -1,4 +1,5 @@
 export type ResearchIntakeStartHereKind =
+  | 'browse-evidence-index'
   | 'inspect-complete-evidence'
   | 'resolve-receipt-conflict'
   | 'screen-current-window'
@@ -8,11 +9,13 @@ export type ResearchIntakeCurrentResource =
   | 'overview'
   | 'catalog'
   | 'candidate'
+  | 'evidence-index'
   | 'evidence'
   | 'marketing-review';
 
 export type ResearchIntakeStartHereTargetResource =
   | 'catalog'
+  | 'evidence-index'
   | 'evidence'
   | 'marketing-review';
 
@@ -30,7 +33,7 @@ interface ResearchIntakeStartHereBase {
 
 export interface ResearchIntakePublicStartHere extends ResearchIntakeStartHereBase {
   audience: 'public';
-  kind: 'inspect-complete-evidence';
+  kind: 'browse-evidence-index' | 'inspect-complete-evidence';
 }
 
 export interface ResearchIntakeAdminStartHere extends ResearchIntakeStartHereBase {
@@ -47,6 +50,7 @@ export interface ResearchIntakeAdminStartHereInput {
   evidenceCount: number;
   resources: {
     catalog: string;
+    evidenceIndex: string;
     evidence: string;
     marketingReview: string;
   };
@@ -65,22 +69,31 @@ function countNoun(count: number, singular: string, plural: string): string {
 
 export function buildResearchIntakePublicStartHere(
   evidenceCount: number,
-  evidenceHref: string,
+  resources: {
+    evidenceIndex: string;
+    evidence: string;
+  },
   currentResource: ResearchIntakeCurrentResource,
 ): ResearchIntakePublicStartHere {
+  const completeEvidenceIsOpen = currentResource === 'evidence';
+  const targetResource = completeEvidenceIsOpen ? 'evidence' : 'evidence-index';
+
   return Object.freeze({
     audience: 'public',
-    kind: 'inspect-complete-evidence',
-    label: `Start with ${evidenceCount} examined ${countNoun(
+    kind: completeEvidenceIsOpen
+      ? 'inspect-complete-evidence'
+      : 'browse-evidence-index',
+    label: `${completeEvidenceIsOpen ? 'Inspect' : 'Browse'} ${evidenceCount} examined ${countNoun(
       evidenceCount,
       'candidate',
       'candidates',
     )}`,
-    reason:
-      'This complete evidence desk includes every TradeClaw source audit and replication in pinned source order, including adverse and no-performance-result records. It is not performance-ranked.',
-    href: evidenceHref,
-    targetResource: 'evidence',
-    targetIsCurrentResource: currentResource === 'evidence',
+    reason: completeEvidenceIsOpen
+      ? 'This complete evidence desk includes every TradeClaw source audit and replication in pinned source order, including adverse and no-performance-result records. It is not performance-ranked.'
+      : 'This lightweight index includes every TradeClaw source audit and replication in pinned source order, with exact candidate-detail links and no performance ranking.',
+    href: completeEvidenceIsOpen ? resources.evidence : resources.evidenceIndex,
+    targetResource,
+    targetIsCurrentResource: currentResource === targetResource,
     itemCount: evidenceCount,
     ...FALSE_AUTHORITY,
   });
@@ -147,15 +160,22 @@ export function buildResearchIntakeAdminStartHere(
   }
 
   const recordNoun = countNoun(input.evidenceCount, 'record', 'records');
+  const completeEvidenceIsOpen = input.currentResource === 'evidence';
+  const targetResource = completeEvidenceIsOpen ? 'evidence' : 'evidence-index';
   return Object.freeze({
     audience: 'admin',
-    kind: 'inspect-complete-evidence',
-    label: `Inspect ${input.evidenceCount} evidence ${recordNoun}`,
-    reason:
-      'No higher-priority receipt or review action is present. Inspect the complete source-ordered evidence desk; it is not performance-ranked.',
-    href: input.resources.evidence,
-    targetResource: 'evidence',
-    targetIsCurrentResource: input.currentResource === 'evidence',
+    kind: completeEvidenceIsOpen
+      ? 'inspect-complete-evidence'
+      : 'browse-evidence-index',
+    label: `${completeEvidenceIsOpen ? 'Inspect' : 'Browse'} ${input.evidenceCount} evidence ${recordNoun}`,
+    reason: completeEvidenceIsOpen
+      ? 'No higher-priority receipt or review action is present. Inspect the complete source-ordered evidence desk; it is not performance-ranked.'
+      : 'No higher-priority receipt or review action is present. Browse the lightweight source-ordered evidence index, then open exact candidate detail as needed; it is not performance-ranked.',
+    href: completeEvidenceIsOpen
+      ? input.resources.evidence
+      : input.resources.evidenceIndex,
+    targetResource,
+    targetIsCurrentResource: input.currentResource === targetResource,
     itemCount: input.evidenceCount,
     ...FALSE_AUTHORITY,
   });
