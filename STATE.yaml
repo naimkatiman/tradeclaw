@@ -1,11 +1,169 @@
 project: tradeclaw
-updated: 2026-08-30T09:17:40+08:00
+updated: 2026-08-30T09:36:17+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_start_here_target_context_2026_08_30:
+  at: 2026-08-30T09:36:17+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Make the new public/admin start-here action self-locating and give its item count one truthful workload meaning
+  base_commit: 7535a5f74f52ca67e7d3239e51b6d6131866a776
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-263
+  current_cycle_id: 2026-08-30T00:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-263
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T03:00:00.000Z
+  gate_observed_at: 2026-08-30T01:36:17.9752035Z
+  gate_decision: The 03:00Z gate remains closed; correct only the derived navigation contract and create no candidate, receipt, return, preregistration, artifact, or marketing draft
+  library_search: MemoryCore contains audience-tier guidance but no reusable self-locating research-resource or start-here target contract
+  problem: >-
+    `startHere` can point to the resource already represented by the response:
+    public evidence points to public evidence, protected receipt conflict or an
+    awaiting receipt points to the protected catalog, review-ready points to the
+    protected review queue, and the fallback points to protected evidence. A
+    client must compare request URLs or infer payload shape to avoid rendering a
+    circular next link. The awaiting action also says to screen one candidate
+    while reporting `itemCount: 0`, so the same field alternates between receipt
+    absence and action workload.
+  decision: >-
+    Add required `targetResource` and `targetIsCurrentResource` fields to every
+    start-here object. The target is one of catalog, evidence, or marketing-review;
+    the boolean is authored per projection, not inferred by clients. Define
+    `itemCount` as the number of work items named by `kind`, which changes an
+    awaiting-receipt action from zero missing receipts to one candidate to screen.
+    Preserve the selected target, priority order, copy, hrefs, and every false
+    authority control.
+  frozen_shape:
+    required_fields: [audience, kind, label, reason, href, targetResource, targetIsCurrentResource, itemCount, automaticAction, grantsPublicationAuthority, grantsTradingAuthority]
+    target_resources: [catalog, evidence, marketing-review]
+    automaticAction: false
+    grantsPublicationAuthority: false
+    grantsTradingAuthority: false
+  item_count_semantics:
+    inspect-complete-evidence: complete examined-candidate count
+    resolve-receipt-conflict: conflicting current-window receipt count
+    screen-current-window: 1 candidate to screen
+    review-marketing-drafts: available human-review draft count
+  projection_matrix:
+    public_catalog: { targetResource: evidence, targetIsCurrentResource: false }
+    public_candidate: { targetResource: evidence, targetIsCurrentResource: false }
+    public_evidence: { targetResource: evidence, targetIsCurrentResource: true }
+    protected_catalog_conflict_or_awaiting: { targetResource: catalog, targetIsCurrentResource: true }
+    protected_candidate_conflict_or_awaiting: { targetResource: catalog, targetIsCurrentResource: false }
+    protected_evidence_conflict_or_awaiting: { targetResource: catalog, targetIsCurrentResource: false }
+    protected_review_conflict_or_awaiting: { targetResource: catalog, targetIsCurrentResource: false }
+    protected_catalog_review_ready: { targetResource: marketing-review, targetIsCurrentResource: false }
+    protected_candidate_review_ready: { targetResource: marketing-review, targetIsCurrentResource: false }
+    protected_evidence_review_ready: { targetResource: marketing-review, targetIsCurrentResource: false }
+    protected_review_review_ready: { targetResource: marketing-review, targetIsCurrentResource: true }
+    protected_evidence_fallback: { targetResource: evidence, targetIsCurrentResource: true }
+  frozen_prechange_json_receipts_at_2026_08_29T15_59_59_999Z:
+    public_catalog: 103535 bytes / 866c83f1b0fe086878e33418fbbc20936ba4a01b4003ec26b85c978741224ce1
+    public_candidate: 9407 bytes / ce27792f8cee9e72f3133b1e7ced0f2b6895920cd3428a85b819710bc8620c7e
+    public_evidence: 47163 bytes / 9cb2c571cbde96bda6a89cacd8e43d97c96944b2f46f441764bb305cdaa0759a
+    protected_catalog: 73625 bytes / d984b0ce4af44299208a1b032e8a3a51810fd967c52a1df5a84d424e15c4a926
+    protected_candidate: 12788 bytes / ba7d6aa006b3e2609013e4ec1d051eb1d8b695f1c762410ccd286f90680dffb1
+    protected_evidence: 74718 bytes / 42a7e9e84cce1aeb615e7ec4fce7007f0e5e93ba095fe7cda06159a69281d59f
+    protected_review: 27296 bytes / 75043ceb0734f8bba9ce0f84d6f183d0a9db921477880ce88fcd778994c7d175
+  final_json_receipts_at_2026_08_29T15_59_59_999Z:
+    public_catalog: 103595 bytes / f54c1311a63b77eeb3355fa89cf2804096d3d15182d1efc86d0ac49987c26e8a
+    public_candidate: 9467 bytes / c902a6d3ddb166e2976610083de0eec08e652ee20dc0d489c502e07eb63b4974
+    public_evidence: 47222 bytes / 0a8f7a7433893449077c2659b6a5b0d69fdea6ce22d678463b13685942524398
+    protected_catalog: 73693 bytes / fb6474f7b4aae8be4d46f26ac06ee5bb5a68e2b8ba848d76136bbe34aa5274c5
+    protected_candidate: 12856 bytes / 5c9b4d27d9381c4dec1e34688e9d1870ee017097f9408feff7a4d332d7ab51a9
+    protected_evidence: 74786 bytes / cf9daeab17d309a1628dac0e9fda91d2d4ca838f833ca3e1e6b5dc36c233b407
+    protected_review: 27363 bytes / a0135683c552dc938e6e39ac6e1c1726ebaca9014a482ce072674e14839ead75
+  final_openapi_receipt:
+    bytes: 31494
+    sha256: e3fb02b79601a05c756020228b739bb7256c9f0cf0a4dc9dcf65a63adff1242a
+  expected_core_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake-start-here.ts
+    - apps/web/lib/research-intake-public.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/openapi.ts
+    - apps/web/lib/__tests__/research-intake-start-here.test.ts
+  deterministic_expectation_policy: Update only exact JSON fingerprints whose top-level start-here object gains the two required fields; CSV, record, navigation, filter, facet, source, receipt, evidence, marketing, route, auth, and unrelated receipts must remain green
+  frozen_boundaries:
+    public_or_protected_record_shape_changed: false
+    source_catalog_evidence_verdict_receipt_or_draft_changed: false
+    csv_or_route_auth_cache_semantics_changed: false
+    rendered_ui_changed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  red_verification: >-
+    PASS - all six focused tests fail one-to-one before implementation. Public,
+    protected conflict, protected awaiting, protected review, and protected
+    fallback expectations are missing only `targetResource` and
+    `targetIsCurrentResource`; awaiting additionally reports zero instead of one.
+    OpenAPI/README discovery lacks the two fields. Existing receipt timing and
+    four-draft review assertions remain green, and no implementation source changed.
+  focused_green_verification: >-
+    PASS - six tests cover public catalog/candidate/evidence target context,
+    protected conflict and awaiting context across all four projections, the
+    corrected one-candidate awaiting workload, protected review context across
+    all four projections, pure evidence fallback, and OpenAPI/README discovery.
+    All six pass with priorities, copy, hrefs, receipt/draft assertions, and false
+    automatic/publication/trading authority intact.
+  widened_red_verification: >-
+    EXPECTED RED - all 28 widened suites ran 141 tests: 132 passed and nine
+    whole-JSON byte/hash assertions failed across eight suites. Every failure is
+    explained by the two additive start-here target fields; the awaiting count
+    is covered only by the focused behavioral contract. All remaining 66
+    source/evidence/CSV/OpenAPI-parity/README/publication/resource/auth-adjacent
+    tests and every navigation/filter/facet/result-view subobject stay green.
+  widened_green_verification: >-
+    PASS - all 28 intake and publication-boundary suites pass 141/141 after
+    updating only the intentional seven projection receipts and full-catalog
+    variants. CSV, navigation, filter, facet, result-view, source, evidence,
+    receipt, marketing, OpenAPI-parity, README, resource, auth, and publication
+    boundaries remain green.
+  initial_static_verification: >-
+    Pinned-source verification passes 61/61 and lint exits zero with the same 21
+    inherited warnings. Web typecheck found one test-only union-property access in
+    the new awaiting projection matrix; runtime behavior and production source
+    compiled. The assertion now retains the concrete catalog payload before
+    entering the heterogeneous array.
+  static_verification: >-
+    PASS - focused behavior remains 6/6 after the test-only narrowing fix; pinned
+    source reconstruction passes 61/61; web typecheck passes; lint exits zero
+    with the same 21 inherited repository warnings and no errors.
+  full_test_verification: >-
+    PASS - 294 suites and 2166 tests pass with one snapshot; the existing three
+    suites and 26 tests remain skipped. No unrelated regression appeared.
+  production_build_verification: >-
+    PASS - the required root build compiles signals, trading-agents, and Next.js
+    successfully and generates all 329 static pages. Only existing middleware,
+    Turbopack broad-trace, edge-runtime, and Node deprecation warnings appear;
+    no changed file participates in the reported trace.
+  final_recheck: PASS - focused behavior remains 6/6 and web typecheck passes after removing the temporary intentional-RED test cast
+  scope_verification: >-
+    PASS - the exact 15-file patch is limited to STATE, README API discovery,
+    the existing start-here/public/admin/OpenAPI builders, one focused contract
+    suite, and eight intentional JSON receipt expectation files. `git diff
+    --check` passes. Docker Compose, dependencies, lockfiles, databases,
+    migrations, rendered UI, research records, receipts, evidence, drafts,
+    marketing state, and trading/runtime code have zero diff.
+  docker_compose_verification: >-
+    NOT RUN - this environment still has no `docker` executable. The Compose
+    flow is preserved by zero diff to every Compose, manifest, lockfile,
+    database, and migration surface; no container was started or changed.
+  state_yaml_verification: PASS - STATE.yaml parses successfully
+  current_step: Commit the fully verified implementation locally
+  next_action: Close STATE with the implementation hash in a separate local commit, save MemoryCore, and preserve the active 03:00Z gate
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: Derived read-model correction only; no UI, mutation, receipt, return, preregistration, evidence artifact, marketing draft, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized
 
 research_start_here_guidance_2026_08_30:
   at: 2026-08-30T09:17:40+08:00

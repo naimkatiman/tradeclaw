@@ -4,10 +4,23 @@ export type ResearchIntakeStartHereKind =
   | 'screen-current-window'
   | 'review-marketing-drafts';
 
+export type ResearchIntakeCurrentResource =
+  | 'catalog'
+  | 'candidate'
+  | 'evidence'
+  | 'marketing-review';
+
+export type ResearchIntakeStartHereTargetResource = Exclude<
+  ResearchIntakeCurrentResource,
+  'candidate'
+>;
+
 interface ResearchIntakeStartHereBase {
   label: string;
   reason: string;
   href: string;
+  targetResource: ResearchIntakeStartHereTargetResource;
+  targetIsCurrentResource: boolean;
   itemCount: number;
   automaticAction: false;
   grantsPublicationAuthority: false;
@@ -36,6 +49,7 @@ export interface ResearchIntakeAdminStartHereInput {
     evidence: string;
     marketingReview: string;
   };
+  currentResource: ResearchIntakeCurrentResource;
 }
 
 const FALSE_AUTHORITY = Object.freeze({
@@ -51,6 +65,7 @@ function countNoun(count: number, singular: string, plural: string): string {
 export function buildResearchIntakePublicStartHere(
   evidenceCount: number,
   evidenceHref: string,
+  currentResource: ResearchIntakeCurrentResource,
 ): ResearchIntakePublicStartHere {
   return Object.freeze({
     audience: 'public',
@@ -63,6 +78,8 @@ export function buildResearchIntakePublicStartHere(
     reason:
       'This complete evidence desk includes every TradeClaw source audit and replication in pinned source order, including adverse and no-performance-result records. It is not performance-ranked.',
     href: evidenceHref,
+    targetResource: 'evidence',
+    targetIsCurrentResource: currentResource === 'evidence',
     itemCount: evidenceCount,
     ...FALSE_AUTHORITY,
   });
@@ -85,6 +102,8 @@ export function buildResearchIntakeAdminStartHere(
       reason:
         `The window ${input.currentWindowId} has conflicting receipts. Reconcile the receipt ledger before relying on it; this guidance takes no automatic action.`,
       href: input.resources.catalog,
+      targetResource: 'catalog',
+      targetIsCurrentResource: input.currentResource === 'catalog',
       itemCount: input.currentWindowReceiptCount,
       ...FALSE_AUTHORITY,
     });
@@ -98,7 +117,9 @@ export function buildResearchIntakeAdminStartHere(
       reason:
         `No receipt exists in ${input.currentWindowId}. Use the protected catalog manually and keep the frozen cost-first gate; this guidance creates no receipt.`,
       href: input.resources.catalog,
-      itemCount: 0,
+      targetResource: 'catalog',
+      targetIsCurrentResource: input.currentResource === 'catalog',
+      itemCount: 1,
       ...FALSE_AUTHORITY,
     });
   }
@@ -117,6 +138,8 @@ export function buildResearchIntakeAdminStartHere(
       reason:
         `The observation-consistent queue has ${input.availableDrafts} ${draftNoun} and ${input.publicationApprovedDrafts} ${approvalNoun}. Review remains manual.`,
       href: input.resources.marketingReview,
+      targetResource: 'marketing-review',
+      targetIsCurrentResource: input.currentResource === 'marketing-review',
       itemCount: input.availableDrafts,
       ...FALSE_AUTHORITY,
     });
@@ -130,6 +153,8 @@ export function buildResearchIntakeAdminStartHere(
     reason:
       'No higher-priority receipt or review action is present. Inspect the complete source-ordered evidence desk; it is not performance-ranked.',
     href: input.resources.evidence,
+    targetResource: 'evidence',
+    targetIsCurrentResource: input.currentResource === 'evidence',
     itemCount: input.evidenceCount,
     ...FALSE_AUTHORITY,
   });

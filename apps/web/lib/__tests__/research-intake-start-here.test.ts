@@ -26,6 +26,8 @@ interface StartHere {
   label: string;
   reason: string;
   href: string;
+  targetResource: 'catalog' | 'evidence' | 'marketing-review';
+  targetIsCurrentResource: boolean;
   itemCount: number;
   automaticAction: false;
   grantsPublicationAuthority: false;
@@ -37,69 +39,103 @@ function startHere(payload: unknown): StartHere | undefined {
 }
 
 describe('research intake start-here guidance', () => {
-  it('gives every public JSON projection one identical evidence-first action', () => {
+  it('gives every public JSON projection one evidence-first target with current-view context', () => {
     const catalog = buildResearchIntakePublicPayload();
     const candidate = buildResearchIntakePublicCandidatePayload(TC260);
     const evidence = buildResearchIntakePublicEvidencePayload();
     if (!candidate) throw new Error('TC-260 public candidate fixture is missing');
 
-    const expected: StartHere = {
+    const expected = {
       audience: 'public',
       kind: 'inspect-complete-evidence',
       label: 'Start with 9 examined candidates',
       reason:
         'This complete evidence desk includes every TradeClaw source audit and replication in pinned source order, including adverse and no-performance-result records. It is not performance-ranked.',
       href: '/api/research/intake/evidence',
+      targetResource: 'evidence',
       itemCount: 9,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
-    };
+    } as const;
 
-    for (const payload of [catalog, candidate, evidence]) {
-      expect(startHere(payload)).toEqual(expected);
+    for (const [payload, targetIsCurrentResource] of [
+      [catalog, false],
+      [candidate, false],
+      [evidence, true],
+    ] as const) {
+      expect(startHere(payload)).toEqual({
+        ...expected,
+        targetIsCurrentResource,
+      });
       expect(JSON.stringify(payload)).not.toContain('/api/admin/research-intake');
     }
   });
 
   it('makes a current-window receipt conflict the protected priority', () => {
-    const payload = buildResearchIntakeAdminPayload(
-      new URLSearchParams(),
-      '2026-08-29T08:29:58.000Z',
-    );
-
-    expect(startHere(payload)).toEqual({
+    const at = '2026-08-29T08:29:58.000Z';
+    const candidate = buildResearchIntakeAdminCandidatePayload(TC260, at);
+    if (!candidate) throw new Error('TC-260 admin candidate fixture is missing');
+    const payloads = [
+      buildResearchIntakeAdminPayload(new URLSearchParams(), at),
+      candidate,
+      buildResearchIntakeAdminEvidencePayload(at),
+      buildResearchIntakeAdminReviewPayload(at),
+    ];
+    const expected = {
       audience: 'admin',
       kind: 'resolve-receipt-conflict',
       label: 'Resolve 2 receipts in the current UTC window',
       reason:
         'The window 2026-08-29T06:00:00.000Z/PT3H has conflicting receipts. Reconcile the receipt ledger before relying on it; this guidance takes no automatic action.',
       href: '/api/admin/research-intake',
+      targetResource: 'catalog',
       itemCount: 2,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
+    } as const;
+
+    payloads.forEach((payload, index) => {
+      expect(startHere(payload)).toEqual({
+        ...expected,
+        targetIsCurrentResource: index === 0,
+      });
     });
   });
 
   it('makes an awaiting current-window receipt outrank the existing review queue', () => {
-    const payload = buildResearchIntakeAdminPayload(
-      new URLSearchParams(),
-      '2026-08-29T18:00:39.999Z',
-    );
+    const at = '2026-08-29T18:00:39.999Z';
+    const candidate = buildResearchIntakeAdminCandidatePayload(TC260, at);
+    if (!candidate) throw new Error('TC-260 admin candidate fixture is missing');
+    const catalog = buildResearchIntakeAdminPayload(new URLSearchParams(), at);
+    const payloads = [
+      catalog,
+      candidate,
+      buildResearchIntakeAdminEvidencePayload(at),
+      buildResearchIntakeAdminReviewPayload(at),
+    ];
 
-    expect(payload.marketingReview.summary.availableDrafts).toBe(4);
-    expect(startHere(payload)).toEqual({
+    expect(catalog.marketingReview.summary.availableDrafts).toBe(4);
+    const expected = {
       audience: 'admin',
       kind: 'screen-current-window',
       label: 'Screen one candidate for the current UTC window',
       reason:
         'No receipt exists in 2026-08-29T18:00:00.000Z/PT3H. Use the protected catalog manually and keep the frozen cost-first gate; this guidance creates no receipt.',
       href: '/api/admin/research-intake',
-      itemCount: 0,
+      targetResource: 'catalog',
+      itemCount: 1,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
+    } as const;
+
+    payloads.forEach((payload, index) => {
+      expect(startHere(payload)).toEqual({
+        ...expected,
+        targetIsCurrentResource: index === 0,
+      });
     });
   });
 
@@ -113,20 +149,26 @@ describe('research intake start-here guidance', () => {
       buildResearchIntakeAdminEvidencePayload(at),
       buildResearchIntakeAdminReviewPayload(at),
     ];
-    const expected: StartHere = {
+    const expected = {
       audience: 'admin',
       kind: 'review-marketing-drafts',
       label: 'Review 4 human-review drafts',
       reason:
         'The observation-consistent queue has 4 drafts and 0 publication approvals. Review remains manual.',
       href: '/api/admin/research-intake/review',
+      targetResource: 'marketing-review',
       itemCount: 4,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
-    };
+    } as const;
 
-    for (const payload of payloads) expect(startHere(payload)).toEqual(expected);
+    payloads.forEach((payload, index) => {
+      expect(startHere(payload)).toEqual({
+        ...expected,
+        targetIsCurrentResource: index === 3,
+      });
+    });
   });
 
   it('falls back to the complete protected evidence desk when no higher priority exists', () => {
@@ -142,6 +184,7 @@ describe('research intake start-here guidance', () => {
         evidence: '/api/admin/research-intake/evidence',
         marketingReview: '/api/admin/research-intake/review',
       },
+      currentResource: 'evidence',
     })).toEqual({
       audience: 'admin',
       kind: 'inspect-complete-evidence',
@@ -149,6 +192,8 @@ describe('research intake start-here guidance', () => {
       reason:
         'No higher-priority receipt or review action is present. Inspect the complete source-ordered evidence desk; it is not performance-ranked.',
       href: '/api/admin/research-intake/evidence',
+      targetResource: 'evidence',
+      targetIsCurrentResource: true,
       itemCount: 9,
       automaticAction: false,
       grantsPublicationAuthority: false,
@@ -179,12 +224,18 @@ describe('research intake start-here guidance', () => {
       'label',
       'reason',
       'href',
+      'targetResource',
+      'targetIsCurrentResource',
       'itemCount',
       'automaticAction',
       'grantsPublicationAuthority',
       'grantsTradingAuthority',
     ]);
     expect(schemas.ResearchIntakeStartHere.properties).toHaveProperty('href');
+    expect(schemas.ResearchIntakeStartHere.properties).toHaveProperty('targetResource');
+    expect(schemas.ResearchIntakeStartHere.properties).toHaveProperty(
+      'targetIsCurrentResource',
+    );
     for (const schema of [
       schemas.ResearchIntakeResponse,
       schemas.ResearchIntakeEvidenceResponse,
@@ -193,6 +244,7 @@ describe('research intake start-here guidance', () => {
       expect(schema.required).toContain('startHere');
     }
     expect(api).toContain('startHere');
+    expect(api).toContain('targetIsCurrentResource');
     expect(api).toMatch(/one server-authored.*evidence.*not.*recommendation|not.*authority/i);
   });
 });

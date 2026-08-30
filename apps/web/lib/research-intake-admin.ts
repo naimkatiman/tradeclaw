@@ -46,6 +46,7 @@ import {
 } from './research-loop-marketing';
 import {
   buildResearchIntakeAdminStartHere,
+  type ResearchIntakeCurrentResource,
   type ResearchIntakeAdminStartHere,
 } from './research-intake-start-here';
 
@@ -1036,16 +1037,24 @@ function buildResearchIntakeAdminObservation(at: Date | string | number) {
     observedAtMs: observedDate.getTime(),
     marketingReview,
     researchLoop,
-    startHere: buildResearchIntakeAdminStartHere({
-      currentWindowStatus: receiptSnapshot.currentWindowStatus,
-      currentWindowId: currentWindow.id,
-      currentWindowReceiptCount: receiptSnapshot.currentWindowReceipts.length,
-      availableDrafts: marketingReview.summary.availableDrafts,
-      publicationApprovedDrafts: marketingReview.summary.publicationApprovedDrafts,
-      evidenceCount: RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS.length,
-      resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
-    }),
   };
+}
+
+function buildResearchIntakeAdminProjectionStartHere(
+  observation: ReturnType<typeof buildResearchIntakeAdminObservation>,
+  currentResource: ResearchIntakeCurrentResource,
+): ResearchIntakeAdminStartHere {
+  return buildResearchIntakeAdminStartHere({
+    currentWindowStatus: observation.researchLoop.currentWindowStatus,
+    currentWindowId: observation.researchLoop.currentWindow.id,
+    currentWindowReceiptCount: observation.researchLoop.currentWindowReceipts.length,
+    availableDrafts: observation.marketingReview.summary.availableDrafts,
+    publicationApprovedDrafts:
+      observation.marketingReview.summary.publicationApprovedDrafts,
+    evidenceCount: RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS.length,
+    resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    currentResource,
+  });
 }
 
 function toAdminRecord(
@@ -1211,7 +1220,7 @@ export function buildResearchIntakeAdminPayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
-    startHere: observation.startHere,
+    startHere: buildResearchIntakeAdminProjectionStartHere(observation, 'catalog'),
     queryContract: RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
@@ -1277,7 +1286,7 @@ export function buildResearchIntakeAdminCandidatePayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
-    startHere: observation.startHere,
+    startHere: buildResearchIntakeAdminProjectionStartHere(observation, 'candidate'),
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -1311,7 +1320,7 @@ export function buildResearchIntakeAdminEvidencePayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
-    startHere: observation.startHere,
+    startHere: buildResearchIntakeAdminProjectionStartHere(observation, 'evidence'),
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -1377,7 +1386,10 @@ export function buildResearchIntakeAdminReviewPayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
-    startHere: observation.startHere,
+    startHere: buildResearchIntakeAdminProjectionStartHere(
+      observation,
+      'marketing-review',
+    ),
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,

@@ -18,6 +18,7 @@ import {
 } from './research-intake-evidence-state';
 import {
   buildResearchIntakePublicStartHere,
+  type ResearchIntakeCurrentResource,
   type ResearchIntakePublicStartHere,
 } from './research-intake-start-here';
 
@@ -35,11 +36,6 @@ export const RESEARCH_INTAKE_PUBLIC_RESOURCES = Object.freeze({
 
 const RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS = SYSTEMATIC_RESEARCH_INTAKE.filter(
   (record) => record.tradeClawSourceAudit !== null || record.tradeClawEvidence !== null,
-);
-
-const RESEARCH_INTAKE_PUBLIC_START_HERE = buildResearchIntakePublicStartHere(
-  RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS.length,
-  RESEARCH_INTAKE_PUBLIC_RESOURCES.evidence,
 );
 
 export interface ResearchIntakePublicRecordLinks {
@@ -136,7 +132,9 @@ function toPublicRecord(record: ResearchIntakeRecord): ResearchIntakePublicRecor
   };
 }
 
-function buildResearchIntakePublicContext(): Omit<ResearchIntakePublicPayload, 'records'> {
+function buildResearchIntakePublicContext(
+  currentResource: ResearchIntakeCurrentResource,
+): Omit<ResearchIntakePublicPayload, 'records'> {
   return {
     schemaVersion: 1,
     access: {
@@ -147,7 +145,11 @@ function buildResearchIntakePublicContext(): Omit<ResearchIntakePublicPayload, '
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_PUBLIC_RESOURCES,
-    startHere: RESEARCH_INTAKE_PUBLIC_START_HERE,
+    startHere: buildResearchIntakePublicStartHere(
+      RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS.length,
+      RESEARCH_INTAKE_PUBLIC_RESOURCES.evidence,
+      currentResource,
+    ),
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -175,7 +177,7 @@ function buildResearchIntakePublicContext(): Omit<ResearchIntakePublicPayload, '
  */
 export function buildResearchIntakePublicPayload(): ResearchIntakePublicPayload {
   return {
-    ...buildResearchIntakePublicContext(),
+    ...buildResearchIntakePublicContext('catalog'),
     records: SYSTEMATIC_RESEARCH_INTAKE.map(toPublicRecord),
   };
 }
@@ -186,7 +188,7 @@ export function buildResearchIntakePublicPayload(): ResearchIntakePublicPayload 
  */
 export function buildResearchIntakePublicEvidencePayload(): ResearchIntakePublicEvidencePayload {
   return {
-    ...buildResearchIntakePublicContext(),
+    ...buildResearchIntakePublicContext('evidence'),
     evidenceIndex: {
       selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
       order: 'pinned-source-order',
@@ -214,7 +216,7 @@ export function buildResearchIntakePublicCandidatePayload(
   if (!navigation) return null;
 
   return {
-    ...buildResearchIntakePublicContext(),
+    ...buildResearchIntakePublicContext('candidate'),
     navigation,
     record: toPublicRecord(candidate),
   };

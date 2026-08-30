@@ -270,6 +270,8 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "label",
             "reason",
             "href",
+            "targetResource",
+            "targetIsCurrentResource",
             "itemCount",
             "automaticAction",
             "grantsPublicationAuthority",
@@ -288,6 +290,16 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 "Explains why the complete adverse-inclusive evidence desk is the safe first view.",
             },
             href: { type: "string", const: "/api/research/intake/evidence" },
+            targetResource: {
+              type: "string",
+              const: "evidence",
+              description: "Stable identity of the resource targeted by this action.",
+            },
+            targetIsCurrentResource: {
+              type: "boolean",
+              description:
+                "True only when this response already represents the targeted evidence resource, so clients can avoid a circular next-link treatment.",
+            },
             itemCount: {
               type: "integer",
               const: OPENAPI_RESEARCH_EVIDENCE_COUNT,

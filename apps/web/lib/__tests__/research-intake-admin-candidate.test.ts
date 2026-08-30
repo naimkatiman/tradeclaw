@@ -402,8 +402,8 @@ describe('protected research intake candidate projection', () => {
         sha256: '5fc6e26af7a462ede7ec2c071cb14cd35017aa25abefa42db649abfde01c4607',
       },
       lastPayload: {
-        bytes: 12_788,
-        sha256: 'ba7d6aa006b3e2609013e4ec1d051eb1d8b695f1c762410ccd286f90680dffb1',
+        bytes: 12_856,
+        sha256: '5c9b4d27d9381c4dec1e34688e9d1870ee017097f9408feff7a4d332d7ab51a9',
       },
     });
   });
