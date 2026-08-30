@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T12:19:32+08:00
+updated: 2026-08-30T12:20:30+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_shared_decision_context_2026_08_30:
-  at: 2026-08-30T12:19:32+08:00
+  at: 2026-08-30T12:20:30+08:00
   agent: TradeClaw PM agent
-  status: done_verified_pending_local_commit
+  status: done_shared_decision_context_verified_and_committed_local
   scope: Preserve one canonical decision explanation and evidence date from compact index through public/protected catalog, evidence, candidate-detail, and marketing-review projections without opening another receipt or adding another route
   base_commit: 3361f9c6911fff6f17cf89d540d39585f1cea42d
-  implementation_commit: pending-local-implementation-commit
+  implementation_commit: 45ce31135fd326b00d4aaa3ce064a5d47131446b
+  implementation_committed_at: 2026-08-30T04:20:22Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-264
   current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
@@ -150,7 +151,7 @@ research_shared_decision_context_2026_08_30:
     marketing drafts, routes, rendered UI, Docker Compose, dependencies,
     migrations, billing, signals, allocations, broadcast, broker, and execution
     code are byte-unchanged.
-  next_action: Commit this verified receipt-neutral implementation locally, record the implementation hash in STATE, create a state-only closure commit, and save MemoryCore.
+  next_action: Preserve the verified 03:00Z receipt and wait for the exact 2026-08-30T06:00:00.000Z rollover before opening any new candidate, receipt, preregistration, artifact, or marketing draft.
   safety: No candidate, receipt, return, preregistration, result artifact, marketing draft, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_evidence_decision_summaries_2026_08_30:
