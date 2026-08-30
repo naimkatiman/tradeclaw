@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T18:01:37+08:00
+updated: 2026-08-30T18:02:47+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,7 +10,7 @@ description: >
 research_admin_completed_handoff_validator_2026_08_30:
   at: 2026-08-30T17:41:37+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_commit_pending
+  status: done_verified_implementation_committed_local
   scope: Give admins one deterministic fail-closed command to validate a completed manual-review handoff against its exact observation-bound template and current repository evidence
   base_commit: de6962091a16131533d4f063f2aca79942a06907
   branch: agent/research-intake-desk-20260829
@@ -130,19 +130,20 @@ research_admin_completed_handoff_validator_2026_08_30:
     focused_test:
       bytes: 14526
       sha256: da08b0047582a8a5e516dfec55fa3bd56b3e4d3acb51c8cf19dc758a262fe802
-  final_gate_observed_at: 2026-08-30T09:58:46.393Z
+  final_gate_observed_at: 2026-08-30T10:02:48.346Z
   final_gate_snapshot: >-
     Complete with TC-266 still the sole current-window and latest receipt, 11
     total receipts across 10 windows, only the expected 06:00Z legacy duplicate,
     no additional duplicate, four unchanged marketing handoffs, no TC-266
     handoff, and automatic candidate selection, publication, and trading false.
-  implementation_commit: pending_local_commit
+  implementation_commit: 46a047b577ed0e5ea343df0b8fcb262cc828d942
+  implementation_committed_at: 2026-08-30T10:02:47.266Z
   safety: >-
     Validation is local and read-only. It must not write review state, approve an
     outcome, publish or post a draft, alter the sole TC-266 receipt, expose the
     protected workflow publicly, or authorize signals, brokers, execution, or
     trading.
-  next_action: Create the local implementation commit, record its exact hash in STATE.yaml, then commit the state closure and save shared MemoryCore; do not push, deploy, publish, post, or trade.
+  next_action: Commit this exact state closure, save both local commit hashes to shared MemoryCore, and keep the recurring goal active behind the exact 2026-08-30T12:00:00.000Z intake gate; do not push, deploy, publish, post, or trade.
 
 research_risk_factor_parity_source_audit_2026_08_30:
   at: 2026-08-30T17:09:08+08:00
