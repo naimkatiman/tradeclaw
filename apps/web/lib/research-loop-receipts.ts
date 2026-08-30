@@ -12,7 +12,8 @@ export type ResearchLoopReceiptTaskId =
   | 'TC-259'
   | 'TC-260'
   | 'TC-261'
-  | 'TC-262';
+  | 'TC-262'
+  | 'TC-263';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -218,6 +219,26 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns',
+  },
+  {
+    cycleId: '2026-08-30T00:00:00.000Z/PT3H',
+    recordedAt: '2026-08-30T00:09:58.762Z',
+    taskId: 'TC-263',
+    candidateId: 'cryptocurrency-as-money-a-trading-strategy-solution',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-30-cryptocurrency-as-money-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-source no-go; any venue-specific cryptocurrency grid study must begin as a separately hashed hypothesis in a later UTC window before returns',
   },
 ] as const;
 

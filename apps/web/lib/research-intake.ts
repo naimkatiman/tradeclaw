@@ -503,6 +503,66 @@ export interface TradeClawMostDiversifiedPortfolioSourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawCryptocurrencyAsMoneySourceAuditEvidence {
+  taskId: 'TC-263';
+  auditDate: '2026-08-30';
+  researchPath: 'docs/research/2026-08-30-cryptocurrency-as-money-source-audit.md';
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  primarySource: {
+    title: 'Cryptocurrency As Money: A Trading Strategy Solution';
+    authors: readonly ['Marko Ogorevc'];
+    discoveryUrl: 'https://paperswithbacktest.com/strategies/cryptocurrency-as-money-a-trading-strategy-solution';
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3436041';
+    doi: 'https://doi.org/10.2139/ssrn.3436041';
+    documentUrl: 'https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID3436041_code3654339.pdf?abstractid=3436041';
+    documentSha256: string;
+    documentBytes: 453903;
+    documentPages: 9;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    structure: 'long-only-two-cryptocurrency-grid';
+    defaultTradingRangePct: 30;
+    defaultSteps: 7;
+    equalInitialCashValueWeights: true;
+    orderSizing: 'linearly-increasing-both-sides-unspecified-formula';
+    cycleReset: 'equal-split-with-profit-unspecified-trigger';
+    userAdjustable: true;
+    paperIllustration: 'LTCBTC-2018-07-31/2019-07-31';
+  };
+  sourceCloneMismatch: {
+    primaryCadence: 'event-driven-standing-limit-orders';
+    cloneCadence: 'weekly';
+    primarySample: '2018-07-31/2019-07-31-illustration';
+    cloneSample: '1992-2026';
+  };
+  publishedCostTreatment: {
+    deterministicTradeLedgerSupplied: false;
+    completeFrictionModelSupplied: false;
+    breakEvenCostSupplied: false;
+    makerTakerFeesSupplied: false;
+  };
+  inputProvenance: {
+    exactSourceBytesSupplied: false;
+    venueIdentified: false;
+    eventLevelDataSupplied: false;
+    executableGridFormulaSupplied: false;
+    executableFillRulesSupplied: false;
+    applicationCodeSupplied: false;
+  };
+  userExperiment: {
+    accounts: 191;
+    activePairs: 235;
+    averageActiveDays: 142.5;
+    stillActivePct: 41;
+    fixedProtocol: false;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -624,6 +684,7 @@ export type TradeClawResearchSourceAuditEvidence =
   | TradeClawRiskBasedAllocationSourceAuditEvidence
   | TradeClawCryptoFactorSourceAuditEvidence
   | TradeClawMostDiversifiedPortfolioSourceAuditEvidence
+  | TradeClawCryptocurrencyAsMoneySourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -706,6 +767,7 @@ const RISK_BASED_TACTICAL_ALLOCATION_ID =
 const CRYPTO_FACTOR_INVESTING_ID =
   'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space';
 const MOST_DIVERSIFIED_PORTFOLIO_ID = 'properties-of-the-most-diversified-portfolio';
+const CRYPTOCURRENCY_AS_MONEY_ID = 'cryptocurrency-as-money-a-trading-strategy-solution';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -968,6 +1030,79 @@ const TC262_MOST_DIVERSIFIED_PORTFOLIO_SOURCE_AUDIT: TradeClawMostDiversifiedPor
   ],
   reason:
     'The mathematical MDP objective is clear, but exact empirical replay would require proprietary point-in-time inputs plus invented estimator, penalty, fill, and friction choices; a public-universe implementation would be a materially new hypothesis.',
+};
+
+const TC263_CRYPTOCURRENCY_AS_MONEY_SOURCE_AUDIT: TradeClawCryptocurrencyAsMoneySourceAuditEvidence = {
+  taskId: 'TC-263',
+  auditDate: '2026-08-30',
+  researchPath: 'docs/research/2026-08-30-cryptocurrency-as-money-source-audit.md',
+  researchSha256: 'aa5ce752d428b12823b5f0a5f5b062179953cf8570a818cb0754bbe2e2fff9cd',
+  disposition: 'no-go',
+  tradeClawBacktestRun: false,
+  primarySource: {
+    title: 'Cryptocurrency As Money: A Trading Strategy Solution',
+    authors: ['Marko Ogorevc'],
+    discoveryUrl:
+      'https://paperswithbacktest.com/strategies/cryptocurrency-as-money-a-trading-strategy-solution',
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3436041',
+    doi: 'https://doi.org/10.2139/ssrn.3436041',
+    documentUrl:
+      'https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID3436041_code3654339.pdf?abstractid=3436041',
+    documentSha256: '0b3c8344b8f28ccd17ac3902eb4532d7dd0d179e2a64859533a9239432e743c0',
+    documentBytes: 453903,
+    documentPages: 9,
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    structure: 'long-only-two-cryptocurrency-grid',
+    defaultTradingRangePct: 30,
+    defaultSteps: 7,
+    equalInitialCashValueWeights: true,
+    orderSizing: 'linearly-increasing-both-sides-unspecified-formula',
+    cycleReset: 'equal-split-with-profit-unspecified-trigger',
+    userAdjustable: true,
+    paperIllustration: 'LTCBTC-2018-07-31/2019-07-31',
+  },
+  sourceCloneMismatch: {
+    primaryCadence: 'event-driven-standing-limit-orders',
+    cloneCadence: 'weekly',
+    primarySample: '2018-07-31/2019-07-31-illustration',
+    cloneSample: '1992-2026',
+  },
+  publishedCostTreatment: {
+    deterministicTradeLedgerSupplied: false,
+    completeFrictionModelSupplied: false,
+    breakEvenCostSupplied: false,
+    makerTakerFeesSupplied: false,
+  },
+  inputProvenance: {
+    exactSourceBytesSupplied: false,
+    venueIdentified: false,
+    eventLevelDataSupplied: false,
+    executableGridFormulaSupplied: false,
+    executableFillRulesSupplied: false,
+    applicationCodeSupplied: false,
+  },
+  userExperiment: {
+    accounts: 191,
+    activePairs: 235,
+    averageActiveDays: 142.5,
+    stillActivePct: 41,
+    fixedProtocol: false,
+  },
+  blockers: [
+    'The seven grid levels are not defined by an exact price-spacing formula.',
+    'Linearly increasing order quantity has no intercept, slope, normalization, rounding, or balance-reservation rule.',
+    'The cycle reset has no exact trigger, valuation price, timestamp, or tie-breaking convention.',
+    'Initial split fills, reference price, order sequence, cancellations, replacements, partial fills, and gap behavior are unspecified.',
+    'The exchange, pair identifiers, event timestamps, source bytes, application version, and raw order or fill ledger are absent.',
+    'Fees, rebates, spread, slippage, queue priority, market impact, minimums, latency, and outages are not frozen.',
+    'User-selected settings and pairs make the reported account averages an observational mixture rather than one fixed strategy.',
+    'The one-year illustration supplies no chronological folds, untouched holdout, identically costed benchmark, or external venue or pair falsification.',
+    'The dynamic discovery clone contradicts the primary cadence and sample while its implementation is hidden.',
+  ],
+  reason:
+    'The source communicates a useful grid concept but omits the executable formulas, venue and immutable event data, causal limit-order fills, complete costs, and fixed evaluation protocol needed for exact independent replay; a venue-specific implementation would be a materially new hypothesis.',
 };
 
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
@@ -1544,7 +1679,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
                   ? TC261_CRYPTO_FACTOR_SOURCE_AUDIT
                   : candidate.id === MOST_DIVERSIFIED_PORTFOLIO_ID
                     ? TC262_MOST_DIVERSIFIED_PORTFOLIO_SOURCE_AUDIT
-                    : null;
+                    : candidate.id === CRYPTOCURRENCY_AS_MONEY_ID
+                      ? TC263_CRYPTOCURRENCY_AS_MONEY_SOURCE_AUDIT
+                      : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {
@@ -1588,9 +1725,11 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         stage: 'source-audited' as const,
         verdict: 'not-tested' as const,
         costStatus: 'unassessed' as const,
-        nextAction: tradeClawSourceAudit.taskId === 'TC-262'
-          ? 'Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns.'
-          : 'Archive the published specification as a source-audited no-go; preregister only a materially new hypothesis with explicit rules, data, costs, and holdout.',
+        nextAction: tradeClawSourceAudit.taskId === 'TC-263'
+          ? 'Archive the exact-source no-go; any new venue-specific cryptocurrency grid hypothesis must freeze rules, event data, costs, controls, and holdout in a later UTC window before returns.'
+          : tradeClawSourceAudit.taskId === 'TC-262'
+            ? 'Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns.'
+            : 'Archive the published specification as a source-audited no-go; preregister only a materially new hypothesis with explicit rules, data, costs, and holdout.',
         marketingDisposition: 'none' as const,
         tradeClawSourceAudit,
         tradeClawEvidence: null,

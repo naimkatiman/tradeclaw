@@ -97,7 +97,8 @@ function buildResearchLoopMarketingHandoffs(): readonly ResearchLoopMarketingHan
       receipt.taskId === 'TC-256' ||
       receipt.taskId === 'TC-260' ||
       receipt.taskId === 'TC-261' ||
-      receipt.taskId === 'TC-262'
+      receipt.taskId === 'TC-262' ||
+      receipt.taskId === 'TC-263'
     ) {
       throw new Error(`${receipt.taskId} no-draft receipt acquired a marketing handoff`);
     }

@@ -82,7 +82,7 @@ describe('public research intake candidate projection', () => {
       grantsTradingAuthority: false,
     });
     expect(payload.catalogEvidenceStateSummary.plainLanguageSummary).toBe(
-      '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+      '61 candidates: 52 not tested by TradeClaw, 5 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
 
     const serialized = JSON.stringify(payload);
@@ -167,7 +167,7 @@ describe('public research intake candidate projection', () => {
       },
       lastPayload: {
         bytes: 8_952,
-        sha256: 'ee3554123ea0f3beba4f6aad21c275657c9f43f3cae8b3fd793bff01f8256696',
+        sha256: '206f8577ecf6a372113251d92aa4b7056214f4fcee47fecd6577e52e7ae69ec3',
       },
     });
   });

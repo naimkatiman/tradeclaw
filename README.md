@@ -90,7 +90,7 @@ That finding on the live homepage — one dot per OHLCV-resolved sized signal, a
 
 The [research page](https://tradeclaw.win/research) is the verdict board. TradeClaw also publishes a pinned 61-candidate intake from [paperswithbacktest/awesome-systematic-trading](https://github.com/paperswithbacktest/awesome-systematic-trading) in original source order. It is a discovery queue, not a leaderboard: upstream figures are gross discovery metadata, not TradeClaw performance.
 
-The catalog currently separates 53 untouched discoveries, 4 source-audit no-go records (not local performance failures), 1 QA-only INCONCLUSIVE replication, and 3 cost- or stability-failed replications. This catalog grants neither publication nor trading authority.
+The catalog currently separates 52 untouched discoveries, 5 source-audit no-go records (not local performance failures), 1 QA-only INCONCLUSIVE replication, and 3 cost- or stability-failed replications. This catalog grants neither publication nor trading authority.
 
 Separately, the retained TradeClaw study ledger records headline tests of single-asset hourly timing, HMM regime routing, daily momentum, funding carry, and cross-sectional momentum that failed their registered gates or were too thin to deploy.
 
@@ -210,11 +210,11 @@ Research JSON is self-describing: use `resources` for sibling endpoints and each
 # All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
 curl https://tradeclaw.win/api/research/intake
 
-# All eight examined candidates, including failures, no-go audits, and the inconclusive run
+# All nine examined candidates, including failures, no-go audits, and the inconclusive run
 curl https://tradeclaw.win/api/research/intake/evidence
 
-# Eight-row evidence spreadsheet: failures, no-go audits, and the inconclusive run
-curl https://tradeclaw.win/api/research/intake/evidence.csv -o tradeclaw-systematic-research-evidence-2026-08-29.csv
+# Nine-row evidence spreadsheet: failures, no-go audits, and the inconclusive run
+curl https://tradeclaw.win/api/research/intake/evidence.csv -o tradeclaw-systematic-research-evidence-2026-08-30.csv
 
 # One canonical candidate, with its complete safe evidence overlay
 curl https://tradeclaw.win/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation

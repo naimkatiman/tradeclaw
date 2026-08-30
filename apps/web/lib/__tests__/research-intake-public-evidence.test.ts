@@ -32,12 +32,12 @@ describe('public research evidence index', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 53,
-        sourceAudited: 4,
+        discovered: 52,
+        sourceAudited: 5,
         replicated: 4,
         failed: 3,
         inconclusive: 1,
-        sourceNoGo: 4,
+        sourceNoGo: 5,
       },
       evidenceIndex: {
         selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
@@ -46,17 +46,17 @@ describe('public research evidence index', () => {
         includesEveryAvailableOverlay: true,
       },
       evidenceSummary: {
-        total: 8,
+        total: 9,
         discovered: 0,
-        sourceAudited: 4,
+        sourceAudited: 5,
         preregistered: 0,
         replicated: 4,
         prospective: 0,
         passed: 0,
         failed: 3,
         inconclusive: 1,
-        untested: 4,
-        sourceNoGo: 4,
+        untested: 5,
+        sourceNoGo: 5,
       },
     });
     expect(payload.workflow).toHaveLength(5);
@@ -70,12 +70,13 @@ describe('public research evidence index', () => {
       'TC-261',
       'TC-258',
       'TC-256',
+      'TC-263',
       'TC-260',
     ]);
     expect(payload.records.map((record) => record.sourcePosition)).toEqual(
       [...payload.records].map((record) => record.sourcePosition).sort((left, right) => left - right),
     );
-    expect(new Set(payload.records.map((record) => record.id))).toHaveProperty('size', 8);
+    expect(new Set(payload.records.map((record) => record.id))).toHaveProperty('size', 9);
     expect(payload.records.every((record) => record.evidenceBasis !== 'upstream-gross-discovery-only'))
       .toBe(true);
     expect(buildResearchIntakePublicEvidencePayload()).toEqual(payload);
@@ -111,7 +112,7 @@ describe('public research evidence index', () => {
       },
     });
 
-    for (const id of ['TC-256', 'TC-260', 'TC-261', 'TC-262']) {
+    for (const id of ['TC-256', 'TC-260', 'TC-261', 'TC-262', 'TC-263']) {
       expect(byTask.get(id)).toMatchObject({
         stage: 'source-audited',
         verdict: 'not-tested',

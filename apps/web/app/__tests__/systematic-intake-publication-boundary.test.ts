@@ -175,13 +175,13 @@ describe('systematic research intake public boundary', () => {
     expect(evidenceOperation).toBeDefined();
     expect(evidenceOperation?.security).toEqual([]);
     expect(evidenceOperation?.description).toMatch(
-      /all eight.*source-audit or replication.*source order.*failures.*no-go.*inconclusive/i,
+      /all nine.*source-audit or replication.*source order.*failures.*no-go.*inconclusive/i,
     );
     expect(evidenceOperation?.responses).toHaveProperty('200');
     expect(evidenceCsvOperation).toBeDefined();
     expect(evidenceCsvOperation?.security).toEqual([]);
     expect(evidenceCsvOperation?.description).toMatch(
-      /all eight.*25-column.*source order.*failures.*no-go.*inconclusive.*no API key/i,
+      /all nine.*25-column.*source order.*failures.*no-go.*inconclusive.*no API key/i,
     );
     expect(evidenceCsvOperation?.responses).toHaveProperty('200');
     expect(candidateOperation).toBeDefined();

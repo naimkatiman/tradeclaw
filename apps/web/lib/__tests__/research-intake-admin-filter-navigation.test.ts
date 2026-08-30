@@ -74,7 +74,7 @@ describe('protected research catalog filter navigation', () => {
     const navigation = readFilterNavigation(payload);
 
     expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
-      '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+      '61 candidates: 52 not tested by TradeClaw, 5 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
 
     expect(navigation).toEqual({

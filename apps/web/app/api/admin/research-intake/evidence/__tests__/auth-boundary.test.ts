@@ -57,6 +57,7 @@ describe('GET /api/admin/research-intake/evidence real admin-cookie boundary', (
       'TC-261',
       'TC-258',
       'TC-256',
+      'TC-263',
       'TC-260',
     ]);
     expect(body.researchLoop).toMatchObject({

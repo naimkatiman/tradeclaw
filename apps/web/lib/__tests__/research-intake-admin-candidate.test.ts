@@ -56,18 +56,18 @@ describe('protected research intake candidate projection', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 53,
-        sourceAudited: 4,
+        discovered: 52,
+        sourceAudited: 5,
         replicated: 4,
-        sourceNoGo: 4,
+        sourceNoGo: 5,
       },
       catalogEvidenceStateSummary: {
         totalCandidates: 61,
-        withTradeClawRecord: 8,
+        withTradeClawRecord: 9,
         performanceGatesEvaluated: 3,
         performanceGatesNotEvaluated: 58,
         plainLanguageSummary:
-          '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+          '61 candidates: 52 not tested by TradeClaw, 5 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
         grantsPublicationAuthority: false,
         grantsTradingAuthority: false,
       },
@@ -403,7 +403,7 @@ describe('protected research intake candidate projection', () => {
       },
       lastPayload: {
         bytes: 12_427,
-        sha256: '2be5d9b62d0b256dfd305fd9c1fdfe4662190d31440d7b70b231d3d9adaa3b4b',
+        sha256: 'ee09ae3f5acaa00eac57aa4d69ffd5d94a9fb8d902c4aea7ca72cc87886eca83',
       },
     });
   });

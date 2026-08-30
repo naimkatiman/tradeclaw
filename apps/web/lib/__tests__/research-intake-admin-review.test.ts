@@ -30,11 +30,11 @@ describe('protected research marketing-review JSON projection', () => {
       },
       catalogEvidenceStateSummary: {
         totalCandidates: 61,
-        withTradeClawRecord: 8,
+        withTradeClawRecord: 9,
         performanceGatesEvaluated: 3,
         performanceGatesNotEvaluated: 58,
         plainLanguageSummary:
-          '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+          '61 candidates: 52 not tested by TradeClaw, 5 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
       },
       queue: {
         status: 'review-ready',

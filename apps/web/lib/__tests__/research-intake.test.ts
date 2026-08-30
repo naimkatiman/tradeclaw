@@ -372,7 +372,7 @@ describe('systematic research intake', () => {
     const sourceAudited = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => record.tradeClawSourceAudit,
     );
-    expect(sourceAudited).toHaveLength(7);
+    expect(sourceAudited).toHaveLength(8);
     const noGo = sourceAudited.find(
       (record) => record.id === 'price-overreactions-in-the-cryptocurrency-market',
     );
@@ -393,7 +393,7 @@ describe('systematic research intake', () => {
     const untouched = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => !record.tradeClawEvidence && !record.tradeClawSourceAudit,
     );
-    expect(untouched).toHaveLength(53);
+    expect(untouched).toHaveLength(52);
     expect(untouched.every((record) => record.stage === 'discovered')).toBe(true);
     expect(untouched.every((record) => record.verdict === 'not-tested')).toBe(true);
     expect(untouched.every((record) => record.costStatus === 'unassessed')).toBe(true);
@@ -941,8 +941,8 @@ describe('systematic research intake', () => {
   it('summarizes and filters by next-action evidence state rather than upstream return', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 53,
-      sourceAudited: 4,
+      discovered: 52,
+      sourceAudited: 5,
       preregistered: 0,
       replicated: 4,
       prospective: 0,
@@ -950,7 +950,7 @@ describe('systematic research intake', () => {
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 4,
+      sourceNoGo: 5,
     });
     expect(
       filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
@@ -987,6 +987,7 @@ describe('systematic research intake', () => {
       'properties-of-the-most-diversified-portfolio',
       'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
       'price-overreactions-in-the-cryptocurrency-market',
+      'cryptocurrency-as-money-a-trading-strategy-solution',
       'a-risk-based-approach-to-tactical-asset-allocation',
     ]);
   });

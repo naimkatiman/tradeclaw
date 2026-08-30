@@ -1,11 +1,169 @@
 project: tradeclaw
-updated: 2026-08-30T07:51:11+08:00
+updated: 2026-08-30T08:35:13+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_source_intake_cycle_2026_08_30_0000:
+  at: 2026-08-30T08:35:13+08:00
+  agent: TradeClaw PM agent
+  status: source_audit_no_go_receipt_verified_build_green_exact_manifest_frozen_local_commit_pending
+  scope: Reconcile the new UTC window and screen at most one untouched awesome-systematic-trading candidate under the frozen cost-first source gate before any return or marketing work
+  base_commit: 7423991056a1897c2b6ce7b84fab396b6a1fb570
+  branch: agent/research-intake-desk-20260829
+  task_id: TC-263
+  cycle_id: 2026-08-30T00:00:00.000Z/PT3H
+  starts_at: 2026-08-30T00:00:00.000Z
+  ends_at: 2026-08-30T03:00:00.000Z
+  gate_observed_at: 2026-08-30T00:00:11.347Z
+  previous_cycle_receipt: TC-262
+  previous_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
+  current_window_status_before: awaiting-receipt
+  selection_observed_at: 2026-08-30T00:01:39.7537419Z
+  candidate_id: cryptocurrency-as-money-a-trading-strategy-solution
+  candidate_title: 'Cryptocurrency as money: A trading strategy solution'
+  one_based_catalog_position: 39
+  stage_before: discovered
+  stage_after: source-audited
+  candidate_frozen: true
+  recorded_at: 2026-08-30T00:09:58.762Z
+  receipt_created: true
+  return_calculated: false
+  preregistration_created: false
+  marketing_draft: none
+  library_search: No reusable research-intake, source-audit, preregistration, candidate-screen, cost-screen, or receipt-ledger pattern exists in shared MemoryCore; reuse the repository's verified three-hour loop and prior source-audit contracts
+  selection_policy:
+    - Never use upstream Sharpe, t-statistic, full-period return, volatility, years, current positions, or catalog position as a selection score
+    - Require an accessible primary source and a rule that can be stated without paid clone pseudo-code or hidden vendor implementation
+    - Require legally accessible append-stable or immutable point-in-time inputs that can be independently hashed before returns
+    - Prefer fewer-than-daily transitions with published gross headroom materially above a complete frozen friction model
+    - Require chronological folds, a genuinely untouched holdout where possible, and an identically timed and costed benchmark plus external falsification
+    - Keep implementation bounded enough for deterministic replay, focused and adjacent tests, typecheck, lint, and the required production build
+  screened_shortlist:
+    - cryptocurrency-as-money-a-trading-strategy-solution
+    - risk-parity-portfolios-with-risk-factors
+    - are-bond-returns-predictable-with-real-time-macro-data
+  selection_reason: >-
+    The selected candidate has an accessible nine-page primary SSRN paper, a
+    bounded long-only cryptocurrency/liquidity concept, plausible public venue
+    price inputs, and a long post-2019 falsification window. The risk-factor
+    parity alternative depends on heterogeneous factor, hedge-fund, and economic
+    inputs, while the real-time bond alternative requires sixty vintage macro
+    series plus Fama-Bliss bond returns. This is a source-feasibility selection,
+    not a judgment based on upstream performance, catalog rank, or a TradeClaw
+    return.
+  preliminary_primary_source:
+    ssrn_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3436041
+    document_url: https://papers.ssrn.com/sol3/Delivery.cfm/SSRN_ID3436041_code3654339.pdf?abstractid=3436041
+    authors: [Marko Ogorevc]
+    pages_reported: 9
+    license: all-rights-reserved-no-reuse-without-permission
+    document_bytes: 453903
+    document_sha256: 0b3c8344b8f28ccd17ac3902eb4532d7dd0d179e2a64859533a9239432e743c0
+    discovery_html_bytes: 200335
+    discovery_html_sha256: bd3e9da782e1a20789184874bd0f4ffb5f0776d96f7f5df06eb662d81d502bb2
+  preliminary_findings:
+    - The paper describes equal-value holdings of two competing cryptocurrencies, standing limit orders on both sides of a selected range, linearly increasing order sizes, and a profitable equal-split cycle reset
+    - Its defaults are a 30 percent range and seven steps, but no executable grid, sizing, reset, accounting, order, or fill formula is supplied
+    - The illustrated LTC/BTC default run spans 2018-07-31 through 2019-07-31; the discovery clone instead labels the idea weekly and reports a 1992-2026 daily-price backtest
+    - The exchange, pair mapping, source bytes, event timestamps, application code, configuration history, and order or fill ledger are absent
+    - Fees, rebates, spread, slippage, queue priority, partial fills, minimums, latency, market impact, and outages are not frozen for the illustration or user-account statistics
+    - The reported 191 accounts and 235 active pairs used user-adjustable settings, so their descriptive averages do not identify one fixed controlled strategy
+    - No TradeClaw return, source substitution, preregistration, result artifact, or marketing draft was created
+  source_audit:
+    disposition: no-go
+    research_path: docs/research/2026-08-30-cryptocurrency-as-money-source-audit.md
+    research_bytes: 9872
+    research_sha256: aa5ce752d428b12823b5f0a5f5b062179953cf8570a818cb0754bbe2e2fff9cd
+    primary_pdf_bytes: 453903
+    primary_pdf_pages: 9
+    primary_pdf_sha256: 0b3c8344b8f28ccd17ac3902eb4532d7dd0d179e2a64859533a9239432e743c0
+    discovery_html_bytes: 200335
+    discovery_html_sha256: bd3e9da782e1a20789184874bd0f4ffb5f0776d96f7f5df06eb662d81d502bb2
+    return_calculated: false
+    proxy_substitution_made: false
+    reason: The source communicates a useful grid concept but omits the executable formulas, venue and immutable event data, causal limit-order fills, complete costs, and fixed evaluation protocol needed for exact independent replay; the discovery clone also contradicts its cadence and sample
+  source_gate:
+    rule_clarity: fail
+    data_provenance_and_rights: fail
+    turnover: fail-unbounded-standing-grid
+    cost_evidence: fail
+    chronological_falsification: new-hypothesis-only
+    bounded_implementation: fail
+    preregistration_permitted: false
+    exact_replication_permitted: false
+  red_verification: >-
+    PASS - the dedicated TC-263 contract ran three tests and all three failed
+    one-to-one for the absent typed source-audit overlay, single catalog stage and
+    count transition, and sole 00:00Z receipt. The invariant verdict-based
+    untested count remained 57, and no unrelated failure was observed.
+  core_green_verification: >-
+    PASS - seven focused and adjacent suites ran 39 assertions. The typed audit,
+    catalog transition, sole 00:00Z receipt, observation-time visibility, README,
+    public evidence, no-draft marketing boundary, and false publication and
+    trading authority all passed.
+  widened_contract_red_verification: >-
+    EXPECTED RED - 292 runnable matched suites produced 267 passing suites and
+    25 failing suites; 2,106 tests passed and 50 failed. Every failure is a
+    deterministic prior-eight-record expectation: old 53/4/8 counts, evidence
+    source order, exact public or protected JSON and CSV bytes/hashes, or OpenAPI
+    wording. Research, receipt, authority, timing, and unrelated repository
+    behavior stayed green.
+  widened_contract_green_verification: >-
+    PASS - all 292 runnable suites and 2,156 runnable tests pass; the inherited
+    3 suites and 26 tests remain skipped and the single snapshot passes. This
+    includes the ninth-row public and protected JSON/CSV desk, exact candidate
+    navigation, five-record no-go filtering, OpenAPI and README discoverability,
+    sole TC-263 receipt timing, no-draft marketing boundary, and all false
+    publication and trading authority. Jest needed the repository's known
+    `--forceExit` handling after the green result.
+  static_verification: >-
+    PASS - the source verifier reconstructs all 61 candidates from pinned commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a;
+    the signals prerequisite and full web TypeScript graph compile; repository
+    lint reports zero errors and the same 21 inherited warnings.
+  prebuild_integrity: >-
+    PASS - STATE.yaml parses, `git diff --check` is clean apart from Windows
+    line-ending notices, and docker-compose.yml has no diff. The working tree
+    contains only TC-263 source-audit, receipt, public/protected read-model,
+    documentation, and deterministic contract changes.
+  build_verification: >-
+    PASS - `npm run build` compiles signals, trading-agents, and the Next.js
+    production application and generates all 329 of 329 static pages. The two
+    inherited Turbopack NFT-trace notices, middleware deprecation, url.parse
+    deprecations, and edge-runtime static-generation notice remain non-fatal.
+  temporary_source_copies: >-
+    Removed the exact verified 12-file audit directory
+    C:/Users/User/AppData/Local/Temp/tradeclaw-tc263-20260830T000139Z after
+    extracting hashes and visually checking all nine pages. Test-Path now
+    returns false; the repository contains no vendored primary paper, discovery
+    HTML, extraction, or rendered page.
+  changed_path_manifest:
+    count: 41
+    sorted_lf_path_sha256: 12b8c8d7ad60ab08fcfd1ba1090008fd77d99a87d1ae7eaa26492154102b8e0d
+    state_paths: 1
+    implementation_and_docs_paths: 7
+    deterministic_test_paths: 33
+    rendered_ui_paths: 0
+    docker_or_dependency_paths: 0
+    database_or_migration_paths: 0
+    signal_allocation_broadcast_broker_execution_paths: 0
+    unexpected_paths: 0
+  precommit_closure_verification: >-
+    PASS - 3 suites / 10 tests rechecked the canonical TC-263 audit hash and
+    no-go semantics, sole receipt timing and uniqueness, and the final README
+    nine-row copy-paste filename dated 2026-08-30. STATE.yaml parses and
+    `git diff --check` remains clean apart from line-ending notices.
+  current_step: Create the local-only implementation commit, record its hash in cycle_8 and STATE, save shared MemoryCore, and commit the closure
+  next_action: Record the implementation commit in cycle_8 and STATE, commit the closure locally, then verify clean status, branch/head, receipt uniqueness, next 03:00Z gate, and no external action
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: No source substitution, return, preregistration, result artifact, marketing draft, rendered UI, publication, posting, signal, allocation, broadcast, broker or execution action, billing change, push, merge, or deployment is authorized; TC-263 is a source-audit no-go, not a performance FAIL
 
 research_admin_discovery_context_parity_2026_08_30:
   at: 2026-08-30T07:51:11+08:00
@@ -4520,6 +4678,33 @@ research_intake_desk_2026_08_29:
     trading_approved: false
     external_actions: none
     next_action: Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns
+  cycle_8:
+    id: 2026-08-30T00:00:00.000Z/PT3H
+    recorded_at: 2026-08-30T00:09:58.762Z
+    task_id: TC-263
+    implementation_commit: pending-local
+    started_at: 2026-08-30T00:00:00.000Z
+    ends_at: 2026-08-30T03:00:00.000Z
+    candidate_id: cryptocurrency-as-money-a-trading-strategy-solution
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    source_audit_sha256: aa5ce752d428b12823b5f0a5f5b062179953cf8570a818cb0754bbe2e2fff9cd
+    source_pdf_sha256: 0b3c8344b8f28ccd17ac3902eb4532d7dd0d179e2a64859533a9239432e743c0
+    evidence_paths:
+      - docs/research/2026-08-30-cryptocurrency-as-money-source-audit.md
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    next_action: Archive the exact-source no-go; any venue-specific cryptocurrency grid study must begin as a separately hashed hypothesis in a later UTC window before returns
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00

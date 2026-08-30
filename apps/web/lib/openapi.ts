@@ -545,7 +545,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
         ResearchIntakeEvidenceResponse: {
           type: "object",
           description:
-            "Public, deterministic index of all eight candidates with a TradeClaw source-audit or replication overlay. Records remain in pinned source order and include failures, no-go audits, and the inconclusive run.",
+            "Public, deterministic index of all nine candidates with a TradeClaw source-audit or replication overlay. Records remain in pinned source order and include failures, no-go audits, and the inconclusive run.",
           required: [
             "schemaVersion",
             "access",
@@ -799,7 +799,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "getResearchIntakeEvidence",
           summary: "Inspect every examined systematic-research candidate",
           description:
-            "Returns all eight candidates with a TradeClaw source-audit or replication overlay in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
+            "Returns all nine candidates with a TradeClaw source-audit or replication overlay in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
             "The complete set is filter-free and never performance-ranked. No API key is required, and the response grants no publication, strategy-selection, broadcast, or trading authority.",
           security: [],
           responses: {
@@ -820,7 +820,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "downloadResearchIntakeEvidenceCsv",
           summary: "Download every examined research candidate as CSV",
           description:
-            "Returns all eight examined candidates as a claim-safe 25-column spreadsheet in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
+            "Returns all nine examined candidates as a claim-safe 25-column spreadsheet in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
             "No API key is required. Every row repeats the pinned source receipt and false publication/trading authority; the canonical evidence JSON retains complete nested research records.",
           security: [],
           responses: {

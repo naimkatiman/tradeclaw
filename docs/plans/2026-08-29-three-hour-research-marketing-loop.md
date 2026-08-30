@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Task: TC-256 through TC-262
+Task: TC-256 through TC-263
 
 Status: active operating contract; local-only until separately authorized
 
@@ -74,7 +74,7 @@ filters and pagination. It lists every server-authored draft whose evidence was
 available at the observation instant, plus the latest handoff and any handoff in
 the current UTC window. Each entry says whether it came from a cycle receipt or
 the explicit pre-loop TC-255 closure; TC-255 keeps a null cycle ID, so the API
-does not invent historical receipt coverage. TC-256, TC-260, TC-261, and TC-262 remain absent
+does not invent historical receipt coverage. TC-256, TC-260, TC-261, TC-262, and TC-263 remain absent
 because their source-audit no-go receipts deliberately produced no drafts. Summary counts separate
 pre-loop and receipt-backed evidence and keep publication-approved drafts at
 zero. `review-ready` means only that factual copy exists for a human to inspect;
@@ -259,15 +259,23 @@ and an undisclosed turnover penalty. The clone also says quarterly over
 draft. Its receipt is
 `docs/research/2026-08-30-most-diversified-portfolio-source-audit.md`.
 
-At or after the exact `2026-08-30T00:00:00.000Z` boundary, the next catalog
-cycle may freeze at most one new receipt. Prefer a rule with fewer than daily position
-transitions, an immutable or append-stable source subset, a primary rule that
-does not require vendor code, and published gross headroom materially above the
-full frozen friction model. A positive full-history curve is not a selection
-advantage after TC-258 or TC-259; chronological fold stability and an untouched
-same-window benchmark are mandatory screens. No candidate is selected, no
-marketing copy is drafted, and no external action is authorized before that
-boundary.
+TC-263 selected the paper's long-only two-cryptocurrency grid because its small
+universe, accessible primary source, and long post-2019 window appeared more
+bounded than the remaining real-time macro and factor-allocation finalists. The
+full source audit found no executable grid-level, sizing, reset, accounting, or
+limit-order fill formulas; no named venue, immutable event data, application
+code, order ledger, or complete friction model; and user-adjustable settings in
+the reported account observations. The discovery clone also says weekly over
+`1992-2026`, while the paper describes standing limit orders and illustrates only
+LTC/BTC over `2018-2019`. Exact replay therefore stopped before preregistration
+or returns. TC-263 remains `not-tested`, with no result artifact or marketing
+draft. Its receipt is
+`docs/research/2026-08-30-cryptocurrency-as-money-source-audit.md`.
+
+Do not open another catalog receipt before the exact
+`2026-08-30T03:00:00.000Z` boundary. The TC-263 no-go does not authorize a proxy
+grid backtest, marketing claim, publication, signal, allocation, broadcast,
+broker action, or execution change.
 
 ## Marketing handoff
 
