@@ -251,6 +251,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "Canonical sibling resources for the public systematic-research intake. Every path is read-only and requires no API key.",
           required: [
             "overview",
+            "evidenceBrief",
             "catalog",
             "catalogCsv",
             "evidenceIndex",
@@ -259,6 +260,10 @@ export function buildOpenApiSpec(): OpenApiSpec {
           ],
           properties: {
             overview: { type: "string", const: "/api/research/intake/overview" },
+            evidenceBrief: {
+              type: "string",
+              const: "/api/research/intake/brief.md",
+            },
             catalog: { type: "string", const: "/api/research/intake" },
             catalogCsv: { type: "string", const: "/api/research/intake.csv" },
             evidenceIndex: {
@@ -1162,6 +1167,31 @@ export function buildOpenApiSpec(): OpenApiSpec {
     // Most endpoints are public. Security is applied explicitly only on the
     // ones that require a key, so no top-level `security` array here.
     paths: {
+      "/api/research/intake/brief.md": {
+        get: {
+          tags: ["Research"],
+          operationId: "getResearchIntakeEvidenceBrief",
+          summary: "Read the human-readable systematic-research evidence brief",
+          description:
+            `Returns a human-readable orientation for all ${OPENAPI_RESEARCH_CATALOG_COUNT} pinned candidates: ${OPENAPI_RESEARCH_CATALOG_EVIDENCE_SUMMARY.performanceGatesEvaluated} reached TradeClaw performance gates, ${OPENAPI_RESEARCH_CATALOG_SUMMARY.failed} modeled historical candidates failed, and ${OPENAPI_RESEARCH_CATALOG_EVIDENCE_SUMMARY.performanceGatesNotEvaluated} were not evaluated. ` +
+            "It includes the pinned source, gross-discovery boundary, preregistration workflow, adverse-inclusive counts, and canonical open-data links. No API key is required, and the brief grants no publication, strategy-selection, broadcast, or trading authority.",
+          security: [],
+          responses: {
+            "200": {
+              description: "Public human-readable research evidence orientation",
+              content: {
+                "text/markdown": {
+                  schema: {
+                    type: "string",
+                    description:
+                      "Deterministic UTF-8 Markdown derived from the record-free public research overview.",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       "/api/research/intake/overview": {
         get: {
           tags: ["Research"],

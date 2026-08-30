@@ -130,7 +130,7 @@ describe('protected human-readable research cycle brief', () => {
     );
   });
 
-  it('advertises the brief on every protected projection and nowhere public', () => {
+  it('advertises the cycle brief on every protected projection and keeps it out of public resources', () => {
     const protectedProjections = [
       buildResearchIntakeAdminOverviewPayload(AUDIT_AT),
       buildResearchIntakeAdminPayload(new URLSearchParams(), AUDIT_AT),
@@ -150,7 +150,12 @@ describe('protected human-readable research cycle brief', () => {
       catalog: buildResearchIntakePublicPayload(),
       evidence: buildResearchIntakePublicEvidencePayload(),
     });
-    expect(publicBytes).not.toMatch(/cycleBrief|brief\.md/);
+    expect(publicBytes).not.toMatch(
+      /cycleBrief|\/api\/admin\/research-intake\/brief\.md/,
+    );
+    expect(publicBytes).toContain(
+      '"evidenceBrief":"/api/research/intake/brief.md"',
+    );
   });
 
   it('defines an auth-first private read-only Markdown route', () => {
@@ -184,12 +189,12 @@ describe('protected human-readable research cycle brief', () => {
       ),
     }).toEqual({
       publicCatalog: {
-        bytes: 129_023,
-        sha256: 'f61ce7db203f1a214b928a3f300931f625a2ab7520c9a218866bb104bbce52b7',
+        bytes: 129_071,
+        sha256: 'a02bc48210d6c4c2ea8dfafaee6e9f4bd921b096874d073e21c697131648bf3a',
       },
       publicEvidence: {
-        bytes: 74_593,
-        sha256: 'd42a955706e8a60e95d514153a3a645683b61768e87fef1f39d265ed6986ed37',
+        bytes: 74_641,
+        sha256: 'c16406fedf9137f9f6b91adef80e398a1a7e69a3bb7a6497f6282763a8e4ada3',
       },
       publicCatalogCsv: {
         bytes: 37_418,

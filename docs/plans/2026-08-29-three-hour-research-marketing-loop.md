@@ -78,6 +78,15 @@ authorize a receipt, select a candidate, publish, post, or trade. Manual
 screening remains required, the per-window limit remains one, and automatic
 receipt creation remains false.
 
+The public human-readable research evidence brief at
+`/api/research/intake/brief.md` derives one adverse-inclusive orientation from
+the record-free public overview. It names the evaluated-versus-not-evaluated
+denominator, pinned source and gross-discovery boundary, preregistration
+workflow, and canonical open-data resources without candidate bodies. It does not
+recommend a strategy, publish or broadcast a claim, or trade. It creates no
+receipt, evidence, marketing approval, or authority, and every public research
+resource map advertises it.
+
 The authenticated human-readable research cycle brief at
 `/api/admin/research-intake/brief.md` renders that gate beside the shared
 `startHere` action, latest receipt, next review packet, and compact evidence

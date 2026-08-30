@@ -94,8 +94,8 @@ describe('compact research intake overview contract', () => {
       /\"(?:records|items|researchLoop|marketingReview|latestReceipt|currentWindowReceipts|marketingReviewDraft)\"/,
     );
     expect(fingerprint(overview)).toEqual({
-      bytes: 7_639,
-      sha256: 'f57b4d8a5757daf70d706e4023b216de310419b57ff1365e61235a263c9eb1b8',
+      bytes: 7_687,
+      sha256: '78c190acd7c5b25c9447fb7ecb3dc3ff913699f8c13c54bfc5ead7cac08eca6f',
     });
   });
 
@@ -155,6 +155,7 @@ describe('compact research intake overview contract', () => {
   it('discovers overview in both audience maps without allowing it as a next-action target', () => {
     expect(publicIntake.RESEARCH_INTAKE_PUBLIC_RESOURCES).toEqual({
       overview: '/api/research/intake/overview',
+      evidenceBrief: '/api/research/intake/brief.md',
       catalog: '/api/research/intake',
       catalogCsv: '/api/research/intake.csv',
       evidenceIndex: '/api/research/intake/evidence/index',
@@ -260,6 +261,7 @@ describe('compact research intake overview contract', () => {
     expect(schema.properties).not.toHaveProperty('records');
     expect(resources.required).toEqual([
       'overview',
+      'evidenceBrief',
       'catalog',
       'catalogCsv',
       'evidenceIndex',
@@ -275,8 +277,8 @@ describe('compact research intake overview contract', () => {
       api.indexOf('curl https://tradeclaw.win/api/research/intake\n'),
     );
     expect(fingerprint(spec)).toEqual({
-      bytes: 39_955,
-      sha256: 'd1d91fefd67dca48e4b001789994480f0d52aaa7af8ebd39edd2bd44b31511a6',
+      bytes: 40_929,
+      sha256: '4a9caac77c8d178802e68616c2a566054f8925c856d0c050b03fe1d244a4be56',
     });
   });
 });

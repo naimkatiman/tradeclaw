@@ -21,6 +21,7 @@ const EVIDENCE_PLAIN_LANGUAGE_SUMMARY =
 
 const EXPECTED_RESOURCES = {
   overview: '/api/research/intake/overview',
+  evidenceBrief: '/api/research/intake/brief.md',
   catalog: '/api/research/intake',
   catalogCsv: '/api/research/intake.csv',
   evidenceIndex: '/api/research/intake/evidence/index',
@@ -204,8 +205,8 @@ describe('public research-intake discovery context', () => {
       evidence: fingerprint(evidence),
     }).toEqual({
       resources: {
-        bytes: 264,
-        sha256: '937328c03dd13e7dad988686c0260f6a4b6fd1cf8a2a29ec0f169ce33953858d',
+        bytes: 312,
+        sha256: '62b623d89ad44a28125636e9399f96e8e11efef090a1178dc9eecfca55906a1e',
       },
       catalogEvidenceStateSummary: {
         bytes: 2_001,
@@ -216,12 +217,12 @@ describe('public research-intake discovery context', () => {
         sha256: '6b4721b769db3cb6bd033c6b8d9d01c850db1f387ebdf33446fd14dccca0a06c',
       },
       catalog: {
-        bytes: 129_023,
-        sha256: 'f61ce7db203f1a214b928a3f300931f625a2ab7520c9a218866bb104bbce52b7',
+        bytes: 129_071,
+        sha256: 'a02bc48210d6c4c2ea8dfafaee6e9f4bd921b096874d073e21c697131648bf3a',
       },
       evidence: {
-        bytes: 74_593,
-        sha256: 'd42a955706e8a60e95d514153a3a645683b61768e87fef1f39d265ed6986ed37',
+        bytes: 74_641,
+        sha256: 'c16406fedf9137f9f6b91adef80e398a1a7e69a3bb7a6497f6282763a8e4ada3',
       },
     });
   });

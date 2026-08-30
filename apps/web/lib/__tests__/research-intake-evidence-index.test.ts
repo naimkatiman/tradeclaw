@@ -156,8 +156,8 @@ describe('compact research intake evidence-index contract', () => {
       /"(?:sourceUrl|upstreamGrossSharpe|upstreamTStatistic|upstreamVolatilityPct|upstreamYearsTested|tradeClawSourceAudit|tradeClawEvidence|nextAction|marketingDisposition|marketingReviewDraft|meaning|evidencePath|artifactPath)"/,
     );
     expect(fingerprint(payload)).toEqual({
-      bytes: 19_539,
-      sha256: 'febef045f102838f347d38c50700e5e1a7a27debcfc265a20b0cec450d035095',
+      bytes: 19_587,
+      sha256: '612e8c139f33f1539dc80251a0ad81e00e9c032063b40b7bfbf032ffd2160452',
     });
   });
 

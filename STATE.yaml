@@ -1,11 +1,164 @@
 project: tradeclaw
-updated: 2026-08-30T21:29:00+08:00
+updated: 2026-08-30T21:58:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_public_evidence_brief_2026_08_30:
+  at: 2026-08-30T21:58:00+08:00
+  agent: TradeClaw PM agent
+  status: ready_to_commit
+  scope: Add one public human-readable evidence brief so a user can understand the pinned cost-first record, preregistration workflow, adverse results, and safe next resource without composing the public JSON graph
+  branch: agent/research-intake-desk-20260829
+  base_commit: 77ef8317b961ff8672334a3f56d6fa95f7a7796c
+  cycle_id: 2026-08-30T12:00:00.000Z/PT3H
+  receipt_neutral: true
+  new_research_receipt: false
+  observed_at: 2026-08-30T13:54:28.512Z
+  gate_snapshot: >-
+    TC-267 remains the sole current-window and latest receipt. The explicit
+    gate is wait-for-next-window until exact 2026-08-30T15:00:00.000Z. Twelve
+    receipts occupy 11 windows with only the expected historical duplicate.
+    Four drafts remain manual-review-ready, zero are approved, and every
+    automatic selection, receipt, publication, posting, and trading control is
+    false.
+  audit_basis: >-
+    Authenticated admins now have one Markdown cycle brief, but public users
+    still need to compose the overview, evidence index, source metadata, claim
+    boundaries, and evidence-state counts to learn the central truth: only
+    three of 61 pinned candidates reached TradeClaw performance gates and all
+    three failed, while the remaining 58 have no evaluated local performance
+    gate. A public evidence brief is the smallest honest, nonvisual orientation
+    improvement and can reuse the existing record-free public overview.
+  shared_library_search: No reusable public research brief, evidence brief, public status Markdown, or similar workflow pattern was found under the shared MemoryCore library
+  intended_contract:
+    route: /api/research/intake/brief.md
+    method: GET only
+    format: deterministic UTF-8 Markdown
+    source: record-free public overview
+    content:
+      - exact adverse-inclusive whole-catalog interpretation
+      - explicit evaluated-versus-not-evaluated denominator
+      - shared public startHere action
+      - pinned source commit and gross-discovery boundary
+      - preregistration workflow
+      - canonical machine-readable and CSV resources
+      - explicit read-only, publication, broadcast, and trading safety boundary
+    resource_discovery: every public research resource map
+    openapi_documented: true
+    cache_control: public one-hour edge cache with stale-while-revalidate
+    authentication_required: false
+    mutation_supported: false
+  boundary_audit: >-
+    The brief is a deterministic presentation of existing public evidence, not
+    a new result, ranking, recommendation, marketing approval, receipt, or
+    strategy selection. It must expose no admin, receipt, review, owner,
+    publication-workflow, broker, or execution state. Research records, CSV
+    bytes, protected payloads, rendered UI, database, migrations, Compose,
+    billing, signals, broker, and execution behavior stay frozen.
+  red_contract:
+    file: apps/web/lib/__tests__/research-intake-public-evidence-brief.test.ts
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-public-evidence-brief.test.ts --silent
+    result: EXPECTED_RED - 5/6 tests failed and the unchanged-record/CSV boundary passed
+    proves: >-
+      The public evidence-brief builder and route are absent, public resource
+      maps do not advertise the brief, canonical dynamic OpenAPI does not
+      document it, and README/loop documentation does not define its boundary.
+      Catalog, evidence, and exact-candidate record bytes plus all four
+      public/protected CSVs stayed frozen. The optional generated static OpenAPI
+      asset is absent by existing design and is outside this contract.
+  implementation:
+    builder: apps/web/lib/research-intake-public-evidence-brief.ts
+    route: apps/web/app/api/research/intake/brief.md/route.ts
+    shared_source: apps/web/lib/research-intake-public.ts record-free overview
+    resource_discovery: evidenceBrief on every public research projection
+    canonical_openapi: /api/research/intake/brief.md with text/markdown response
+    sections:
+      - what the record says
+      - start here
+      - how to read this record
+      - evidence workflow
+      - open data
+      - safety
+    public_record_change: false
+    csv_change: false
+    protected_payload_change: false
+    rendered_ui_change: false
+    mutation_supported: false
+  deterministic_brief:
+    normalized_bytes: 3599
+    sha256: bad52fa432d29d7afd8e3d9991c16bc82e5e25486169265a671f0ffc43f994c8
+  focused_green:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-public-evidence-brief.test.ts apps/web/app/api/research/intake/brief.md/__tests__/route.test.ts --silent
+    result: PASS - 2 suites and 8 tests cover exact deterministic copy, adverse-inclusive counts, record and CSV immutability, public-only resource discovery, cacheable inline headers, query neutrality, GET-only delivery, canonical OpenAPI, and documentation
+  first_adjacent_run: EXPECTED_PUBLIC_RESOURCE_DRIFT - 47/57 suites and 341/356 tests passed; all 15 failures were the intentional 48-byte evidenceBrief resource-map addition, derived public JSON/OpenAPI fingerprints, or one protected-cycle test that previously rejected every brief.md path. Evidence records and all CSVs remained green.
+  second_adjacent_run: EXPECTED_OPENAPI_FINGERPRINT_FOLLOW_ON - 56/57 suites and 355/356 tests passed; the sole remaining fixture was the canonical OpenAPI subset fingerprint after the new documented Markdown path
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps.web.lib.__tests__.(research-intake|research-loop|research-marketing)|scripts.research.__tests__.research-marketing).*test.ts$" --silent
+    result: PASS - 57 suites and 356 tests across public/protected intake, deterministic projections, evidence interpretation, candidate navigation, receipt timing, review workflow, marketing, owner decisions, and publication-request safety
+  route_and_auth_green:
+    command: npm test -- --runInBand apps/web/app/api/research/intake apps/web/app/api/admin/research-intake --silent
+    result: PASS - 29 suites and 107 tests cover every public/protected research-intake JSON, CSV, Markdown, YAML, exact-item, packet, overview, evidence, review, cache, query-neutrality, GET-only, real-cookie, malformed-cookie, and auth-first boundary
+  targeted_verification:
+    pinned_source: PASS - all 61 candidates reconstruct at source commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+    review_evidence: PASS - 4/4 review manifests and 12/12 preregistration, result, and artifact files match exact normalized bytes and SHA-256 bindings
+    web_typecheck: PASS
+    first_changed_file_lint: FIXED - Next.js lint rejected the test-local variable name module; it was renamed to briefModule without production-code or contract change
+    changed_file_lint: PASS - builder, public projection, OpenAPI, focused contract, route, and route test have zero warnings or errors
+    post_lint_focused_replay: PASS - 2 suites and 8 tests
+  full_lint: PASS - zero errors and 21 inherited warnings; no warning points to this increment
+  full_repository_tests: PASS - 334 runnable suites, 2409 tests, and 1 snapshot; 3 suites and 26 tests skipped; the inherited post-summary open handle was manually terminated only after Jest printed the complete passing totals
+  production_build: PASS - signals and trading-agents built, Next.js compiled, /api/research/intake/brief.md appears as a one-hour-cacheable static route, and 332/332 static pages generated; only inherited middleware, Turbopack trace, url.parse, and edge-runtime warnings remained
+  final_copy_refinement: >-
+    The OpenAPI description now reports the evaluated and modeled-failure
+    counts separately instead of assuming every future evaluated candidate
+    must fail. This preserves today's exact 3 evaluated, 3 failed, and 58 not
+    evaluated truth while remaining honest if a future result passes or is
+    inconclusive.
+  deterministic_surfaces:
+    public_brief: 3599 bytes / bad52fa432d29d7afd8e3d9991c16bc82e5e25486169265a671f0ffc43f994c8
+    public_brief_replay: byte-identical
+    public_overview: 7687 bytes / 78c190acd7c5b25c9447fb7ecb3dc3ff913699f8c13c54bfc5ead7cac08eca6f
+    public_evidence_index: 19587 bytes / 612e8c139f33f1539dc80251a0ad81e00e9c032063b40b7bfbf032ffd2160452
+    public_catalog: 129071 bytes / a02bc48210d6c4c2ea8dfafaee6e9f4bd921b096874d073e21c697131648bf3a
+    public_evidence: 74641 bytes / c16406fedf9137f9f6b91adef80e398a1a7e69a3bb7a6497f6282763a8e4ada3
+    public_catalog_records_unchanged: 123673 bytes / 18826d9308cd8d7d9c936573e1f8cdbc24727e1fb6cf8bde0147f56718141a4f
+    public_evidence_records_unchanged: 66742 bytes / ea15952ebc48cdb48a61bf8f9a852febdc3734f745ba6cb47da8b5850299c98b
+    public_tc267_candidate: 12506 bytes / 6264365a4a862181a4874117f110adbc7dc5b04ab1e97a7f02a328a85b7e7f24
+    protected_overview_unchanged: 12017 bytes / c591ddad18e07fe2f3b7c445d03636a8d5f48cd3277f1e3ac21dd527df1f60d2
+    protected_brief_unchanged: 2420 bytes / 1b3671e006126d2bdba8695f79fab4a8c28421adc16ba64271b222ef804e6a45
+    public_catalog_csv_unchanged: 37418 bytes / 2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f
+    public_evidence_csv_unchanged: 9138 bytes / e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941
+    protected_evidence_csv_unchanged: 19965 bytes / e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f
+    protected_review_csv_unchanged: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+    canonical_openapi: 40929 bytes / 4a9caac77c8d178802e68616c2a566054f8925c856d0c050b03fe1d244a4be56
+  final_verification:
+    focused: PASS - 3 suites and 14 tests after the forward-looking OpenAPI wording refinement
+    adjacent: PASS - 57 suites and 356 tests
+    web_typecheck: PASS
+    full_lint: PASS - zero errors and 21 inherited warnings
+    full_repository: PASS - 334 runnable suites, 2409 tests, and 1 snapshot; 3 suites and 26 tests skipped; inherited post-summary open handle terminated only after complete green totals
+    production_build: PASS - 332/332 pages and the one-hour-cacheable static Markdown route
+    compact_closure: PASS - 6 suites and 30 tests cover the brief, overview, public discovery, protected brief isolation, receipt ledger, and route contract
+  final_gate_snapshot: >-
+    Observed at 2026-08-30T13:54:28.512Z. TC-267 remains the sole receipt in
+    the complete 2026-08-30T12:00:00.000Z/PT3H window and the latest receipt.
+    The gate remains wait-for-next-window until exact
+    2026-08-30T15:00:00.000Z, whose window is
+    2026-08-30T15:00:00.000Z/PT3H. The ledger remains 12 receipts across 11
+    windows, with only the expected historical duplicate and no additional
+    duplicate. Four drafts remain manual-review-ready, zero are approved,
+    TC-255 remains next, and automatic candidate selection, receipt creation,
+    publication, posting, and trading remain false.
+  scope_audit: PASS - exactly 20 expected paths are changed (16 tracked and 4 new), with no missing or additional path; no protected implementation, rendered UI, database, migration, lockfile, billing, signal, broker, or execution path changed
+  diff_integrity: PASS - STATE parses as YAML and git diff --check reports no whitespace errors; only the repository's existing Windows LF-to-CRLF notices appear
+  compose_preservation: PASS - no Compose or Dockerfile path changed; Docker CLI remains unavailable locally, so no container runtime check was possible
+  staged_audit: PASS - exactly the verified 20 paths are staged, with zero unstaged or untracked paths and no staged whitespace error
+  external_actions: none
+  next_step: Commit the staged implementation locally, then record its full commit SHA and final clean-worktree audit in a STATE-only closure commit.
 
 research_admin_cycle_brief_2026_08_30:
   at: 2026-08-30T21:29:00+08:00

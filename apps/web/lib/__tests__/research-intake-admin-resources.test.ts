@@ -66,6 +66,7 @@ describe('protected research intake resource discovery', () => {
     expect(publicPayload.resources).toBe(RESEARCH_INTAKE_PUBLIC_RESOURCES);
     expect(publicPayload.resources).toEqual({
       overview: '/api/research/intake/overview',
+      evidenceBrief: '/api/research/intake/brief.md',
       catalog: '/api/research/intake',
       catalogCsv: '/api/research/intake.csv',
       evidenceIndex: '/api/research/intake/evidence/index',

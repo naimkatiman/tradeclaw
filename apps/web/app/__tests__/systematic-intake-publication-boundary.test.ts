@@ -144,6 +144,7 @@ describe('systematic research intake public boundary', () => {
     );
     expect(publicResourcesSchema.required).toEqual([
       'overview',
+      'evidenceBrief',
       'catalog',
       'catalogCsv',
       'evidenceIndex',
