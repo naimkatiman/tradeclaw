@@ -1,11 +1,143 @@
 project: tradeclaw
-updated: 2026-08-30T19:49:55+08:00
+updated: 2026-08-30T20:32:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_factor_timing_source_audit_2026_08_30:
+  at: 2026-08-30T20:32:00+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_implementation_ready_to_commit
+  scope: Screen and source-audit exactly one untouched awesome-systematic-trading candidate in the new 12:00Z UTC window before any preregistration, return, result artifact, or marketing work
+  branch: agent/research-intake-desk-20260829
+  base_commit: 79d360f916c174cb7e6a5339f1e48700f927ae25
+  cycle_id: 2026-08-30T12:00:00.000Z/PT3H
+  started_at: 2026-08-30T12:00:00.000Z
+  ends_at: 2026-08-30T15:00:00.000Z
+  observed_at: 2026-08-30T12:00:37.571Z
+  recorded_at: 2026-08-30T12:00:59.497Z
+  candidate_id: when-factor-timing-makes-sense
+  source_position_zero_based: 41
+  source_row_one_based: 42
+  stage_before: discovered
+  intended_stage_after: source-audited
+  intended_verdict: not-tested
+  intended_outcome: verified-no-go
+  gate_snapshot: >-
+    The new 12:00Z window is awaiting a receipt; TC-266 remains latest, the
+    ledger has 11 receipts across 10 windows with only the expected historical
+    06:00Z duplicate and no additional duplicate, four marketing handoffs
+    remain unchanged, none belongs to the current window, zero are approved,
+    and automatic candidate selection, publication, posting, and trading are
+    false.
+  selection_basis: >-
+    Receipt-neutral feasibility triage selected an accessible primary paper
+    whose synthetic clairvoyant experiment can be audited against the hidden
+    nine-ETF clone before returns. The upstream Sharpe, t-statistic, volatility,
+    years, and live clone metrics remain gross discovery metadata and were not
+    used as TradeClaw performance evidence.
+  primary_source:
+    ucla_pdf: https://ww3.math.ucla.edu/camreport/cam19-25.pdf
+    ssrn: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3359438
+    doi: https://doi.org/10.2139/ssrn.3359438
+    pages: 17
+    acquired_bytes: 329703
+    sha256: ec0fa6b72f6567a70c38d01b95933eaa5b5dbb3a8e61668ad7f756698e87d93b
+    bytes_retained: false
+    redistribution_rights_established: false
+  frozen_audit_hypothesis: >-
+    The primary paper supplies theoretical results and synthetic Monte Carlo
+    experiments with perfect contemporaneous state or correlation knowledge,
+    not a causal historical nine-ETF strategy. The clone therefore cannot be
+    replicated exactly without inventing a universe, correlation estimator,
+    lookback, point-in-time data policy, fills, and costs.
+  return_gate: closed
+  preregistration_created: false
+  return_series_created: false
+  result_artifact_created: false
+  marketing_draft: none
+  red_contract:
+    file: apps/web/lib/__tests__/research-intake-tc267-source-audit.test.ts
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-tc267-source-audit.test.ts --silent
+    result: PASS - the focused suite failed as intended with 4/4 tests red
+    proves: >-
+      The TC-267 source overlay, 48/9 catalog transition, 13-record evidence
+      projection, sole 12:00Z receipt, and no-marketing boundary were absent;
+      the preexisting ledger still ended at TC-266.
+  source_audit:
+    path: docs/research/2026-08-30-when-factor-timing-makes-sense-source-audit.md
+    normalized_bytes: 14962
+    sha256: 3060198a6e17db2d4262d02ea26d9b6eef6b730feab5fab4de6370ba06d535f1
+    classification: source-audit-only no-go, not a TradeClaw performance failure
+    primary_pdf_committed: false
+  focused_green:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-tc267-source-audit.test.ts --silent
+    result: PASS - 1 suite and 4 tests cover exact audit bytes, typed primary and clone mismatch, 48/9 counts, public/admin evidence, sole receipt, and no marketing authority
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps.web.lib.__tests__.(research-intake|research-loop|research-marketing)|scripts.research.__tests__.research-marketing).*test.ts$" --silent
+    result: PASS - 54 suites and 340 tests across intake, source-audit, receipt, evidence state, public/admin, CSV, navigation, review, marketing, owner-decision, publication-request, and verifier contracts
+  research_routes_and_auth:
+    command: npm test -- --runInBand apps/web/app/api/research/intake apps/web/app/api/admin/research-intake --silent
+    result: PASS - 26 suites and 99 tests cover public and protected catalog, candidate, overview, evidence, evidence index, CSV, review, packet, handoff, private caching, and auth-first boundaries
+  targeted_verification:
+    pinned_source: PASS - all 61 candidates reconstruct at commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+    review_evidence: PASS - 4/4 review manifests and 12/12 preregistration, result, and artifact files match their exact normalized bytes and SHA-256 bindings
+    primary_pdf: PASS - in-memory reacquisition returned 329703 bytes, %PDF-1.5, and SHA-256 ec0fa6b72f6567a70c38d01b95933eaa5b5dbb3a8e61668ad7f756698e87d93b; no PDF was written or retained
+    source_audit: PASS - 14962 normalized LF bytes at SHA-256 3060198a6e17db2d4262d02ea26d9b6eef6b730feab5fab4de6370ba06d535f1
+    web_typecheck: PASS
+    lint: PASS - 0 errors and 21 inherited warnings
+    state_and_diff: PASS - STATE.yaml parses, cycle_12 binds TC-267 at the exact receipt instant, and git diff --check reports no whitespace errors
+  first_full_repository_test:
+    command: npm test -- --runInBand --silent
+    result: EXPECTED_FIXTURE_DRIFT - 327 suites and 2384 tests passed; one README discoverability assertion still expected the pre-TC-267 49/8 counts
+    repair: Update only that assertion to the authoritative 48 untouched and 9 source-audit no-go counts; Jest's inherited post-summary open handle was manually terminated after complete totals printed.
+  full_repository_tests: PASS - 328 runnable suites, 2385 tests, and 1 snapshot; 3 suites and 26 tests skipped; the inherited post-summary open handle was manually terminated only after Jest printed the complete passing result
+  build_verification: PASS - the required root production build compiled signals, trading-agents, and the Next.js app, then generated all 331/331 static pages; only the inherited middleware deprecation, whole-project Turbopack trace, edge-runtime static-generation, and Node url.parse warnings remained
+  deterministic_surfaces:
+    public_overview: 7639 bytes / f57b4d8a5757daf70d706e4023b216de310419b57ff1365e61235a263c9eb1b8
+    admin_overview: 11277 bytes / 5e96bc5e0ca6006c9c37cb950b556c091a95ef9ee0a37c3fec5db25d13bc344f
+    public_evidence_index: 19539 bytes / febef045f102838f347d38c50700e5e1a7a27debcfc265a20b0cec450d035095
+    admin_review_queue: 31246 bytes / dea1a2fad8f6bec7195e0ac247ca4cfbb25193e973c11e62d27b3359a364e9a1
+    public_catalog_json: 129023 bytes / f61ce7db203f1a214b928a3f300931f625a2ab7520c9a218866bb104bbce52b7
+    public_evidence_json: 74593 bytes / d42a955706e8a60e95d514153a3a645683b61768e87fef1f39d265ed6986ed37
+    protected_catalog_json: 77471 bytes / c68ad0761bbdb30e11c8115b1a9abae7673d6d32fd84ae08843e430fcf604f32
+    protected_evidence_json: 105064 bytes / c0a19f25784005aad16039057fde73cd05d2d6241f1877e3e818fbd278b91743
+    public_catalog_csv: 37418 bytes / 2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f
+    public_evidence_csv: 9138 bytes / e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941
+    protected_evidence_csv: 19965 bytes / e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f
+    protected_review_csv: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  final_gate_observation:
+    observed_at: 2026-08-30T12:31:00.000Z
+    status: complete
+    current_window_receipts: 1
+    latest_task_id: TC-267
+    receipt_count: 12
+    unique_window_count: 11
+    expected_legacy_duplicate_window_ids:
+      - 2026-08-29T06:00:00.000Z/PT3H
+    additional_duplicate_window_ids: []
+    marketing_handoffs: 4
+    current_window_marketing_handoffs: 0
+    publication_approved_drafts: 0
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_posting: false
+    automatic_trading: false
+  scope_audit: PASS - exactly 55 expected paths are changed (53 tracked and 2 new); only intake contracts, source-audit integration, README, loop documentation, and STATE are touched; runtime routes, UI, auth implementation, database, migrations, execution, billing, lockfiles, and Compose are unchanged
+  compose_preservation: PASS - no Compose or Dockerfile diff exists; Docker CLI is unavailable locally, so no container runtime verification was possible in this cycle
+  verification: PASS - focused source audit passed 4/4; adjacent intake and loop passed 54 suites and 340 tests; public/admin routes and auth passed 26 suites and 99 tests; pinned source reconstruction passed 61/61; review evidence passed 4/4 manifests and 12/12 files; repository Jest passed 328 suites and 2385 tests; typecheck and lint passed; primary PDF, audit hash, STATE, deterministic surfaces, scope, diff, gate, and required 331-page build checks passed
+  integrated_surfaces:
+    - typed research source-audit overlay
+    - public and protected candidate and evidence projections
+    - three-hour receipt ledger
+    - no-draft marketing guard
+    - README research status
+    - three-hour loop plan
+  external_actions: none
+  next_step: Commit the verified TC-267 implementation locally, bind its exact commit in STATE, rerun the closure gates, and save shared MemoryCore; do not push, deploy, publish, post, or trade.
 
 research_admin_publication_request_verifier_2026_08_30:
   at: 2026-08-30T19:49:55+08:00
@@ -8855,6 +8987,43 @@ research_intake_desk_2026_08_29:
     trading_approved: false
     external_actions: none
     next_action: Archive the exact-source no-go; any public risk-factor-parity implementation must begin as a separately hashed hypothesis with frozen universe, data, estimator, costs, folds, and holdout before returns
+  cycle_12:
+    id: 2026-08-30T12:00:00.000Z/PT3H
+    recorded_at: 2026-08-30T12:00:59.497Z
+    task_id: TC-267
+    started_at: 2026-08-30T12:00:00.000Z
+    ends_at: 2026-08-30T15:00:00.000Z
+    candidate_id: when-factor-timing-makes-sense
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    source_audit_sha256: 3060198a6e17db2d4262d02ea26d9b6eef6b730feab5fab4de6370ba06d535f1
+    source_pdf_sha256: ec0fa6b72f6567a70c38d01b95933eaa5b5dbb3a8e61668ad7f756698e87d93b
+    source_pdf_committed: false
+    evidence_paths:
+      - docs/research/2026-08-30-when-factor-timing-makes-sense-source-audit.md
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    verification:
+      - focused TC-267 source-audit contract passes 4/4 after the intentional RED run
+      - adjacent intake, loop, evidence, public/admin, CSV, review, and marketing contracts pass 54 suites and 340 tests
+      - public and protected research routes and auth boundaries pass 26 suites and 99 tests
+      - pinned upstream reconstruction passes 61/61 candidates and review evidence passes 4/4 manifests with 12/12 bound files
+      - all 328 runnable repository suites and 2385 tests pass; 3 suites and 26 tests are skipped and 1 snapshot passes
+      - web typecheck and lint pass, with zero lint errors and 21 inherited warnings
+      - required production build compiles shared packages and generates 331/331 pages
+      - exact source audit is 14962 LF bytes at SHA-256 3060198a6e17db2d4262d02ea26d9b6eef6b730feab5fab4de6370ba06d535f1
+      - final gate has TC-267 as the sole current-window receipt with no marketing handoff or automatic authority
+    next_action: Archive the exact-source no-go; any causal ETF correlation-timing study must begin as a separately hashed hypothesis with frozen universe, estimator, lookback, fills, costs, folds, and holdout before returns
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00

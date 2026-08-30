@@ -46,11 +46,11 @@ describe('protected research intake resource discovery', () => {
     const catalogEvidenceStateSummary = payloads[0].catalogEvidenceStateSummary;
     expect(catalogEvidenceStateSummary).toMatchObject({
       totalCandidates: 61,
-        withTradeClawRecord: 12,
+        withTradeClawRecord: 13,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 58,
       plainLanguageSummary:
-        '61 candidates: 49 not tested by TradeClaw, 8 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+        '61 candidates: 48 not tested by TradeClaw, 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     });
     for (const payload of payloads) {
       expect(payload.resources).toBe(RESEARCH_INTAKE_ADMIN_RESOURCES);
@@ -80,9 +80,9 @@ describe('protected research intake resource discovery', () => {
   it('pins the protected adverse-inclusive evidence CSV byte-for-byte', () => {
     const csv = buildResearchIntakeAdminEvidenceCsv(OBSERVED_AT);
 
-    expect(Buffer.byteLength(csv, 'utf8')).toBe(19_151);
+    expect(Buffer.byteLength(csv, 'utf8')).toBe(19_965);
     expect(createHash('sha256').update(csv).digest('hex')).toBe(
-      'fbcc568d8ee534895cd4773a333dc61eac0c5e0189622f1cd80836d878ef465f',
+      'e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f',
     );
     expect(csv).not.toContain('marketingReviewCsv');
   });

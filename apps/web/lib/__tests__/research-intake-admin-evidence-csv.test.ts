@@ -9,7 +9,7 @@ import {
 const RECEIPT_AVAILABLE_AT = '2026-08-29T18:00:40.000Z';
 const TASK_ORDER = [
   'TC-262', 'TC-259', 'TC-257', 'TC-264', 'TC-265', 'TC-255', 'TC-261', 'TC-258', 'TC-256',
-  'TC-263', 'TC-266', 'TC-260',
+  'TC-263', 'TC-267', 'TC-266', 'TC-260',
 ];
 
 describe('protected research evidence CSV projection', () => {
@@ -68,9 +68,9 @@ describe('protected research evidence CSV projection', () => {
       'automaticTrading',
       'externalActions',
     ]);
-    expect(rows).toHaveLength(12);
-    expect(rows.map((row) => row.evidencePosition)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-    expect(rows.map((row) => row.sourceOrder)).toEqual([7, 22, 24, 27, 28, 32, 33, 34, 37, 39, 60, 61]);
+    expect(rows).toHaveLength(13);
+    expect(rows.map((row) => row.evidencePosition)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+    expect(rows.map((row) => row.sourceOrder)).toEqual([7, 22, 24, 27, 28, 32, 33, 34, 37, 39, 42, 60, 61]);
     expect(rows.map((row) => row.tradeClawTaskId)).toEqual(TASK_ORDER);
     expect(rows.map((row) => row.performanceEvidenceStatus)).toEqual([
       'source-audit-only-no-local-backtest',
@@ -85,6 +85,7 @@ describe('protected research evidence CSV projection', () => {
       'source-audit-only-no-local-backtest',
       'source-audit-only-no-local-backtest',
       'source-audit-only-no-local-backtest',
+      'source-audit-only-no-local-backtest',
     ]);
   });
 
@@ -95,14 +96,14 @@ describe('protected research evidence CSV projection', () => {
     const tc261 = byTask.get('TC-261');
     if (!tc255 || !tc261) throw new Error('Evidence CSV fixture is incomplete');
 
-    expect(rows.map((row) => row.observedAt)).toEqual(Array(12).fill(RECEIPT_AVAILABLE_AT));
+    expect(rows.map((row) => row.observedAt)).toEqual(Array(13).fill(RECEIPT_AVAILABLE_AT));
     expect(rows.map((row) => row.currentWindowId)).toEqual(
-      Array(12).fill('2026-08-29T18:00:00.000Z/PT3H'),
+      Array(13).fill('2026-08-29T18:00:00.000Z/PT3H'),
     );
-    expect(rows.map((row) => row.currentWindowStatus)).toEqual(Array(12).fill('complete'));
-    expect(rows.map((row) => row.receiptCount)).toEqual([0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1]);
+    expect(rows.map((row) => row.currentWindowStatus)).toEqual(Array(13).fill('complete'));
+    expect(rows.map((row) => row.receiptCount)).toEqual([0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1]);
     expect(rows.map((row) => row.marketingHandoffTaskId)).toEqual([
-      '', 'TC-259', 'TC-257', '', '', 'TC-255', '', 'TC-258', '', '', '', '',
+      '', 'TC-259', 'TC-257', '', '', 'TC-255', '', 'TC-258', '', '', '', '', '',
     ]);
 
     expect(tc255).toMatchObject({
@@ -214,11 +215,11 @@ describe('protected research evidence CSV projection', () => {
 
     expect(second).toBe(first);
     expect(RESEARCH_INTAKE_ADMIN_EVIDENCE_CSV_COLUMNS).toHaveLength(50);
-    expect(Buffer.byteLength(first, 'utf8')).toBe(19_151);
+    expect(Buffer.byteLength(first, 'utf8')).toBe(19_965);
     expect(createHash('sha256').update(first).digest('hex')).toBe(
-      'fbcc568d8ee534895cd4773a333dc61eac0c5e0189622f1cd80836d878ef465f',
+      'e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f',
     );
-    expect(first.split('\r\n')).toHaveLength(13);
+    expect(first.split('\r\n')).toHaveLength(14);
     expect(first.startsWith(`${RESEARCH_INTAKE_ADMIN_EVIDENCE_CSV_COLUMNS.join(',')}\r\n`))
       .toBe(true);
     expect(hostile.split('\r\n')[1].startsWith('-1,')).toBe(true);

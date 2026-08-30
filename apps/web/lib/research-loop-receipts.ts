@@ -16,7 +16,8 @@ export type ResearchLoopReceiptTaskId =
   | 'TC-263'
   | 'TC-264'
   | 'TC-265'
-  | 'TC-266';
+  | 'TC-266'
+  | 'TC-267';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -303,6 +304,26 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Archive the exact-source no-go; any public risk-factor-parity implementation must begin as a separately hashed hypothesis with frozen universe, data, estimator, costs, folds, and holdout before returns',
+  },
+  {
+    cycleId: '2026-08-30T12:00:00.000Z/PT3H',
+    recordedAt: '2026-08-30T12:00:59.497Z',
+    taskId: 'TC-267',
+    candidateId: 'when-factor-timing-makes-sense',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-30-when-factor-timing-makes-sense-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-source no-go; any causal ETF correlation-timing study must begin as a separately hashed hypothesis with frozen universe, estimator, lookback, fills, costs, folds, and holdout before returns',
   },
 ] as const;
 

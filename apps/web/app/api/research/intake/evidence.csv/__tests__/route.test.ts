@@ -20,7 +20,7 @@ describe('GET /api/research/intake/evidence.csv', () => {
     expect(response.headers.get('vary')).toBeNull();
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
     expect(body).toBe(buildResearchIntakeEvidenceCsv());
-    expect(body.split('\r\n')).toHaveLength(13);
+    expect(body.split('\r\n')).toHaveLength(14);
   });
 
   it('ignores query filters and exposes only GET', async () => {

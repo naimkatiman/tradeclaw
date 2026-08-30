@@ -57,6 +57,7 @@ describe('GET /api/admin/research-intake/evidence/index real admin-cookie bounda
       'TC-258',
       'TC-256',
       'TC-263',
+      'TC-267',
       'TC-266',
       'TC-260',
     ]);

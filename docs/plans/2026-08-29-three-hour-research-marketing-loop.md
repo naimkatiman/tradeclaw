@@ -382,8 +382,20 @@ stopped before preregistration or returns. TC-266 remains `not-tested`, with no
 result artifact or marketing draft. Its receipt is
 `docs/research/2026-08-30-risk-factor-parity-source-audit.md`.
 
+TC-267 selected *When Factor Timing Makes Sense* because its accessible primary
+PDF made the source/clone boundary auditable before returns. The paper develops
+theoretical bounds and synthetic Monte Carlo experiments in which a
+clairvoyant investor knows the current state or period correlation matrix. It
+does not supply a historical factor universe, causal correlation estimator, or
+nine-ETF strategy. The Papers With Backtest clone instead labels a weekly
+`1990-2026` ETF study, declares nine long positions, and hides its pseudocode;
+its visible SPY dataset example begins on `1993-01-29`. Exact replay therefore
+stopped before preregistration or returns. TC-267 remains `not-tested`, with no
+result artifact or marketing draft. Its receipt is
+`docs/research/2026-08-30-when-factor-timing-makes-sense-source-audit.md`.
+
 Do not open another catalog receipt before the exact
-`2026-08-30T12:00:00.000Z` boundary. The TC-266 no-go does not authorize a
+`2026-08-30T15:00:00.000Z` boundary. The TC-267 no-go does not authorize a
 public-data proxy backtest, marketing claim, publication, signal, allocation,
 broadcast, broker action, or execution change.
 

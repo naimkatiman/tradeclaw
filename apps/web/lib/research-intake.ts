@@ -814,6 +814,98 @@ export interface TradeClawRiskFactorParitySourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawFactorTimingSourceAuditEvidence {
+  taskId: 'TC-267';
+  auditDate: '2026-08-30';
+  researchPath: 'docs/research/2026-08-30-when-factor-timing-makes-sense-source-audit.md';
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  primarySource: {
+    title: 'When Factor Timing Makes Sense';
+    authors: readonly ['Farzin Barekat'];
+    discoveryUrl: 'https://paperswithbacktest.com/strategies/when-factor-timing-makes-sense';
+    uclaReportUrl: 'https://ww3.math.ucla.edu/camreport/cam19-25.pdf';
+    uclaIndexUrl: 'https://ww3.math.ucla.edu/cam-reports-2001-2020/';
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3359438';
+    doi: 'https://doi.org/10.2139/ssrn.3359438';
+    documentPages: 17;
+    documentBytes: 329703;
+    documentSha256: 'ec0fa6b72f6567a70c38d01b95933eaa5b5dbb3a8e61668ad7f756698e87d93b';
+    localByteAcquisition: 'in-memory-valid-pdf-not-retained';
+    publicReplicationPackageSupplied: false;
+    redistributionRightsEstablished: false;
+  };
+  paperScope: {
+    sourceType: 'theoretical-results-plus-synthetic-monte-carlo';
+    historicalMarketBacktestSupplied: false;
+    actualFactorUniverseSupplied: false;
+    causalTradableStrategySupplied: false;
+    clairvoyantPeriodCorrelationKnown: true;
+  };
+  singleStrategy: {
+    exampleCadence: 'weekly';
+    deltaT: number;
+    investorCases: readonly ['passive', 'clairvoyant'];
+    perfectStateSharpeKnown: true;
+    meaningfulGainCondition: 'large-state-Sharpe-differences-or-predictable-negative-returns-with-shorting';
+    realTimeStateSignalSupplied: false;
+  };
+  multiFactorSimulation: {
+    factorCountParameter: 'N';
+    eachFactorSharpe: 1;
+    longRunPairwiseCorrelation: 0;
+    correlationMatrixDistribution: 'uniform-valid-NxN-correlation-matrices';
+    sampledIndependentlyEachPeriod: true;
+    offDiagonalAbsoluteBoundParameter: 'rho';
+    rebalanceCadence: 'weekly';
+    deltaT: number;
+    optimizer: 'maximum-ex-ante-Sharpe';
+    nonnegativeAllocations: true;
+    perfectPeriodCorrelationForesight: true;
+    monteCarloMethod: 'acceptance-rejection';
+    benefitThresholdApproxFactorCount: 'more-than-10';
+    belowEightImprovementPctLessThan: 30;
+    historicalReturnsUsed: false;
+  };
+  sourceCloneMismatch: {
+    cloneSample: '1990-2026';
+    cloneCadence: 'weekly';
+    cloneDataset: 'ETFs-Daily-Price';
+    clonePositions: '9-long-ETFs';
+    cloneVisibleTickers: readonly ['DBC', 'EEM', 'GLD', 'IWM', 'LQD', 'QQQ', 'SPY', 'TLT'];
+    clonePseudoCodePublic: false;
+    paperEtfUniverseSpecified: false;
+    paperHistoricalSampleSpecified: false;
+    datasetSpyFirstObservation: '1993-01-29';
+    cloneSampleStartsBeforeDatasetExample: true;
+    liveCloneMetricsEvidenceBasis: 'upstream-discovery-only';
+  };
+  inputProvenance: {
+    exactPrimaryBytesAcquired: true;
+    primaryBytesRetained: false;
+    authorizedHistoricalDatasetPresent: false;
+    actualFactorReturnSeriesSupplied: false;
+    pointInTimeCorrelationEstimatorSupplied: false;
+    cloneCodeSupplied: false;
+  };
+  publishedCostTreatment: {
+    transactionCostModelSupplied: false;
+    transactionCostsAcknowledgedAsImplementationChallenge: true;
+    causalFillRuleSupplied: false;
+    turnoverLinkedLedgerSupplied: false;
+    completeFrictionModelSupplied: false;
+  };
+  validation: {
+    chronologicalFoldsSupplied: false;
+    untouchedHoldoutSupplied: false;
+    externalFalsificationMarketSupplied: false;
+    deterministicReplayArtifactSupplied: false;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -939,6 +1031,7 @@ export type TradeClawResearchSourceAuditEvidence =
   | TradeClawRollingVsExpandingSourceAuditEvidence
   | TradeClawGoodCarrySourceAuditEvidence
   | TradeClawRiskFactorParitySourceAuditEvidence
+  | TradeClawFactorTimingSourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -1026,6 +1119,7 @@ const ROLLING_VS_EXPANDING_MEAN_REVERSION_ID =
   'rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation';
 const GOOD_CARRY_BAD_CARRY_ID = 'good-carry-bad-carry';
 const RISK_FACTOR_PARITY_ID = 'risk-parity-portfolios-with-risk-factors';
+const FACTOR_TIMING_ID = 'when-factor-timing-makes-sense';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -1664,6 +1758,118 @@ const TC266_RISK_FACTOR_PARITY_SOURCE_AUDIT: TradeClawRiskFactorParitySourceAudi
     'Exact replay requires unavailable proprietary inputs across three different empirical applications, non-unique optimization choices, causal fills, full costs, and a frozen falsification protocol; the hidden 27-stock clone is materially non-equivalent. A public-data implementation would be a materially new hypothesis.',
 };
 
+const TC267_FACTOR_TIMING_SOURCE_AUDIT: TradeClawFactorTimingSourceAuditEvidence = {
+  taskId: 'TC-267',
+  auditDate: '2026-08-30',
+  researchPath: 'docs/research/2026-08-30-when-factor-timing-makes-sense-source-audit.md',
+  researchSha256: '3060198a6e17db2d4262d02ea26d9b6eef6b730feab5fab4de6370ba06d535f1',
+  disposition: 'no-go',
+  tradeClawBacktestRun: false,
+  primarySource: {
+    title: 'When Factor Timing Makes Sense',
+    authors: ['Farzin Barekat'],
+    discoveryUrl:
+      'https://paperswithbacktest.com/strategies/when-factor-timing-makes-sense',
+    uclaReportUrl: 'https://ww3.math.ucla.edu/camreport/cam19-25.pdf',
+    uclaIndexUrl: 'https://ww3.math.ucla.edu/cam-reports-2001-2020/',
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3359438',
+    doi: 'https://doi.org/10.2139/ssrn.3359438',
+    documentPages: 17,
+    documentBytes: 329703,
+    documentSha256:
+      'ec0fa6b72f6567a70c38d01b95933eaa5b5dbb3a8e61668ad7f756698e87d93b',
+    localByteAcquisition: 'in-memory-valid-pdf-not-retained',
+    publicReplicationPackageSupplied: false,
+    redistributionRightsEstablished: false,
+  },
+  paperScope: {
+    sourceType: 'theoretical-results-plus-synthetic-monte-carlo',
+    historicalMarketBacktestSupplied: false,
+    actualFactorUniverseSupplied: false,
+    causalTradableStrategySupplied: false,
+    clairvoyantPeriodCorrelationKnown: true,
+  },
+  singleStrategy: {
+    exampleCadence: 'weekly',
+    deltaT: 1 / 52,
+    investorCases: ['passive', 'clairvoyant'],
+    perfectStateSharpeKnown: true,
+    meaningfulGainCondition:
+      'large-state-Sharpe-differences-or-predictable-negative-returns-with-shorting',
+    realTimeStateSignalSupplied: false,
+  },
+  multiFactorSimulation: {
+    factorCountParameter: 'N',
+    eachFactorSharpe: 1,
+    longRunPairwiseCorrelation: 0,
+    correlationMatrixDistribution: 'uniform-valid-NxN-correlation-matrices',
+    sampledIndependentlyEachPeriod: true,
+    offDiagonalAbsoluteBoundParameter: 'rho',
+    rebalanceCadence: 'weekly',
+    deltaT: 1 / 52,
+    optimizer: 'maximum-ex-ante-Sharpe',
+    nonnegativeAllocations: true,
+    perfectPeriodCorrelationForesight: true,
+    monteCarloMethod: 'acceptance-rejection',
+    benefitThresholdApproxFactorCount: 'more-than-10',
+    belowEightImprovementPctLessThan: 30,
+    historicalReturnsUsed: false,
+  },
+  sourceCloneMismatch: {
+    cloneSample: '1990-2026',
+    cloneCadence: 'weekly',
+    cloneDataset: 'ETFs-Daily-Price',
+    clonePositions: '9-long-ETFs',
+    cloneVisibleTickers: ['DBC', 'EEM', 'GLD', 'IWM', 'LQD', 'QQQ', 'SPY', 'TLT'],
+    clonePseudoCodePublic: false,
+    paperEtfUniverseSpecified: false,
+    paperHistoricalSampleSpecified: false,
+    datasetSpyFirstObservation: '1993-01-29',
+    cloneSampleStartsBeforeDatasetExample: true,
+    liveCloneMetricsEvidenceBasis: 'upstream-discovery-only',
+  },
+  inputProvenance: {
+    exactPrimaryBytesAcquired: true,
+    primaryBytesRetained: false,
+    authorizedHistoricalDatasetPresent: false,
+    actualFactorReturnSeriesSupplied: false,
+    pointInTimeCorrelationEstimatorSupplied: false,
+    cloneCodeSupplied: false,
+  },
+  publishedCostTreatment: {
+    transactionCostModelSupplied: false,
+    transactionCostsAcknowledgedAsImplementationChallenge: true,
+    causalFillRuleSupplied: false,
+    turnoverLinkedLedgerSupplied: false,
+    completeFrictionModelSupplied: false,
+  },
+  validation: {
+    chronologicalFoldsSupplied: false,
+    untouchedHoldoutSupplied: false,
+    externalFalsificationMarketSupplied: false,
+    deterministicReplayArtifactSupplied: false,
+  },
+  blockers: [
+    'The primary source is a theoretical and synthetic Monte Carlo study, not a historical ETF backtest.',
+    'The favorable multi-factor investor has perfect knowledge of the current synthetic correlation matrix before allocating.',
+    'No actual factor universe or investable instrument mapping is supplied.',
+    'No historical factor or ETF return matrix is supplied by the paper.',
+    'No causal point-in-time correlation estimator or lookback is specified.',
+    'No initialization, missing-history, matrix-repair, shrinkage, or stale-data policy is specified.',
+    'No deterministic optimizer settings, tolerances, tie handling, or fallback policy is supplied.',
+    'The synthetic N-factor experiment does not specify the clone ETFs or establish that nine ETFs are nine independent unit-Sharpe factors.',
+    'The clone hides its pseudocode and complete historical position ledger.',
+    'The clone labels a 1990 start while its visible SPY dataset example begins on 1993-01-29, with no public pre-history or cash policy.',
+    'No causal signal timestamp or fill convention is supplied.',
+    'No complete transaction-cost model or turnover-linked ledger is supplied.',
+    'No immutable nine-ETF dataset manifest or authorized TC-267 dataset is present in the repository.',
+    'No chronological folds, untouched holdout, or external falsification gate is supplied.',
+    'No deterministic historical replay artifact or public replication package is supplied.',
+  ],
+  reason:
+    'The primary paper is theoretical and synthetic, granting perfect current-period correlation knowledge; the hidden clone adds an undisclosed nine-ETF history. Exact replay would invent the universe, causal estimator, lookback, fills, costs, and validation, so an ETF study is a new hypothesis.',
+};
+
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
   taskId: 'TC-257',
   auditDate: '2026-08-29',
@@ -2248,7 +2454,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
                           ? TC265_GOOD_CARRY_SOURCE_AUDIT
                           : candidate.id === RISK_FACTOR_PARITY_ID
                             ? TC266_RISK_FACTOR_PARITY_SOURCE_AUDIT
-                            : null;
+                            : candidate.id === FACTOR_TIMING_ID
+                              ? TC267_FACTOR_TIMING_SOURCE_AUDIT
+                              : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {
@@ -2292,8 +2500,10 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         stage: 'source-audited' as const,
         verdict: 'not-tested' as const,
         costStatus: 'unassessed' as const,
-        nextAction: tradeClawSourceAudit.taskId === 'TC-266'
-          ? 'Archive the exact-source no-go; any public risk-factor-parity implementation must begin as a separately hashed hypothesis with frozen universe, data, estimator, costs, folds, and holdout before returns.'
+        nextAction: tradeClawSourceAudit.taskId === 'TC-267'
+          ? 'Archive the exact-source no-go; any causal ETF correlation-timing study must begin as a separately hashed hypothesis with frozen universe, estimator, lookback, fills, costs, folds, and holdout before returns.'
+          : tradeClawSourceAudit.taskId === 'TC-266'
+            ? 'Archive the exact-source no-go; any public risk-factor-parity implementation must begin as a separately hashed hypothesis with frozen universe, data, estimator, costs, folds, and holdout before returns.'
           : tradeClawSourceAudit.taskId === 'TC-265'
             ? 'Archive the exact-source no-go; any new public-data currency-carry hypothesis must freeze immutable inputs, causal fills, complete costs, chronological folds, a post-publication holdout, and external falsification before returns.'
             : tradeClawSourceAudit.taskId === 'TC-264'

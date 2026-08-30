@@ -16,10 +16,10 @@ const STATUS_VALUES = [
   'modeled-historical-inconclusive',
 ] as const;
 
-const STATUS_COUNTS = [61, 49, 8, 1, 0, 3, 0] as const;
+const STATUS_COUNTS = [61, 48, 9, 1, 0, 3, 0] as const;
 const CLASSIFIER_COUNTS = STATUS_COUNTS.slice(1);
 const CATALOG_PLAIN_LANGUAGE_SUMMARY =
-  '61 candidates: 49 not tested by TradeClaw, 8 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.';
+  '61 candidates: 48 not tested by TradeClaw, 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.';
 
 interface EvidenceStatusOption {
   value: string;
@@ -172,7 +172,7 @@ describe('protected research catalog evidence-status filter', () => {
     ]);
     expect(payload.catalogEvidenceStateSummary).toMatchObject({
       totalCandidates: 61,
-      withTradeClawRecord: 12,
+      withTradeClawRecord: 13,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 58,
       plainLanguageSummary: CATALOG_PLAIN_LANGUAGE_SUMMARY,
