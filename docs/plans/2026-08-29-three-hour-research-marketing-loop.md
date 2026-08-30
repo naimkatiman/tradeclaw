@@ -94,6 +94,10 @@ rows in pinned source order with evidence status, gate-evaluated flag, decision
 date and summary, and exact public detail link. The JSON index remains the
 machine contract. It does not rank or recommend a strategy, publish a claim, or trade. It creates no evidence, receipt, marketing state, or authority.
 
+The human-readable index now leads each examined row to the human-readable exact
+record at `/api/research/intake/{candidateId}/brief.md`, with machine JSON kept
+as a separate link. This completes the human-readable index to human-readable exact record journey for all 61 canonical IDs. The exact brief renders only the safe public candidate projection and does not rank or recommend a strategy, publish a claim, or trade. It creates no evidence, receipt, marketing state, or authority.
+
 The authenticated human-readable research cycle brief at
 `/api/admin/research-intake/brief.md` renders that gate beside the shared
 `startHere` action, latest receipt, next review packet, and compact evidence

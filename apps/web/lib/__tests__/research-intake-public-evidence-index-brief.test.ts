@@ -60,8 +60,8 @@ describe('public human-readable examined-candidate index', () => {
 
     expect(replay).toBe(first);
     expect(fingerprint(first)).toEqual({
-      bytes: 10_122,
-      sha256: '2b87465affdd1329167a22bd664fb3d06386ba5aab595479e03dae7fb75b3444',
+      bytes: 11_853,
+      sha256: '5180ed5b7a95cdee714a649f82acd25cbe26773557852320bc1f40c968f44887',
     });
     expect(first).toContain('# TradeClaw examined-candidate index');
     expect(first).toContain(
@@ -89,7 +89,10 @@ describe('public human-readable examined-candidate index', () => {
       );
       expect(first).toContain(`- Decision: ${state.decisionSummary}`);
       expect(first).toContain(
-        `- Exact public record: \`${item.links.candidate}\``,
+        `- Human-readable record: [Read this record](${item.links.candidateBrief})`,
+      );
+      expect(first).toContain(
+        `- Machine-readable record: \`${item.links.candidate}\``,
       );
     }
 
@@ -207,16 +210,16 @@ describe('public human-readable examined-candidate index', () => {
       ),
     }).toEqual({
       compactItems: {
-        bytes: 11_709,
-        sha256: '14bc012f5b77cdd33c88e5fc4daf397845f5f6723bc81c2f450d82e5678b6964',
+        bytes: 13_050,
+        sha256: '5c9a212db38a963ccaa0d0305c7f102d4ad65a08feddb888cca860ea9d0601fd',
       },
       catalogRecords: {
-        bytes: 123_673,
-        sha256: '18826d9308cd8d7d9c936573e1f8cdbc24727e1fb6cf8bde0147f56718141a4f',
+        bytes: 130_682,
+        sha256: '46d16a3331dc0c863ddaa7f99778cc63d2a0292ba4ae24256c84c58bfb7ca049',
       },
       evidenceRecords: {
-        bytes: 66_742,
-        sha256: 'ea15952ebc48cdb48a61bf8f9a852febdc3734f745ba6cb47da8b5850299c98b',
+        bytes: 68_083,
+        sha256: '0539db65ddaf5c6dbdc139dcef9003d7c32160a9f0f3d373c12c30476a8e23b8',
       },
       publicCatalogCsv: {
         bytes: 37_418,

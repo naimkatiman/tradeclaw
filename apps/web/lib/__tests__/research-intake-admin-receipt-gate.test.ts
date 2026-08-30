@@ -190,12 +190,12 @@ describe('protected research receipt-slot gate', () => {
       ),
     }).toEqual({
       publicCatalog: {
-        bytes: 129_133,
-        sha256: '2cffd91df6034ef16f3eedcbd7edbeafbdc4c870a16d35fc632a8f4a78183f48',
+        bytes: 136_142,
+        sha256: '4e361c23e4b908e029190b9c20b13a76e4210bf0e6dbb264f25fc603e46f6da5',
       },
       publicEvidence: {
-        bytes: 74_703,
-        sha256: 'ffd4352689d4c69945ff8c2265a23dd21e03c1bbc59fdf4c25984a0dff72dd24',
+        bytes: 76_044,
+        sha256: '58291697bcc603bd17ecb71b28fb89e9c783dc8ba7acb5eb1cca8fed6a794277',
       },
       publicCatalogCsv: {
         bytes: 37_418,

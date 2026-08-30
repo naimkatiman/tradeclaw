@@ -121,8 +121,8 @@ describe('protected packet-first startHere action', () => {
         sha256: 'ad38ae1c4caa50b7e21afd524e8ff188346b34cee535e108f9245de0722d5870',
       },
       publicIndex: {
-        bytes: 19_649,
-        sha256: 'af7a440f6306d82ab2fac0935ce7444ee93d8cb68e92cbac22113cfedf137431',
+        bytes: 20_990,
+        sha256: '7ffa524ec8648f5b4274ae3b24a12c937f1fff388cf736b43f981d932893859d',
       },
       publicCatalogCsv: {
         bytes: 37_418,

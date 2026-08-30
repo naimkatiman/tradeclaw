@@ -116,7 +116,7 @@ describe('protected research catalog record links', () => {
     );
   });
 
-  it('keeps protected links catalog-only while public rows get only public detail links', () => {
+  it('keeps protected links catalog-only while public rows get JSON and human detail links', () => {
     const candidate = buildResearchIntakeAdminCandidatePayload(
       TC261_CANDIDATE_ID,
       OBSERVED_AT,
@@ -138,6 +138,7 @@ describe('protected research catalog record links', () => {
     expect(publicCatalog.records.every((record) => (
       JSON.stringify(record.links) === JSON.stringify({
         candidate: `/api/research/intake/${encodeURIComponent(record.id)}`,
+        candidateBrief: `/api/research/intake/${encodeURIComponent(record.id)}/brief.md`,
       })
     ))).toBe(true);
     expect(JSON.stringify(publicCatalog.records.map((record) => record.links))).not.toContain(

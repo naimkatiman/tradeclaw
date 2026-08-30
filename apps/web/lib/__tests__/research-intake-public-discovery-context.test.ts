@@ -32,7 +32,7 @@ const EXPECTED_RESOURCES = {
 
 interface PublicRecordView {
   id: string;
-  links?: { candidate: string };
+  links?: { candidate: string; candidateBrief: string };
 }
 
 interface PublicContextView {
@@ -130,15 +130,22 @@ describe('public research-intake discovery context', () => {
     for (const record of catalogRecords) {
       expect(record.links).toEqual({
         candidate: `/api/research/intake/${encodeURIComponent(record.id)}`,
+        candidateBrief: `/api/research/intake/${encodeURIComponent(record.id)}/brief.md`,
       });
       expect(record.links?.candidate).not.toContain('?');
+      expect(record.links?.candidateBrief).not.toContain('?');
     }
     expect(new Set(catalogRecords.map((record) => record.links?.candidate)).size).toBe(61);
     expect(records(evidence).every((record) => (
       record.links?.candidate === `/api/research/intake/${encodeURIComponent(record.id)}`
+      && record.links?.candidateBrief
+        === `/api/research/intake/${encodeURIComponent(record.id)}/brief.md`
     ))).toBe(true);
     expect((candidate.record as unknown as PublicRecordView).links?.candidate).toBe(
       candidate.navigation.selfHref,
+    );
+    expect((candidate.record as unknown as PublicRecordView).links?.candidateBrief).toBe(
+      `${candidate.navigation.selfHref}/brief.md`,
     );
   });
 
@@ -214,16 +221,16 @@ describe('public research-intake discovery context', () => {
         sha256: '808a2195004f110f780f913ede5bfc4cf637a2ecddb7773dc5f3e3fd53851d0b',
       },
       recordLinks: {
-        bytes: 11_335,
-        sha256: '6b4721b769db3cb6bd033c6b8d9d01c850db1f387ebdf33446fd14dccca0a06c',
+        bytes: 18_344,
+        sha256: 'bec6946454c77f5f874a73325db60718ec08c40342b237671280f0f02de07522',
       },
       catalog: {
-        bytes: 129_133,
-        sha256: '2cffd91df6034ef16f3eedcbd7edbeafbdc4c870a16d35fc632a8f4a78183f48',
+        bytes: 136_142,
+        sha256: '4e361c23e4b908e029190b9c20b13a76e4210bf0e6dbb264f25fc603e46f6da5',
       },
       evidence: {
-        bytes: 74_703,
-        sha256: 'ffd4352689d4c69945ff8c2265a23dd21e03c1bbc59fdf4c25984a0dff72dd24',
+        bytes: 76_044,
+        sha256: '58291697bcc603bd17ecb71b28fb89e9c783dc8ba7acb5eb1cca8fed6a794277',
       },
     });
   });

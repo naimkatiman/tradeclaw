@@ -342,13 +342,20 @@ export function buildOpenApiSpec(): OpenApiSpec {
         },
         ResearchIntakePublicRecordLinks: {
           type: "object",
-          description: "Canonical public detail link for one exact candidate ID.",
-          required: ["candidate"],
+          description:
+            "Canonical machine-readable and human-readable public detail links for one exact candidate ID.",
+          required: ["candidate", "candidateBrief"],
           properties: {
             candidate: {
               type: "string",
               example:
                 "/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation",
+            },
+            candidateBrief: {
+              type: "string",
+              description: "Deterministic human-readable Markdown for the same exact candidate.",
+              example:
+                "/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation/brief.md",
             },
           },
         },
@@ -1380,6 +1387,56 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/Error" },
                   example: { error: "Research intake candidate not found." },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/api/research/intake/{candidateId}/brief.md": {
+        get: {
+          tags: ["Research"],
+          operationId: "getResearchIntakeCandidateBrief",
+          summary: "Read one systematic-research candidate as Markdown",
+          description:
+            "Returns one human-readable canonical candidate and its safe evidence interpretation using exact, case-sensitive ID matching. " +
+            "No API key is required. The Markdown retains pinned source order, upstream gross-discovery boundaries, existing decision context, repository evidence paths, and previous/next human navigation without exposing admin workflow or granting publication, strategy-selection, broadcast, or trading authority.",
+          security: [],
+          parameters: [
+            {
+              name: "candidateId",
+              in: "path",
+              required: true,
+              description:
+                "Exact canonical candidate ID from a public record link; aliases, task IDs, titles, case changes, and surrounding whitespace are not accepted.",
+              schema: {
+                type: "string",
+                example: "a-risk-based-approach-to-tactical-asset-allocation",
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "One pinned public research candidate as deterministic Markdown",
+              content: {
+                "text/markdown": {
+                  schema: {
+                    type: "string",
+                    description:
+                      "Deterministic UTF-8 Markdown derived from the exact safe public candidate projection.",
+                  },
+                },
+              },
+            },
+            "404": {
+              description: "No candidate has that exact canonical ID",
+              content: {
+                "text/markdown": {
+                  schema: {
+                    type: "string",
+                    example:
+                      "# Research intake candidate not found\n\nResearch intake candidate not found. Use an exact canonical candidate ID.\n",
+                  },
                 },
               },
             },

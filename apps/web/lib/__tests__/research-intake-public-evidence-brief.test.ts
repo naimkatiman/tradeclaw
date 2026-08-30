@@ -168,16 +168,16 @@ describe('public human-readable research evidence brief', () => {
       candidateRecord: fingerprint(candidate?.record ?? null),
     }).toEqual({
       catalogRecords: {
-        bytes: 123_673,
-        sha256: '18826d9308cd8d7d9c936573e1f8cdbc24727e1fb6cf8bde0147f56718141a4f',
+        bytes: 130_682,
+        sha256: '46d16a3331dc0c863ddaa7f99778cc63d2a0292ba4ae24256c84c58bfb7ca049',
       },
       evidenceRecords: {
-        bytes: 66_742,
-        sha256: 'ea15952ebc48cdb48a61bf8f9a852febdc3734f745ba6cb47da8b5850299c98b',
+        bytes: 68_083,
+        sha256: '0539db65ddaf5c6dbdc139dcef9003d7c32160a9f0f3d373c12c30476a8e23b8',
       },
       candidateRecord: {
-        bytes: 6_301,
-        sha256: 'b044e386a43cc02041086e90680ee50817c47590bb98894ebc9558dfbc8e03e3',
+        bytes: 6_381,
+        sha256: 'd7e7e4673e5dd033e24bed4fcb46cf28ce95c5b2040a9a849c5a5a8a0d025dac',
       },
     });
   });

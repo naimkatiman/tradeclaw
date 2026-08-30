@@ -22,7 +22,8 @@ function renderEvidenceItem(
     `- Performance gates evaluated: ${state.performanceGatesEvaluated ? 'Yes' : 'No'}`,
     `- Decision record: \`${state.taskId}\` on \`${state.evidenceRecordedOn}\``,
     `- Decision: ${state.decisionSummary}`,
-    `- Exact public record: \`${item.links.candidate}\``,
+    `- Human-readable record: [Read this record](${item.links.candidateBrief})`,
+    `- Machine-readable record: \`${item.links.candidate}\``,
     '',
   ];
 }

@@ -44,6 +44,7 @@ const RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS = SYSTEMATIC_RESEARCH_INTAKE.filte
 
 export interface ResearchIntakePublicRecordLinks {
   candidate: string;
+  candidateBrief: string;
 }
 
 export type ResearchIntakePublicRecord = Omit<
@@ -150,6 +151,8 @@ function evidenceBasisFor(record: ResearchIntakeRecord): ResearchIntakePublicEvi
 }
 
 function toPublicRecord(record: ResearchIntakeRecord): ResearchIntakePublicRecord {
+  const candidate = buildResearchIntakeCandidateHref(record.id, 'public');
+
   // Deliberate allow-list: adding an admin field to ResearchIntakeRecord cannot
   // silently expose it through this public read model.
   return {
@@ -169,7 +172,8 @@ function toPublicRecord(record: ResearchIntakeRecord): ResearchIntakePublicRecor
     evidenceBasis: evidenceBasisFor(record),
     evidenceState: buildResearchIntakeEvidenceState(record),
     links: {
-      candidate: buildResearchIntakeCandidateHref(record.id, 'public'),
+      candidate,
+      candidateBrief: `${candidate}/brief.md`,
     },
     tradeClawSourceAudit: record.tradeClawSourceAudit,
     tradeClawEvidence: record.tradeClawEvidence,

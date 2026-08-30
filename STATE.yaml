@@ -1,11 +1,172 @@
 project: tradeclaw
-updated: 2026-08-30T22:25:02+08:00
+updated: 2026-08-30T22:51:46+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_public_candidate_brief_2026_08_30:
+  at: 2026-08-30T22:30:58+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Complete the public human journey with one deterministic exact-candidate Markdown record instead of sending a reader from the human evidence index into raw JSON
+  branch: agent/research-intake-desk-20260829
+  base_commit: ce0d84e2db44ac04771ab10561738927805984c3
+  cycle_id: 2026-08-30T12:00:00.000Z/PT3H
+  receipt_neutral: true
+  new_research_receipt: false
+  observed_at: 2026-08-30T14:28:19.723Z
+  gate_snapshot: >-
+    TC-267 remains the sole current-window and latest receipt. The explicit
+    gate is wait-for-next-window until exact 2026-08-30T15:00:00.000Z. Twelve
+    receipts occupy 11 windows with only the expected historical duplicate.
+    Four drafts remain manual-review-ready, zero are approved, TC-255 remains
+    next, and automatic selection, receipt creation, publication, posting, and
+    trading controls remain false.
+  audit_basis: >-
+    The public orientation and source-ordered human evidence index are now
+    understandable without JSON, but every examined candidate's exact public
+    destination is still a code-formatted JSON path. A reader must copy the
+    path and parse the full nested candidate projection to learn one decision.
+    A deterministic exact Markdown record for all 61 canonical candidates is
+    the highest-value receipt-neutral journey completion: the 13 examined rows
+    can link to it directly, untouched discoveries remain honestly readable,
+    and the JSON contract stays available separately.
+  shared_library_search: No reusable human-readable candidate brief, evidence-detail Markdown record, or public research-detail workflow was found under the shared MemoryCore library
+  intended_contract:
+    route: /api/research/intake/{candidateId}/brief.md
+    method: GET only
+    format: deterministic UTF-8 Markdown
+    source: exact safe public candidate projection
+    canonical_ids: exact and case-sensitive for all 61 pinned candidates
+    content:
+      - title, asset class, one-based pinned source position, and upstream source link
+      - evidence label and meaning, gate-evaluated flag, stage, verdict, and cost status
+      - exact existing task, date, and decision summary when a TradeClaw record exists
+      - explicit no-decision statement for untouched discoveries
+      - upstream gross discovery metrics with a non-ranking boundary
+      - canonical repository evidence paths when present
+      - human index, machine JSON, and previous/next human navigation
+      - explicit read-only, no-recommendation, no-publication, no-broadcast, and no-trading boundary
+    public_record_discovery: candidateBrief on every public record link map
+    human_index_handoff: human-readable record first and machine-readable JSON second
+    unknown_id: generic non-reflective Markdown 404
+    openapi_documented: true
+    cache_control: public one-hour edge cache with stale-while-revalidate
+    authentication_required: false
+    mutation_supported: false
+  boundary_audit: >-
+    The brief must render only the existing exact public projection. Adding the
+    candidateBrief link may change public link objects and derived payload
+    fingerprints, but it must not change source records, evidence meaning,
+    compact item bodies, catalog/evidence record bodies, overview/resources,
+    CSVs, protected workflow, rendered UI, database, migrations, Compose,
+    billing, signals, brokers, execution, or trading behavior.
+  baseline_immutable_fingerprints:
+    source_records: 93140 bytes / 4ad2dfe02ba0f68f1f000f24f03fd8802a712a485909d34069060b7097c683e9
+    catalog_record_bodies_without_links: 116908 bytes / 081e897581b02b318f4c6d74fd8a5a7edaff47160a33ae1ea3c04c6026b3b3b7
+    evidence_record_bodies_without_links: 65453 bytes / ae64874074790dff3d10d1c65b7973751eec8b7cafaf3ed646433a3e9d572d39
+    compact_item_bodies_without_links: 10420 bytes / f348393a3e3cfbf6691bbca6a026589c0aa8d652515453f841da2ee0b40deada
+    public_overview: 7749 bytes / ad38ae1c4caa50b7e21afd524e8ff188346b34cee535e108f9245de0722d5870
+    public_resources: 374 bytes / c2ab8ff38c715b07414a0ddcdd73b0e7f016c0eac9e66db17caca18d784c3323
+    public_catalog_csv: 37418 bytes / 2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f
+    public_evidence_csv: 9138 bytes / e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941
+    protected_evidence_csv: 19965 bytes / e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f
+    protected_review_csv: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  red_contract:
+    file: apps/web/lib/__tests__/research-intake-public-candidate-brief.test.ts
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-public-candidate-brief.test.ts --silent
+    result: EXPECTED_RED - 5/6 tests failed; the immutable source/evidence-body, summary/resource, and all-CSV boundary passed
+    proves: >-
+      The exact Markdown builder is absent, public record links do not advertise
+      a human candidate, the examined-candidate index still hands people to raw
+      JSON, the exact-ID Markdown route and canonical OpenAPI operation are
+      absent, and README/loop documentation does not define the end-to-end
+      human journey. Source records, evidence meaning, compact/catalog/evidence
+      bodies without links, overview/resources, and all four CSVs stayed frozen.
+  implementation:
+    builder: apps/web/lib/research-intake-public-candidate-brief.ts
+    route: apps/web/app/api/research/intake/[candidateId]/brief.md/route.ts
+    source: exact safe public candidate projection
+    coverage: all 61 exact case-sensitive canonical candidate IDs
+    public_record_discovery: candidateBrief beside candidate on every public record link map
+    human_index_handoff: clickable human-readable record first, machine-readable JSON second
+    canonical_openapi: /api/research/intake/{candidateId}/brief.md with text/markdown success and generic not-found responses
+    unknown_id_reflected: false
+    cache_control: public one-hour edge cache with stale-while-revalidate
+    public_evidence_meaning_change: false
+    csv_change: false
+    protected_payload_change: false
+    rendered_ui_change: false
+    mutation_supported: false
+  route_contract: apps/web/app/api/research/intake/[candidateId]/brief.md/__tests__/route.test.ts
+  first_green_refinement: The builder, all-61 rendering, link discovery, route source contract, OpenAPI, and immutable bodies/CSVs passed 5/6 checks; the sole failure was README using equivalent neither-surface-ranks wording instead of the explicit does-not-rank safety phrase, so the boundary sentence was normalized without changing behavior
+  focused_green:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-public-candidate-brief.test.ts apps/web/app/api/research/intake/[candidateId]/brief.md/__tests__/route.test.ts --silent
+    result: PASS - 2 suites and 10 tests cover all 61 exact candidate states, deterministic replay, self-describing links, human-first index handoff, real success/query/not-found/GET-only route behavior, OpenAPI, documentation, and immutable evidence/CSV boundaries
+  first_adjacent_run: EXPECTED_LINK_AND_OPENAPI_FIXTURE_DRIFT - 47/59 suites and 354/368 tests passed; all 14 failures were explicit frozen expectations for the intentional candidateBrief link-map, human-index handoff, derived public payload, or canonical OpenAPI changes. Protected workflow and summaries, source records, catalog/evidence/compact bodies without links, and every public/protected CSV remained green.
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps.web.lib.__tests__.(research-intake|research-loop|research-marketing)|scripts.research.__tests__.research-marketing).*test.ts$" --silent
+    result: PASS - 59 suites and 368 tests across public/protected intake, deterministic projections, exact candidate records, evidence interpretation, candidate navigation, receipt timing, review workflow, marketing, owner decisions, publication-request safety, and both human Markdown surfaces
+  route_and_auth_green:
+    command: npm test -- --runInBand apps/web/app/api/research/intake apps/web/app/api/admin/research-intake --silent
+    result: PASS - 31 suites and 113 tests cover every public/protected research-intake JSON, CSV, Markdown, YAML, exact-item, packet, overview, evidence, review, cache, query-neutrality, GET-only, real-cookie, malformed-cookie, and auth-first boundary
+  targeted_verification:
+    pinned_source: PASS - all 61 candidates reconstruct at source commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+    review_evidence: PASS - 4/4 review manifests and 12/12 preregistration, result, and artifact files match exact normalized bytes and SHA-256 bindings; the verifier grants neither review completion, publication authority, nor trading authority
+    web_typecheck: PASS
+    changed_file_lint: PASS - all 19 changed or new web implementation and contract files have zero warnings or errors
+  lint_invocation_refinement: The first changed-file lint command was launched from the monorepo root, which intentionally has no ESLint 9 flat config; rerunning the identical 19-file scope from apps/web used the canonical configuration and exposed one test-helper unused-variable warning, which was removed and rechecked with its 6/6 focused contract still green
+  full_lint: PASS - zero errors and 21 inherited warnings; no warning points to this increment
+  full_repository_tests: PASS - 338 runnable suites, 2427 tests, and 1 snapshot; 3 suites and 26 tests skipped. The inherited post-summary Jest open handle was manually terminated only after Jest printed the complete passing totals.
+  production_build: PASS - signals and trading-agents built, Next.js compiled, the exact candidate Markdown route appears as a dynamic read-only endpoint, and 333/333 static pages generated; only inherited middleware, Turbopack trace, url.parse, and edge-runtime warnings remained
+  deterministic_candidate_briefs:
+    all_61_id_and_brief_pairs: 144350 bytes / 4de0cdea57d5ac9645742082249410de5e515c1d1d72e3ff686a3ed4f511ba5e
+    untouched_example: 1917 bytes / d1852dc5eee89fb9927166fccdcce3c1bdc8b8d7e7d0f024637bbfb58c7e33f7
+    source_audit_example: 2229 bytes / c4784ec12c68f740d131ae00c573fb670399ad546e090c89815ffee8e00541da
+    qa_only_example: 2611 bytes / ef17ef3e0b3f24abd72e167e8321c3a511819333637d4bc5598d6be7ca9c6b1d
+    modeled_fail_example: 2540 bytes / 36d7f484f532a9460cb29600cbcb54ae94c0f4562654db66a4e2ac59fc795bb8
+    last_candidate_example: 2087 bytes / b2a789aa91d0377828f32c6287f357da5884ad73483337a53c2ff8281d77928c
+    human_evidence_index: 11853 bytes / 5180ed5b7a95cdee714a649f82acd25cbe26773557852320bc1f40c968f44887
+    all_61_public_link_maps: 13287 bytes / 957a66e1dda4f057304512d8b666350b1c153e3f8d51eb4a18bd94ceec049dce
+    all_13_evidence_index_link_maps: 2527 bytes / 469987b2e9f106712e97aa650bbfea2f2e8e311ad0f9428e1d5d86203cf9b99a
+    replay: PASS - exact fingerprint assertions pass for the whole 61-candidate corpus, four evidence-state examples plus the last row, the human index, and both public link collections
+  derived_public_surfaces:
+    public_catalog: 136142 bytes / 4e361c23e4b908e029190b9c20b13a76e4210bf0e6dbb264f25fc603e46f6da5
+    public_evidence: 76044 bytes / 58291697bcc603bd17ecb71b28fb89e9c783dc8ba7acb5eb1cca8fed6a794277
+    public_compact_evidence_index: 20990 bytes / 7ffa524ec8648f5b4274ae3b24a12c937f1fff388cf736b43f981d932893859d
+    public_catalog_record_array: 130682 bytes / 46d16a3331dc0c863ddaa7f99778cc63d2a0292ba4ae24256c84c58bfb7ca049
+    public_evidence_record_array: 68083 bytes / 0539db65ddaf5c6dbdc139dcef9003d7c32160a9f0f3d373c12c30476a8e23b8
+    compact_evidence_items: 13050 bytes / 5c9a212db38a963ccaa0d0305c7f102d4ad65a08feddb888cca860ea9d0601fd
+    tc260_exact_public_payload: 10042 bytes / 497ed3ad63b4c988101ef5dec01d15950aef582db2c1908b89f61b9ff1166651
+    tc267_public_record: 6381 bytes / d7e7e4673e5dd033e24bed4fcb46cf28ce95c5b2040a9a849c5a5a8a0d025dac
+    all_public_record_links_with_ids: 18344 bytes / bec6946454c77f5f874a73325db60718ec08c40342b237671280f0f02de07522
+    canonical_openapi: 43594 bytes / 62e194e0f55164821b4689d9bf9a8a7f400afb52494d48e4378889455a40ddfb
+  integrity_audit:
+    deterministic_replay: PASS - focused builder and real route replay remained 2/2 suites and 10/10 tests after broad verification
+    yaml_parse: PASS
+    diff_check: PASS
+    changed_path_scope: PASS - only the candidate brief implementation, route, exact related contracts, public documentation, operating plan, and STATE are changed
+    docker_compose_unchanged: true
+  final_gate_recheck:
+    observed_at: 2026-08-30T14:51:46.804Z
+    current_window: 2026-08-30T12:00:00.000Z/PT3H
+    current_window_status: complete
+    sole_current_and_latest_receipt: TC-267
+    gate_status: wait-for-next-window
+    next_available_at: 2026-08-30T15:00:00.000Z
+    next_available_window: 2026-08-30T15:00:00.000Z/PT3H
+    receipt_integrity: 12 receipts / 11 unique windows / expected historical duplicate only / no additional duplicates
+    marketing_review: 4 drafts / 0 publication approvals / TC-255 remains next
+    automatic_actions: candidate selection, receipt creation, publication, posting, and trading remain false
+    action_taken: none - this increment remains receipt-neutral and does not open an early research receipt
+  documentation:
+    - README public human journey, self-describing link map, and exact curl example
+    - three-hour operating plan exact human-record and non-authorizing boundary
+  external_actions: none
+  next_step: Stage only this verified receipt-neutral increment and create a local implementation commit; do not push, deploy, publish, post, activate execution, or create a research receipt.
 
 research_public_evidence_index_brief_2026_08_30:
   at: 2026-08-30T22:25:02+08:00
