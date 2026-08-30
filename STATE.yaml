@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T21:58:00+08:00
+updated: 2026-08-30T21:57:30+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_public_evidence_brief_2026_08_30:
-  at: 2026-08-30T21:58:00+08:00
+  at: 2026-08-30T21:57:30+08:00
   agent: TradeClaw PM agent
-  status: ready_to_commit
+  status: done_verified_implementation_committed_local
   scope: Add one public human-readable evidence brief so a user can understand the pinned cost-first record, preregistration workflow, adverse results, and safe next resource without composing the public JSON graph
   branch: agent/research-intake-desk-20260829
   base_commit: 77ef8317b961ff8672334a3f56d6fa95f7a7796c
+  implementation_commit: c7671b6928ba74857f29e5465d0ca7b8d0be2a39
   cycle_id: 2026-08-30T12:00:00.000Z/PT3H
   receipt_neutral: true
   new_research_receipt: false
@@ -157,8 +158,9 @@ research_public_evidence_brief_2026_08_30:
   diff_integrity: PASS - STATE parses as YAML and git diff --check reports no whitespace errors; only the repository's existing Windows LF-to-CRLF notices appear
   compose_preservation: PASS - no Compose or Dockerfile path changed; Docker CLI remains unavailable locally, so no container runtime check was possible
   staged_audit: PASS - exactly the verified 20 paths are staged, with zero unstaged or untracked paths and no staged whitespace error
+  implementation_commit_audit: PASS - the verified 20-path implementation committed locally as c7671b6928ba74857f29e5465d0ca7b8d0be2a39 on the intended isolated branch, leaving only this STATE closure update
   external_actions: none
-  next_step: Commit the staged implementation locally, then record its full commit SHA and final clean-worktree audit in a STATE-only closure commit.
+  next_step: Preserve the one-receipt-per-window gate; the next research-intake slot opens at exact 2026-08-30T15:00:00.000Z for 2026-08-30T15:00:00.000Z/PT3H, while TC-255 remains the next manual marketing-review packet.
 
 research_admin_cycle_brief_2026_08_30:
   at: 2026-08-30T21:29:00+08:00
