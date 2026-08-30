@@ -33,7 +33,7 @@ async function main(): Promise<void> {
     if (!report.ok) process.exitCode = 1;
   } catch (error) {
     process.stderr.write(`${JSON.stringify({
-      schemaVersion: 1,
+      schemaVersion: 2,
       ok: false,
       scope: 'completed-review-handoff-and-repository-evidence',
       error: errorMessage(error),

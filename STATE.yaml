@@ -1,11 +1,178 @@
 project: tradeclaw
-updated: 2026-08-30T18:02:47+08:00
+updated: 2026-08-30T18:20:07+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_owner_decision_request_2026_08_30:
+  at: 2026-08-30T18:06:29+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_implementation_commit_pending
+  scope: Turn a valid completed-review handoff into one outcome-aware next step and a digest-bound non-authorizing owner-decision request only when the reviewer marks it ready
+  base_commit: a224030e8e8565d29c6e4bcc9ae03c827cb5b93c
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T09:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-266
+  current_cycle_ends_at: 2026-08-30T12:00:00.000Z
+  observed_at: 2026-08-30T10:06:29.917Z
+  receipt_neutral: true
+  new_research_receipt: false
+  audit_basis: >-
+    The completed-handoff validator now proves structure and current evidence,
+    but every valid outcome still ends as one undifferentiated report. An admin
+    must infer whether to archive a rejected draft, return a revision, or send
+    a ready handoff to a separate owner workflow. The report also lacks one
+    compact request bound to the exact completed-file SHA-256, evidence manifest,
+    reviewer, outcome, and protected packet links.
+  selected_improvement:
+    report_schema_version: 2
+    workflow_statuses:
+      - invalid-handoff
+      - draft-rejected
+      - revision-required
+      - ready-for-separate-owner-decision
+    owner_request_emitted_only_for: ready-for-separate-owner-decision
+    owner_request_status: request-for-separate-owner-decision-not-recorded
+    binds:
+      - task and candidate IDs
+      - exact completed-handoff SHA-256
+      - pinned evidence-manifest SHA-256
+      - reviewer and reviewedAt
+      - non-approving review outcome and notes
+      - protected exact-review and packet links
+    records_review_completion: false
+    records_owner_decision: false
+    publication_approved: false
+    automatic_publication: false
+    automatic_posting: false
+    grants_publication_authority: false
+    grants_trading_authority: false
+    external_actions: none
+  red_contract:
+    test: scripts/research/__tests__/research-marketing-review-owner-decision-request.test.ts
+    expected_failure: Validator report has no outcome-aware workflow, no digest-bound owner-decision request, and no documented three-way admin next step
+    command: npm test -- --runInBand scripts/research/__tests__/research-marketing-review-owner-decision-request.test.ts
+    result: PASS - 6/7 tests failed only on the intentionally absent report schema v2, invalid/rejected/revision/ready routing, digest-bound owner request, deterministic binding, and documentation; the queue/public/CSV exclusion boundary already passed
+  implementation:
+    validator: scripts/research/research-marketing-review-handoff-validator.ts
+    report_schema_version: 2
+    workflow:
+      invalid-handoff: Correct issues and rerun validation; no owner request
+      draft-rejected: Archive or begin a separately reviewed revision; no owner request
+      revision-required: Revise, redownload, and repeat manual review; no owner request
+      ready-for-separate-owner-decision: Emit one digest-bound request for a separate owner workflow
+    owner_request:
+      schema_version: 1
+      status: request-for-separate-owner-decision-not-recorded
+      emitted_only_after_complete_handoff_and_green_evidence_verification: true
+      completed_handoff_sha256_matches_report_source_sha256: true
+      evidence_manifest_sha256_bound: true
+      protected_links_only: true
+      owner_decision_recorded: false
+      publication_approved: false
+      automatic_publication: false
+      automatic_posting: false
+      grants_publication_authority: false
+      grants_trading_authority: false
+      external_actions: none
+  focused_green:
+    command: npm test -- --runInBand scripts/research/__tests__/research-marketing-review-owner-decision-request.test.ts scripts/research/__tests__/research-marketing-review-handoff-validator.test.ts
+    result: PASS - 2 suites and 24 tests cover all workflow outcomes, request binding, deterministic replay, documentation, validator regression, and exclusion boundaries
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps/web/lib/__tests__/(research-intake|research-loop|research-marketing)|scripts/research/__tests__/research-marketing).*\\.test\\.ts$"
+    result: PASS - 49 suites and 274 tests
+  targeted_verification:
+    routes_and_auth: PASS - 26 suites and 99 tests
+    pinned_source: PASS - 61/61 candidates reconstructed at the exact source commit and README hash
+    review_manifests: PASS - 4/4 tasks and 12/12 repository evidence files
+    web_typecheck: PASS - npm run typecheck:web
+    lint: PASS - zero errors and 21 inherited warnings
+    note: The first route selector matched zero tests because its Windows separators were interpreted as regex escapes; the corrected separator-neutral selector passed the intended 26 suites.
+  full_repository_tests: PASS - 323 runnable suites and 2319 tests; 3 suites and 26 tests skipped; 1 snapshot passed; inherited open handle force-exited after results
+  production_build: PASS - shared packages compiled and Next.js generated 331/331 pages with inherited middleware, Turbopack trace, edge-runtime, and url.parse warnings
+  deterministic_ready_replay:
+    completed_handoff_bytes: 2873
+    completed_handoff_sha256: ab5d5cde797d6d4fd9cea117f7ec4bb40aec4e2f4fdd3416426f7527a308f98e
+    workflow_bytes: 1113
+    workflow_sha256: 7bc290973468f7819d29520b45c4b1aaeb329af1eba66d00f5baec41be0e06c5
+    report_ok: true
+    report_schema_version: 2
+    owner_decision_recorded: false
+    publication_approved: false
+    external_actions: none
+  deterministic_surfaces:
+    exact_review_tc255:
+      bytes: 17044
+      sha256: cdb912f2354947ac16f53f3ae1d5e4187d55497ecbf9b521b1d565f23287fd23
+    packet_tc255:
+      bytes: 11286
+      sha256: b196b34b8bacb345d3f1ed17227e88ef16ec3a59982ebc593919f8ffd651bb08
+    blank_handoff_tc255:
+      bytes: 2599
+      sha256: 02999fc3e7f0600e6ea114e756077649450c9af189ad0c4d9ad5ffb0051c1658
+    review_queue_unchanged:
+      bytes: 31246
+      sha256: 15f5f52438a2d4a71b3df43cec0a51b240b4f920a74694af7084f551ea8280fe
+    public_overview_unchanged:
+      bytes: 7637
+      sha256: 936a0c45f0fa25acbc315ed59edf6776971e882e454344e05355bd0d37184741
+    public_evidence_index_unchanged:
+      bytes: 18666
+      sha256: af8de9048e234af09552cdb7c5276905e5fb4d2bab54e5c600bccdb163d0b1c9
+    public_catalog_csv_unchanged:
+      bytes: 37314
+      sha256: 9a8673a9d7ff14c6ec05f4bf3da6e94e8af0eb51220400dbd2fba6dbca371e04
+    public_evidence_csv_unchanged:
+      bytes: 8557
+      sha256: be4d757a87c8d7903ef5c9f9ab34bbea6764f7d92fe4d3cd66db71b5faea08bf
+    protected_review_csv_unchanged:
+      bytes: 7094
+      sha256: c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  final_gate_observed_at: 2026-08-30T10:18:35.308Z
+  final_gate_snapshot: >-
+    Complete with TC-266 still the sole current-window and latest receipt, 11
+    total receipts across 10 windows, only the expected 06:00Z legacy duplicate,
+    no additional duplicate, four unchanged marketing handoffs, no TC-266
+    handoff, and automatic candidate selection, publication, posting, and
+    trading false.
+  implementation_file_integrity:
+    validator:
+      bytes: 21478
+      sha256: 198beb98ba93c2af2ae45b5c794eb9fc15c89e023b77252ab6d39ee5f9edee56
+    cli:
+      bytes: 1610
+      sha256: 8ada9aff2bbf390d6137f65ecf1b5ae75a8cdb43765e2685438da6b69c1576ad
+    owner_request_test:
+      bytes: 9262
+      sha256: bc8a37ba1bfe30cef7571d00372bf5641947d17f765df56fa2efbde98f53dd81
+    validator_regression_test:
+      bytes: 14526
+      sha256: c3376da569ab55edfe3f124670f8ac8c94f8701d26f04a08dd3e4e9f96226f00
+  final_verification:
+    focused: PASS - 2 suites and 24 tests
+    adjacent_libraries_and_scripts: PASS - 49 suites and 274 tests
+    research_routes_and_auth: PASS - 26 suites and 99 tests
+    pinned_source: PASS - 61/61 candidates reconstructed at the exact source commit and README hash
+    review_manifests: PASS - 4/4 tasks and 12/12 repository evidence files
+    web_typecheck: PASS - npm run typecheck:web
+    lint: PASS - zero errors and 21 inherited warnings
+    full_repository_tests: PASS - 323 runnable suites and 2319 tests; 3 suites and 26 tests skipped; 1 snapshot passed; inherited open handle force-exited after results
+    production_build: PASS - shared packages compiled and Next.js generated 331/331 pages with inherited middleware, Turbopack trace, edge-runtime, and url.parse warnings
+    deterministic_replay: PASS - ready handoff and owner request replayed byte-identically with hashes recorded above
+    protected_and_public_surfaces: PASS - exact review, packet, blank handoff, queue, public compact projections, and CSV exports match their frozen hashes
+    state_and_diff: PASS - STATE parses and git diff check has no whitespace errors apart from Windows line-ending notices
+    scope_and_cleanup: PASS - exactly seven intended files changed and no temporary completed-handoff, owner-decision, tmp, or temp artifact remains
+    compose: PASS - no Docker Compose path changed; Docker CLI remains unavailable for an additional local runtime check
+  safety: >-
+    This is a local read-only request object, not a decision, approval, queue
+    mutation, post, publication action, signal change, broker instruction, or
+    execution authority. Public, compact, CSV, receipt, rendered UI, Docker,
+    billing, and trading surfaces must remain unchanged.
+  next_action: Commit the seven intended files locally, record the exact implementation hash, then close state in a second local commit without pushing or deploying.
 
 research_admin_completed_handoff_validator_2026_08_30:
   at: 2026-08-30T17:41:37+08:00
@@ -143,7 +310,7 @@ research_admin_completed_handoff_validator_2026_08_30:
     outcome, publish or post a draft, alter the sole TC-266 receipt, expose the
     protected workflow publicly, or authorize signals, brokers, execution, or
     trading.
-  next_action: Commit this exact state closure, save both local commit hashes to shared MemoryCore, and keep the recurring goal active behind the exact 2026-08-30T12:00:00.000Z intake gate; do not push, deploy, publish, post, or trade.
+  next_action: Keep the verified validator contract unchanged while the receipt-neutral owner-decision-request slice advances; keep the recurring goal active behind exact `2026-08-30T12:00:00.000Z` and do not push, deploy, publish, post, or trade.
 
 research_risk_factor_parity_source_audit_2026_08_30:
   at: 2026-08-30T17:09:08+08:00

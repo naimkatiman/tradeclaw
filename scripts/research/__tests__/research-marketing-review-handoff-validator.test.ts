@@ -41,7 +41,7 @@ interface ValidationIssue {
 }
 
 interface ValidationReport {
-  schemaVersion: 1;
+  schemaVersion: 2;
   ok: boolean;
   scope: 'completed-review-handoff-and-repository-evidence';
   source: {
@@ -183,7 +183,7 @@ describe('completed research marketing-review handoff validator', () => {
     });
 
     expect(report).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       ok: true,
       scope: 'completed-review-handoff-and-repository-evidence',
       review: {

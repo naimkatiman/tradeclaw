@@ -25,8 +25,45 @@ export interface ResearchMarketingReviewHandoffValidationIssue {
   message: string;
 }
 
-export interface ResearchMarketingReviewHandoffValidationReport {
+export type ResearchMarketingReviewHandoffWorkflowStatus =
+  | 'invalid-handoff'
+  | 'draft-rejected'
+  | 'revision-required'
+  | 'ready-for-separate-owner-decision';
+
+export interface ResearchMarketingReviewOwnerDecisionRequest {
   schemaVersion: 1;
+  status: 'request-for-separate-owner-decision-not-recorded';
+  taskId: string;
+  candidateId: string;
+  completedHandoffSha256: string;
+  evidenceManifestSha256: string;
+  reviewer: string;
+  reviewedAt: string;
+  reviewOutcome: 'ready-for-separate-owner-decision';
+  reviewNotes: string | null;
+  links: {
+    exactReview: string;
+    reviewPacket: string;
+  };
+  ownerDecisionRequired: true;
+  ownerDecisionRecorded: false;
+  publicationApproved: false;
+  automaticPublication: false;
+  automaticPosting: false;
+  grantsPublicationAuthority: false;
+  grantsTradingAuthority: false;
+  externalActions: 'none';
+}
+
+export interface ResearchMarketingReviewHandoffWorkflow {
+  status: ResearchMarketingReviewHandoffWorkflowStatus;
+  nextAction: string;
+  ownerDecisionRequest: ResearchMarketingReviewOwnerDecisionRequest | null;
+}
+
+export interface ResearchMarketingReviewHandoffValidationReport {
+  schemaVersion: 2;
   ok: boolean;
   scope: 'completed-review-handoff-and-repository-evidence';
   source: { bytes: number; sha256: string };
@@ -50,6 +87,7 @@ export interface ResearchMarketingReviewHandoffValidationReport {
     ok: boolean;
     task: ResearchMarketingReviewEvidenceTaskVerification;
   } | null;
+  workflow: ResearchMarketingReviewHandoffWorkflow;
   controls: typeof RESEARCH_MARKETING_REVIEW_HANDOFF_VALIDATOR_CONTROLS;
 }
 
@@ -297,6 +335,92 @@ function validateExactIdSet(
   }
 }
 
+function buildWorkflow(options: {
+  ok: boolean;
+  taskId: string | null;
+  candidateId: string | null;
+  reviewer: string | null;
+  reviewedAt: string | null;
+  outcome: string | null;
+  notes: string | null;
+  completedHandoffSha256: string;
+  evidenceManifestSha256: string | null;
+}): ResearchMarketingReviewHandoffWorkflow {
+  if (!options.ok) {
+    return {
+      status: 'invalid-handoff',
+      nextAction:
+        'Correct every validation issue and run the completed-handoff validator again; do not request an owner decision.',
+      ownerDecisionRequest: null,
+    };
+  }
+
+  if (options.outcome === 'reject-draft') {
+    return {
+      status: 'draft-rejected',
+      nextAction:
+        'Archive the rejected draft or start a separately reviewed revision; do not request publication.',
+      ownerDecisionRequest: null,
+    };
+  }
+
+  if (options.outcome === 'needs-revision') {
+    return {
+      status: 'revision-required',
+      nextAction:
+        'Revise the draft, download a fresh exact handoff, and repeat manual review before any owner decision.',
+      ownerDecisionRequest: null,
+    };
+  }
+
+  if (
+    options.outcome === 'ready-for-separate-owner-decision' &&
+    options.taskId !== null &&
+    options.candidateId !== null &&
+    options.reviewer !== null &&
+    options.reviewedAt !== null &&
+    options.evidenceManifestSha256 !== null
+  ) {
+    const exactReview = `/api/admin/research-intake/review/${options.taskId}`;
+    return {
+      status: 'ready-for-separate-owner-decision',
+      nextAction:
+        'Send ownerDecisionRequest to a separate owner workflow; validation itself grants no publication or posting authority.',
+      ownerDecisionRequest: {
+        schemaVersion: 1,
+        status: 'request-for-separate-owner-decision-not-recorded',
+        taskId: options.taskId,
+        candidateId: options.candidateId,
+        completedHandoffSha256: options.completedHandoffSha256,
+        evidenceManifestSha256: options.evidenceManifestSha256,
+        reviewer: options.reviewer,
+        reviewedAt: options.reviewedAt,
+        reviewOutcome: 'ready-for-separate-owner-decision',
+        reviewNotes: options.notes,
+        links: {
+          exactReview,
+          reviewPacket: `${exactReview}/packet.md`,
+        },
+        ownerDecisionRequired: true,
+        ownerDecisionRecorded: false,
+        publicationApproved: false,
+        automaticPublication: false,
+        automaticPosting: false,
+        grantsPublicationAuthority: false,
+        grantsTradingAuthority: false,
+        externalActions: 'none',
+      },
+    };
+  }
+
+  return {
+    status: 'invalid-handoff',
+    nextAction:
+      'Correct every validation issue and run the completed-handoff validator again; do not request an owner decision.',
+    ownerDecisionRequest: null,
+  };
+}
+
 export function parseResearchMarketingReviewHandoffArgs(
   args: readonly string[],
 ): string {
@@ -516,6 +640,7 @@ export async function validateResearchMarketingReviewHandoff(
   const reviewer = handoff === null ? null : stringValue(handoff.reviewer);
   const reviewedAt = handoff === null ? null : stringValue(handoff.reviewedAt);
   const outcome = handoff === null ? null : stringValue(handoff.outcome);
+  const notes = handoff === null ? null : stringValue(handoff.notes);
   const expectedChecks = expected === null ? null : stringArray(expected.requiredCheckIds);
   const completedChecks = handoff === null ? null : stringArray(handoff.completedCheckIds);
   const expectedClaims = expected === null ? null : stringArray(expected.claimIds);
@@ -524,12 +649,24 @@ export async function validateResearchMarketingReviewHandoff(
     ? null
     : nestedString(handoff, 'evidenceIntegrity', 'manifestSha256');
   const ok = issues.length === 0 && evidenceVerification?.ok === true;
+  const sourceSha256 = sha256(yamlBytes);
+  const workflow = buildWorkflow({
+    ok,
+    taskId,
+    candidateId,
+    reviewer,
+    reviewedAt,
+    outcome,
+    notes,
+    completedHandoffSha256: sourceSha256,
+    evidenceManifestSha256: manifestSha256,
+  });
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     ok,
     scope: 'completed-review-handoff-and-repository-evidence',
-    source: { bytes: yamlBytes.byteLength, sha256: sha256(yamlBytes) },
+    source: { bytes: yamlBytes.byteLength, sha256: sourceSha256 },
     review: {
       taskId,
       candidateId,
@@ -546,6 +683,7 @@ export async function validateResearchMarketingReviewHandoff(
     },
     issues,
     evidenceVerification,
+    workflow,
     controls: RESEARCH_MARKETING_REVIEW_HANDOFF_VALIDATOR_CONTROLS,
   };
 }

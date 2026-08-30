@@ -101,6 +101,15 @@ that the completed file matches the current observation-bound handoff contract
 and pinned evidence bytes. It does not record review completion, make an owner
 decision, approve publication, post externally, or authorize trading.
 
+Validator report schema v2 turns that result into one explicit local next step:
+`draft-rejected`, `revision-required`, `ready-for-separate-owner-decision`, or
+`invalid-handoff`. Only the valid ready state includes an
+`ownerDecisionRequest`, bound to the completed handoff SHA-256, evidence
+manifest, reviewer, review time, outcome, notes, and protected review links.
+The request does not record an owner decision and grants no publication,
+posting, promotion, signal, allocation, broadcast, broker, execution, or
+trading authority.
+
 The retained history contains one known contract violation: TC-256 and TC-257
 both use `2026-08-29T06:00:00.000Z/PT3H`. Neither receipt may be deleted,
 renamed, or silently selected as canonical after the fact. The ledger labels
