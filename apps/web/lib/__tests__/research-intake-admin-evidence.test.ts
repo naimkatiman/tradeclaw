@@ -304,9 +304,9 @@ describe('protected research evidence desk projection', () => {
     const second = JSON.stringify(buildResearchIntakeAdminEvidencePayload(AUDIT_AT));
 
     expect(second).toBe(first);
-    expect(Buffer.byteLength(first, 'utf8')).toBe(115_640);
+    expect(Buffer.byteLength(first, 'utf8')).toBe(115_708);
     expect(createHash('sha256').update(first).digest('hex')).toBe(
-      '6dccf05495e33992de9641fc3bf8b86b81cfad1f38bd24b6f84817d444cfb50f',
+      'c91fe45fb302772ae7620bb2b05075e8c2ce4b3c285b9e1356153218f5bf7cc5',
     );
   });
 });

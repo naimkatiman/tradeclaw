@@ -73,6 +73,7 @@ export const RESEARCH_INTAKE_ADMIN_RESOURCES = Object.freeze({
   cycleBrief: '/api/admin/research-intake/brief.md',
   catalog: '/api/admin/research-intake',
   evidenceIndex: '/api/admin/research-intake/evidence/index',
+  evidenceIndexBrief: '/api/admin/research-intake/evidence/index.md',
   evidence: '/api/admin/research-intake/evidence',
   evidenceCsv: '/api/admin/research-intake/evidence.csv',
   marketingReview: '/api/admin/research-intake/review',

@@ -107,6 +107,17 @@ complete JSON graph before acting. It does not create or authorize a receipt,
 complete a review, record an owner decision, publish, post, or trade. Every
 protected resource map advertises it; public JSON/OpenAPI and every CSV omit it.
 
+The protected human-readable examined-candidate index at
+`/api/admin/research-intake/evidence/index.md` continues the cycle brief's
+human journey without forcing an operator into JSON. One authenticated server
+observation renders all 14 audited or replicated records in pinned source
+order, including each frozen next action and only the receipt count and review
+packet visible at that instant. Each row opens the protected human-readable
+exact candidate while retaining protected machine JSON as a separate link.
+This completes the cycle brief to index to exact candidate journey. It does not
+create or authorize a receipt, complete a review, record an owner decision,
+publish, post, or trade, and it grants neither publication nor trading authority.
+
 Every protected candidate-link set also advertises the protected human-readable
 exact candidate record at
 `/api/admin/research-intake/{candidateId}/brief.md`. It renders the decision,

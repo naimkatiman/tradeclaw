@@ -93,7 +93,8 @@ function renderNavigation(
   const lines = [
     `- Protected JSON: [Open machine record](${payload.links.adminCandidate})`,
     `- Public human record: [Open public record](${payload.links.publicCandidateBrief})`,
-    `- Protected evidence index: [Open evidence index](${payload.resources.evidenceIndex})`,
+    `- Protected human evidence index: [Open examined-candidate index](${payload.resources.evidenceIndexBrief})`,
+    `- Protected machine evidence index: \`${payload.resources.evidenceIndex}\``,
     `- Research cycle brief: [Open cycle brief](${payload.resources.cycleBrief})`,
   ];
 

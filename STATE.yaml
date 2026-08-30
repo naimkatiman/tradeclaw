@@ -1,11 +1,100 @@
 project: tradeclaw
-updated: 2026-08-31T00:12:49+08:00
+updated: 2026-08-31T00:36:05+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_evidence_index_brief_2026_08_31:
+  at: 2026-08-31T00:36:05+08:00
+  agent: TradeClaw PM agent
+  status: ready_for_local_commit
+  scope: Complete the protected human journey with a source-ordered evidence index between the research cycle brief and exact candidate briefs
+  branch: agent/research-intake-desk-20260829
+  base_commit: e44a070852b674e6a355c81187bc6e5ae8181d26
+  receipt_neutral: true
+  cycle_id: 2026-08-30T15:00:00.000Z/PT3H
+  new_research_receipt: false
+  gate_observed_at: 2026-08-30T16:15:39.731Z
+  gate_snapshot: >-
+    TC-268 is the sole current-window receipt, the current window is complete,
+    and another receipt is denied until exact 2026-08-30T18:00:00.000Z. The
+    ledger holds 13 receipts across 12 windows, with only the expected historical
+    2026-08-29T06:00:00.000Z/PT3H duplicate and no additional duplicate. Four
+    drafts remain human-review-only, zero are approved, and TC-255 remains next.
+  gap_evidence:
+    public_human_index: /api/research/intake/evidence/index.md
+    protected_machine_index: /api/admin/research-intake/evidence/index
+    protected_human_index: absent
+    protected_cycle_brief: Points its evidence-index handoff to machine JSON.
+    protected_exact_record: /api/admin/research-intake/[candidateId]/brief.md
+    journey_break: An admin can read orientation and exact detail but cannot browse the source-ordered decision set without decoding JSON.
+  selected_improvement:
+    - Render one observation-consistent protected Markdown index from the existing compact admin evidence-index payload.
+    - Show every examined decision in pinned source order with its frozen next action, visible receipt/review presence, and protected human exact-record link.
+    - Advertise the human index on every protected resource map and make the cycle brief and exact candidate brief prefer it while retaining machine JSON separately.
+    - Authenticate before the server clock or research state; keep the route private, no-store, GET-only, query-independent, and authority-neutral.
+  shared_library_search: No protected human-readable evidence index, admin Markdown index, or exact-candidate index pattern was found under the shared MemoryCore library.
+  red_contract:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-admin-evidence-index-brief.test.ts
+    result: expected_fail_5_of_5
+    missing_contracts:
+      - Deterministic protected Markdown builder for all 14 examined records.
+      - Observation-time receipt and review visibility at the canonical TC-259 boundary.
+      - Protected resource discovery plus human-first cycle and candidate navigation.
+      - Auth-first private GET-only Markdown route.
+      - README and loop-plan documentation while public and CSV bytes remain frozen.
+  implementation:
+    route: /api/admin/research-intake/evidence/index.md
+    builder: apps/web/lib/research-intake-admin-evidence-index-brief.ts
+    discovery: Every protected JSON resource map now advertises evidenceIndexBrief; the cycle and exact-candidate briefs prefer the human index and retain machine JSON separately.
+    content: All 14 examined records render in pinned source order with evidence status, decision, frozen next action, observation-visible receipt and review state, and protected human exact-record links.
+    route_boundary: Authentication precedes the server clock and research observation; the response is private, no-store, inline Markdown, query-independent, GET-only, and has no CORS grant.
+    documentation: README.md and the three-hour-loop plan now describe the complete protected cycle-brief to index to exact-candidate journey.
+  focused_verification:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-admin-evidence-index-brief.test.ts apps/web/app/api/admin/research-intake/evidence/index.md/__tests__/route.test.ts apps/web/app/api/admin/research-intake/evidence/index.md/__tests__/auth-boundary.test.ts
+    result: pass_3_suites_11_tests
+    deterministic_markdown: 20892_bytes_sha256_ac5bd2674cb2a59fbb0d4c5cbebfb8447563da38b4af6cb8c37e4a84af15cebc
+  compatibility_verification:
+    affected_tests: pass_11_suites_59_tests
+    typecheck_web: pass
+    protected_json_movement: The advertised evidenceIndexBrief property intentionally adds 68 bytes to each protected JSON resource map; only those protected fingerprints were refreshed.
+    unchanged_receipts:
+      public_catalog_json: 140878_bytes_sha256_4c48acd73a18d967bbf039e7109188c136b0f76d011b4e6da5754cb37326d3ec
+      public_evidence_json: 82070_bytes_sha256_43d0257b89f0011979269732dd45e8fd8672c9f6aa35bb691255cd396f2076cf
+      public_catalog_csv: 37522_bytes_sha256_e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf
+      public_evidence_csv: 9820_bytes_sha256_091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c
+      protected_evidence_csv: 20948_bytes_sha256_a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661
+      protected_review_csv: 7094_bytes_sha256_c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  full_test_verification:
+    command: npm test -- --runInBand --forceExit
+    result: pass
+    suites: 345_passed_3_skipped_348_total
+    tests: 2455_passed_26_skipped_2481_total
+    snapshots: 1_passed
+    note: ForceExit was used only after Jest's complete result because this repository retains a known post-run open handle; no test failed.
+  prebuild_verification:
+    lint: pass_0_errors_21_inherited_warnings
+    typecheck_web: pass
+    pinned_source: pass_61_of_61_candidates_commit_d9c98521c76662d5eae03ab97a4fc721d010dde3
+    review_evidence: pass_4_manifests_12_files
+    docker_compose_config: unavailable_no_docker_executable
+    compose_scope: No Docker Compose, Dockerfile, migration, package-manifest, or environment file changed; deployment-surface integrity tests passed in the full suite.
+  production_build:
+    command: npm run build
+    result: pass
+    static_pages: 333_of_333
+    protected_route: /api/admin/research-intake/evidence/index.md
+    inherited_warnings: Middleware convention deprecation, two existing broad NFT trace warnings, Node url.parse deprecations, and the existing edge-runtime static-generation notice.
+  final_scope_audit:
+    result: pass
+    diff_check: clean
+    broad_checkout: C:/Ai/tradeclaw remains on its pre-existing dirty feat/premium-ui-overhaul checkout and was not edited.
+    external_actions: none
+  safety_boundary: No candidate, source audit, return, receipt, research verdict, evidence artifact, marketing decision, publication, posting, billing, signal, allocation, broker, execution, or trading state will change.
+  next_step: Commit the verified implementation locally, then record the implementation commit and final gate closure in STATE.yaml.
 
 research_admin_candidate_brief_2026_08_30:
   at: 2026-08-31T00:12:49+08:00

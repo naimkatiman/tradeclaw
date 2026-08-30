@@ -153,8 +153,8 @@ describe('protected research discovery context parity', () => {
       )),
     }).toEqual({
       protectedCatalog: {
-        bytes: 89_423,
-        sha256: '7a28cdd45e0097da775c43d481f456e5618dfde513ee0318bad83662da8cbf2d',
+        bytes: 89_491,
+        sha256: 'eadbd1d32ddc7a03707fae4e4418c686c70a2a5f5b611cf8dfae025337694c69',
       },
       publicCatalog: {
         bytes: 140_878,

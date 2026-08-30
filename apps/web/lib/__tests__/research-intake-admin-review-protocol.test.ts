@@ -116,8 +116,8 @@ describe('protected exact-review protocol', () => {
         sha256: 'b196b34b8bacb345d3f1ed17227e88ef16ec3a59982ebc593919f8ffd651bb08',
       },
       queue: {
-        bytes: 33_238,
-        sha256: '75b2343ddf181bdff9fcdf8458a427dc6cc1fa157024699aa41163c4a9b04563',
+        bytes: 33_306,
+        sha256: '2e7ce534c4a0170e441bd22d86f4750b085aca88b673cbd3a5b28c442eb9adfc',
       },
     });
   });

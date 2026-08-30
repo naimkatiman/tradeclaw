@@ -175,12 +175,12 @@ describe('protected research catalog result view', () => {
         sha256: '8b6a57c2f009b530e4837352e72f51caca318a486890ca5bbc951adcf5ad1d07',
       },
       noMatchesCatalog: {
-        bytes: 29_296,
-        sha256: '8d99e33a09db9f1a95c074a19ce73558a3114bd1629c93551876fbe90e10c8d5',
+        bytes: 29_364,
+        sha256: '266f97333ffc06cfd76e542eb58c01a7481bb9c0ea7e6eb3a89829a01d8b30a2',
       },
       outOfRangeCatalog: {
-        bytes: 28_930,
-        sha256: 'a0205e3ac1babe896edefd39ba28e26e70746231ca5cf289ed6cadc6bb91d04a',
+        bytes: 28_998,
+        sha256: 'e8a7c1ef7e0b4e9c730bbf6995249c40cba82792c07a447379753d84432fa4fb',
       },
     });
   });
