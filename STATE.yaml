@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T13:09:13+08:00
+updated: 2026-08-30T13:10:29+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_exact_marketing_review_2026_08_30:
-  at: 2026-08-30T13:09:13+08:00
+  at: 2026-08-30T13:10:29+08:00
   agent: TradeClaw PM agent
-  status: done_pending_local_implementation_commit
+  status: done_protected_exact_marketing_review_verified_and_committed_local
   scope: Let a protected admin open the exact oldest-visible marketing-review item directly, with observation-safe queue navigation, without downloading or searching the complete queue and without creating review or publication state
   base_commit: ce6827cdc634c74fdfdd699da962dea755bb970c
-  implementation_commit: pending-local-implementation-commit
+  implementation_commit: 3084d4389f1c777042dbfb572c071c53333e792b
+  implementation_committed_at: 2026-08-30T05:10:29Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-264
   current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
@@ -186,7 +187,29 @@ research_admin_exact_marketing_review_2026_08_30:
     current_observation_protected_receipts:
       complete_review: 30991/094e862e5252ee77110728b7edb2a93ceae63c625cae9df4c20f3b4a37113a90
       exact_tc255_review: 7301/358e922cfe56d3d2ae3b0de5a86168c7c4ef07f9353c453bc1e15e55ab160d29
-  next_action: Create the local implementation commit, record its immutable hash in a state-only closure commit, save the completed slice to shared MemoryCore, and leave the isolated branch clean without external action.
+  changed_paths:
+    - README.md
+    - STATE.yaml
+    - apps/web/app/api/admin/research-intake/overview/__tests__/auth-boundary.test.ts
+    - apps/web/app/api/admin/research-intake/review/[taskId]/route.ts
+    - apps/web/app/api/admin/research-intake/review/[taskId]/__tests__/route.test.ts
+    - apps/web/app/api/admin/research-intake/review/[taskId]/__tests__/auth-boundary.test.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/research-intake-start-here.ts
+    - apps/web/lib/__tests__/research-intake-admin-review-item.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-candidate.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-catalog-links.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-discovery-context.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-next-review.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-result-view.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-review-evidence-context.test.ts
+    - apps/web/lib/__tests__/research-intake-evidence-index.test.ts
+    - apps/web/lib/__tests__/research-intake-overview.test.ts
+    - apps/web/lib/__tests__/research-intake-public-discovery-context.test.ts
+    - apps/web/lib/__tests__/research-intake-start-here.test.ts
+  next_action: Create the state-only closure commit, save the completed slice to shared MemoryCore, and prove the isolated worktree clean; the recurring goal remains active for the exact 2026-08-30T06:00:00.000Z rollover.
   safety: No candidate, receipt, return, preregistration, result artifact, marketing handoff or draft mutation, review decision, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_admin_next_marketing_review_2026_08_30:
