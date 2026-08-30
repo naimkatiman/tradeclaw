@@ -206,6 +206,26 @@ export function buildResearchIntakeEvidenceState(
   };
 }
 
+/**
+ * Candidate-specific explanation for compact evidence views. The canonical
+ * reason stays on the source-audit or replication record; this helper only
+ * validates and projects it. Untouched discovery rows fall back to the shared
+ * evidence-state meaning.
+ */
+export function buildResearchIntakeDecisionSummary(record: ResearchIntakeRecord): string {
+  const evidence = record.tradeClawEvidence;
+  const sourceAudit = record.tradeClawSourceAudit;
+  const reason = evidence?.reason ?? sourceAudit?.reason;
+
+  if (reason === undefined) {
+    return buildResearchIntakeEvidenceState(record).meaning;
+  }
+  if (reason.trim() !== reason || reason.length === 0 || reason.length > 320) {
+    throw new Error(`research decision summary for ${record.id} must be 1-320 trimmed characters`);
+  }
+  return reason;
+}
+
 export function summarizeResearchIntakeEvidenceStates(
   records: readonly ResearchIntakeRecord[],
 ): ResearchIntakeEvidenceStateSummary {

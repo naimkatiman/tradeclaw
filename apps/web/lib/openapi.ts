@@ -735,6 +735,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "label",
             "performanceGatesEvaluated",
             "taskId",
+            "decisionSummary",
           ],
           properties: {
             performanceEvidenceStatus: {
@@ -748,6 +749,13 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
             taskId: {
               $ref: "#/components/schemas/ResearchIntakePublicRecord/properties/evidenceState/properties/taskId",
+            },
+            decisionSummary: {
+              type: "string",
+              minLength: 1,
+              maxLength: 320,
+              description:
+                "Candidate-specific reason derived from the canonical TradeClaw source-audit or replication record. It is explanatory evidence copy, not a recommendation or authority.",
             },
           },
         },

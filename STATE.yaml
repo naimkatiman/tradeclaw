@@ -1,11 +1,170 @@
 project: tradeclaw
-updated: 2026-08-30T11:38:22+08:00
+updated: 2026-08-30T11:58:54+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_evidence_decision_summaries_2026_08_30:
+  at: 2026-08-30T11:44:18+08:00
+  agent: TradeClaw PM agent
+  status: done_decision_summaries_verified_pending_local_commit
+  scope: Give every compact public and protected evidence-index row one candidate-specific explanation, plus the protected row its already-frozen research next action, without opening another 03:00Z receipt or changing rendered UI
+  base_commit: b2c98adee40112300659c1c7eeecdef5a7022fa4
+  implementation_commit: pending-local-implementation-commit
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-264
+  current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-264
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T06:00:00.000Z
+  gate_observed_at: 2026-08-30T03:44:18.7890825Z
+  gate_decision: TC-264 remains the sole current-window receipt, the expected legacy 06:00Z duplicate is the only historical conflict, and this turn may change only deterministic read models, documentation, tests, and state
+  library_search: MemoryCore contains recommendation-tier-by-audience, which supports one execution-first action for the simple admin experience; no reusable candidate decision-summary or evidence-brief read-model pattern exists
+  measured_gap:
+    public_overview_bytes: 7637
+    public_evidence_index_bytes: 13941
+    public_complete_evidence_bytes: 53098
+    protected_overview_bytes: 9735
+    protected_evidence_index_bytes: 17747
+    protected_complete_evidence_bytes: 87355
+    examined_candidates: 10
+    problem: >-
+      Compact index rows expose identity, stage, verdict, cost state, generic
+      evidence label, and exact detail link, but no candidate-specific reason.
+      A public client must open an 11-16 KB candidate body or join nested evidence
+      to answer why the record stopped or failed. An admin must additionally open
+      the complete record to recover the already-authored next action.
+  decision: >-
+    Add one evidence-derived `decisionSummary` to each compact evidence state for
+    both audiences. Source-audit records use the canonical audit reason;
+    replication records use the canonical result reason. Normalize TC-255 with
+    one exact reason derived from its frozen net, fold, holdout, and friction
+    record. Add `nextAction` only to the protected row's workflow from the
+    existing compiled record. Do not expose admin timing or workflow instruction
+    publicly and do not repeat nested evidence bodies.
+  public_contract:
+    route: GET /api/research/intake/evidence/index
+    added_field: candidate.evidenceState.decisionSummary
+    source: canonical TradeClaw source-audit or replication reason
+    required: true
+    trimmed: true
+    maximum_characters: 320
+    candidate_specific: true
+    next_action_exposed: false
+    performance_ranked: false
+    grants_publication_authority: false
+    grants_trading_authority: false
+  protected_contract:
+    route: GET /api/admin/research-intake/evidence/index
+    added_fields:
+      - candidate.evidenceState.decisionSummary
+      - workflow.nextAction
+    decision_summary_identical_to_public: true
+    next_action_source: compiled ResearchIntakeRecord.nextAction
+    receipt_and_handoff_presence_unchanged: true
+    authentication_before_observation: true
+    grants_publication_authority: false
+    grants_trading_authority: false
+  expected_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake.ts
+    - apps/web/lib/research-intake-evidence-state.ts
+    - apps/web/lib/research-intake-public.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/openapi.ts
+    - focused and affected deterministic tests
+  frozen_boundaries:
+    source_catalog_candidate_stage_verdict_or_cost_state_changed: false
+    research_receipt_preregistration_return_or_artifact_changed: false
+    marketing_handoff_or_draft_changed: false
+    rendered_ui_changed: false
+    route_auth_cache_or_method_semantics_changed: false
+    public_next_action_exposed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_strategy_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  verification_strategy: Add one intentional failing contract before implementation, prove exact public/admin decision sources and TC-255 normalization, retain compactness and field boundaries, then run affected fingerprints, source reconstruction, static checks, the full repository suite, and the mandatory production build
+  intentional_red_verification: >-
+    PASS - the new focused suite ran four tests and all four failed one-to-one on
+    the frozen missing surfaces: TC-255 had no canonical result reason, public
+    compact rows had no decisionSummary, protected compact workflow had no
+    nextAction, and public OpenAPI/README did not document the field. No
+    implementation source had changed and no unrelated assertion failed.
+  focused_green_verification: >-
+    PASS - the same four-test contract now proves the canonical TC-255 reason,
+    all ten public decision summaries, public next-action exclusion, identical
+    protected summaries, protected compiled next actions, compactness below 40
+    percent of complete evidence bodies, and the OpenAPI/README audience boundary.
+  adjacent_contract_verification: >-
+    PASS - all 30 research-intake suites pass 154/154 tests and all 24 affected
+    public/protected route, real-auth, README, and publication-boundary suites
+    pass 89/89 tests. The nine pre-reconciliation failures were exactly the two
+    frozen changes: compact decision/workflow fields and TC-255's canonical
+    reason moving JSON receipts; CSV and unrelated candidate receipts stayed
+    byte-identical.
+  deterministic_payloads:
+    protected_observed_at: 2026-08-29T15:59:59.999Z
+    public_index_bytes: 16552
+    public_index_sha256: 355f3f7863a487adcbf9049e18a46b4606ae9049ecd5fdafa3f2585e6991764e
+    public_complete_evidence_bytes: 53367
+    public_index_share_of_complete_percent: 31.02
+    public_index_reduction_from_complete_percent: 68.98
+    protected_index_bytes: 21953
+    protected_index_sha256: 922064d589777e778707214056e8d6a79d84271277ff167d29254b909c4d93ed
+    protected_complete_evidence_bytes: 81672
+    protected_index_share_of_complete_percent: 26.88
+    protected_index_reduction_from_complete_percent: 73.12
+    public_next_action_exposed: false
+    protected_next_action_source_matches_compiled_record: true
+  source_and_static_verification: >-
+    PASS - the pinned-source verifier reconstructs 61/61 candidates from commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a.
+    Signals and the complete web TypeScript graph compile. Lint exits zero with
+    the same 21 inherited warnings and no errors.
+  full_test_verification: >-
+    PASS - all 304 runnable suites and all 2,204 runnable tests pass with one
+    passing snapshot; the inherited three suites and 26 tests remain skipped.
+    The new decision-summary contract contributes the expected one suite and
+    four tests. Jest used the repository's known force-exit handling only after
+    green totals.
+  production_build_verification: >-
+    PASS - signals, trading-agents, and the Next.js production application build
+    successfully; Next.js compiles and generates all 331/331 static pages. Only
+    the inherited middleware, NFT tracing, edge-runtime, and Node deprecation
+    warnings remain.
+  final_audit_verification: >-
+    PASS - STATE parses, git diff --check is clean, and the exact 16-path manifest
+    contains one state file, one README, five research read-model/schema files,
+    and nine deterministic tests. Docker Compose, manifests, lockfiles,
+    migrations, research receipts and artifacts, marketing, rendered UI,
+    strategy, signal, allocation, broadcast, broker, and execution paths all
+    have zero diff.
+  changed_path_manifest:
+    count: 16
+    state_paths: 1
+    documentation_paths: 1
+    read_model_and_schema_paths: 5
+    deterministic_test_paths: 9
+    rendered_ui_paths: 0
+    docker_dependency_database_or_migration_paths: 0
+    research_receipt_preregistration_return_artifact_or_marketing_paths: 0
+    signal_strategy_allocation_broadcast_broker_or_execution_paths: 0
+  docker_compose_verification: >-
+    NOT RUN - Docker CLI is absent locally. Docker Compose, manifests,
+    lockfiles, databases, and migrations have zero diff, so the supported
+    PostgreSQL Compose flow is preserved.
+  completed_at: 2026-08-30T03:58:54.3111024Z
+  final_gate_observed_at: 2026-08-30T03:57:15.891Z
+  final_gate_decision: TC-264 remains the sole 03:00Z receipt; the expected legacy 06:00Z duplicate is the only historical conflict and there are no additional duplicate windows. Create no second candidate, return, preregistration, artifact, or marketing draft before the exact 06:00Z rollover.
+  memory_update: pending-exact-local-commit-hash
+  next_action: At or after the exact 2026-08-30T06:00:00.000Z rollover, screen at most one untouched candidate under a new receipt; do not select, publish, post, activate, or trade automatically.
+  safety: No candidate, receipt, return, preregistration, result artifact, marketing draft, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action occurred.
 
 research_mean_reversion_source_audit_2026_08_30:
   at: 2026-08-30T11:38:22+08:00

@@ -13,6 +13,7 @@ interface CompactEvidenceState {
   label: string;
   performanceGatesEvaluated: boolean;
   taskId: string | null;
+  decisionSummary: string;
 }
 
 interface PublicEvidenceIndexItem {
@@ -37,6 +38,7 @@ interface AdminEvidenceIndexItem {
   workflow: {
     receiptCount: number;
     hasMarketingHandoff: boolean;
+    nextAction: string;
   };
   links: {
     adminCandidate: string;
@@ -90,13 +92,24 @@ function compactEvidenceState(state: {
   label: string;
   performanceGatesEvaluated: boolean;
   taskId: string | null;
-}): CompactEvidenceState {
+}, decisionSummary: string): CompactEvidenceState {
   return {
     performanceEvidenceStatus: state.performanceEvidenceStatus,
     label: state.label,
     performanceGatesEvaluated: state.performanceGatesEvaluated,
     taskId: state.taskId,
+    decisionSummary,
   };
+}
+
+function decisionSummary(record: {
+  evidenceState: { meaning: string };
+  tradeClawEvidence: { reason: string } | null;
+  tradeClawSourceAudit: { reason: string } | null;
+}): string {
+  return record.tradeClawEvidence?.reason
+    ?? record.tradeClawSourceAudit?.reason
+    ?? record.evidenceState.meaning;
 }
 
 function evidenceBasis(record: {
@@ -138,7 +151,7 @@ describe('compact research intake evidence-index contract', () => {
         verdict: record.verdict,
         costStatus: record.costStatus,
         evidenceBasis: record.evidenceBasis,
-        evidenceState: compactEvidenceState(record.evidenceState),
+        evidenceState: compactEvidenceState(record.evidenceState, decisionSummary(record)),
       },
       links: record.links,
     })));
@@ -146,8 +159,8 @@ describe('compact research intake evidence-index contract', () => {
       /"(?:sourceUrl|upstreamGrossSharpe|upstreamTStatistic|upstreamVolatilityPct|upstreamYearsTested|tradeClawSourceAudit|tradeClawEvidence|nextAction|marketingDisposition|marketingReviewDraft|meaning|evidencePath|artifactPath)"/,
     );
     expect(fingerprint(payload)).toEqual({
-      bytes: 13_941,
-      sha256: 'a009d9a3a369b266cc9b0b7c2fbc21752ef1d721f883f56748f264ff58eee4ce',
+      bytes: 16_552,
+      sha256: '355f3f7863a487adcbf9049e18a46b4606ae9049ecd5fdafa3f2585e6991764e',
     });
   });
 
@@ -167,11 +180,15 @@ describe('compact research intake evidence-index contract', () => {
         verdict: item.record.verdict,
         costStatus: item.record.costStatus,
         evidenceBasis: evidenceBasis(item.record),
-        evidenceState: compactEvidenceState(item.record.evidenceState),
+        evidenceState: compactEvidenceState(
+          item.record.evidenceState,
+          decisionSummary(item.record),
+        ),
       },
       workflow: {
         receiptCount: item.candidateWorkflow.receiptCount,
         hasMarketingHandoff: item.candidateWorkflow.marketingHandoff !== null,
+        nextAction: item.record.nextAction,
       },
       links: item.links,
     })));
@@ -179,8 +196,8 @@ describe('compact research intake evidence-index contract', () => {
       /"(?:receipts|latestReceipt|marketingHandoff|draft|tradeClawSourceAudit|tradeClawEvidence|meaning|evidencePath|artifactPath)"/,
     );
     expect(fingerprint(payload)).toEqual({
-      bytes: 17_539,
-      sha256: '491b3daec5e52d55008b961530b1324a19538391832858aff2507ad6eefa724c',
+      bytes: 21_953,
+      sha256: '922064d589777e778707214056e8d6a79d84271277ff167d29254b909c4d93ed',
     });
   });
 

@@ -12,6 +12,7 @@ import {
   type ResearchIntakeCandidateNavigation,
 } from './research-intake-candidate-navigation';
 import {
+  buildResearchIntakeDecisionSummary,
   buildResearchIntakeEvidenceState,
   summarizeResearchIntakeEvidenceStates,
   type ResearchIntakeEvidenceState,
@@ -112,7 +113,9 @@ export type ResearchIntakePublicOverviewPayload = Omit<
 export type ResearchIntakeEvidenceIndexState = Pick<
   ResearchIntakeEvidenceState,
   'performanceEvidenceStatus' | 'label' | 'performanceGatesEvaluated' | 'taskId'
->;
+> & {
+  decisionSummary: string;
+};
 
 export interface ResearchIntakePublicEvidenceIndexItem {
   evidencePosition: number;
@@ -172,13 +175,15 @@ function toPublicRecord(record: ResearchIntakeRecord): ResearchIntakePublicRecor
 }
 
 function compactEvidenceState(
-  state: ResearchIntakeEvidenceState,
+  record: ResearchIntakeRecord,
 ): ResearchIntakeEvidenceIndexState {
+  const state = buildResearchIntakeEvidenceState(record);
   return {
     performanceEvidenceStatus: state.performanceEvidenceStatus,
     label: state.label,
     performanceGatesEvaluated: state.performanceGatesEvaluated,
     taskId: state.taskId,
+    decisionSummary: buildResearchIntakeDecisionSummary(record),
   };
 }
 
@@ -198,7 +203,7 @@ function toPublicEvidenceIndexItem(
       verdict: projected.verdict,
       costStatus: projected.costStatus,
       evidenceBasis: projected.evidenceBasis,
-      evidenceState: compactEvidenceState(projected.evidenceState),
+      evidenceState: compactEvidenceState(record),
     },
     links: projected.links,
   };

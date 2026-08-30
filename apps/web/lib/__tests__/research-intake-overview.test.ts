@@ -273,8 +273,8 @@ describe('compact research intake overview contract', () => {
       api.indexOf('curl https://tradeclaw.win/api/research/intake\n'),
     );
     expect(fingerprint(spec)).toEqual({
-      bytes: 39_097,
-      sha256: '1bd92665205bd159c2f7f2323fc55beafccfa1c3830da75f21e417b8a9789138',
+      bytes: 39_364,
+      sha256: '16dce45d9df41fa94c11825324ed3eaef3c93c90660148e6f4956f6541143b8c',
     });
   });
 });

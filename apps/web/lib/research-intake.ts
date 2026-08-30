@@ -102,6 +102,7 @@ export interface TradeClawReplicationEvidence {
     maximumDrawdown: number;
     calmar: number;
   };
+  reason: string;
 }
 
 export interface TradeClawTreasuryReplicationEvidence {
@@ -1637,6 +1638,8 @@ const TC255_EVIDENCE: TradeClawReplicationEvidence = {
     maximumDrawdown: 0.99387648,
     calmar: -0.48964758,
   },
+  reason:
+    "The frozen BTC/ETH replication failed after modeled costs: BTC and ETH each lost more than 99% net, neither produced a positive fold, and the fixed portfolio lost 29.53% in holdout; BTC's 0.045% mean gross edge per trade was below 0.40% round-trip friction.",
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

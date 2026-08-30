@@ -157,16 +157,16 @@ describe('protected research discovery context parity', () => {
         sha256: '8962f8d01ba67241393e451b6027240f71b315d93ec038c741c29e96f0c270df',
       },
       publicCatalog: {
-        bytes: 108_139,
-        sha256: '6ed543f0a7eb4e2a91a459b02eebfd0f9f1fe0673713302d6cef616c17641879',
+        bytes: 108_408,
+        sha256: '9c60f1a917e697806d4f0e7693c18d05e0013e3aef9d747cba1435993df0a55d',
       },
       publicCandidate: {
         bytes: 9_545,
         sha256: 'eb29576895b998b771dcbea4a99819bc90a4bdc5f6a34405a989043c3e98e816',
       },
       publicEvidence: {
-        bytes: 53_098,
-        sha256: '58a0d73e26ffd6e86f1470efef1d4ef16499cc68e848b0271c6911c4fd4d178a',
+        bytes: 53_367,
+        sha256: '98a39c2b6721860c98efe3c3adc2203adf4bf11762a51ebc0af8f9af72e03193',
       },
       publicCatalogCsv: {
         bytes: 37_128,

@@ -61,6 +61,8 @@ describe('GET /api/admin/research-intake/evidence/index real admin-cookie bounda
     expect(body.items[1].workflow).toEqual({
       receiptCount: 1,
       hasMarketingHandoff: true,
+      nextAction:
+        'Archive the failed term-spread timing result without switching to the stronger prior-only control; screen the next candidate on fold stability and a cash benchmark before opening returns.',
     });
     expect(body.items[0]).not.toHaveProperty('candidateWorkflow');
     expect(body.researchLoop).toMatchObject({

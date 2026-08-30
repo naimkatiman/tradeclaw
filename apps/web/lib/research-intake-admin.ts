@@ -22,6 +22,7 @@ import {
 import {
   RESEARCH_INTAKE_EVIDENCE_STATUS_COPY,
   RESEARCH_INTAKE_EVIDENCE_STATUS_ORDER,
+  buildResearchIntakeDecisionSummary,
   buildResearchIntakeEvidenceState,
   summarizeResearchIntakeEvidenceStates,
   type ResearchIntakeEvidenceState,
@@ -428,7 +429,9 @@ export type ResearchIntakeAdminEvidenceBasis =
 export type ResearchIntakeAdminEvidenceIndexState = Pick<
   ResearchIntakeEvidenceState,
   'performanceEvidenceStatus' | 'label' | 'performanceGatesEvaluated' | 'taskId'
->;
+> & {
+  decisionSummary: string;
+};
 
 export interface ResearchIntakeAdminEvidenceIndexItem {
   evidencePosition: number;
@@ -448,6 +451,7 @@ export interface ResearchIntakeAdminEvidenceIndexItem {
   workflow: {
     receiptCount: number;
     hasMarketingHandoff: boolean;
+    nextAction: string;
   };
   links: ResearchIntakeCandidateLinks;
 }
@@ -1184,13 +1188,15 @@ function evidenceBasisForAdmin(
 }
 
 function compactAdminEvidenceState(
-  state: ResearchIntakeEvidenceState,
+  record: ResearchIntakeRecord,
 ): ResearchIntakeAdminEvidenceIndexState {
+  const state = buildResearchIntakeEvidenceState(record);
   return {
     performanceEvidenceStatus: state.performanceEvidenceStatus,
     label: state.label,
     performanceGatesEvaluated: state.performanceGatesEvaluated,
     taskId: state.taskId,
+    decisionSummary: buildResearchIntakeDecisionSummary(record),
   };
 }
 
@@ -1214,11 +1220,12 @@ function toAdminEvidenceIndexItem(
       verdict: record.verdict,
       costStatus: record.costStatus,
       evidenceBasis: evidenceBasisForAdmin(record),
-      evidenceState: compactAdminEvidenceState(buildResearchIntakeEvidenceState(record)),
+      evidenceState: compactAdminEvidenceState(record),
     },
     workflow: {
       receiptCount: candidateWorkflow.receiptCount,
       hasMarketingHandoff: candidateWorkflow.marketingHandoff !== null,
+      nextAction: record.nextAction,
     },
     links: buildResearchIntakeCandidateLinks(record.id),
   };
