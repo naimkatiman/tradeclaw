@@ -77,6 +77,13 @@ describe('GET /api/admin/research-intake/review/[taskId] real admin-cookie bound
         href: '/api/admin/research-intake/review/TC-257',
       },
     });
+    expect(body.reviewProtocol).toMatchObject({
+      schemaVersion: 1,
+      status: 'manual-review-required',
+      completionTracking: 'not-recorded-by-this-read-only-api',
+      mutationSupported: false,
+    });
+    expect(body.reviewProtocol.checks).toHaveLength(4);
     expect(body.startHere).toMatchObject({
       href: '/api/admin/research-intake/review/TC-255/packet.md',
       targetResource: 'marketing-review-packet',

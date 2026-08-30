@@ -1,11 +1,96 @@
 project: tradeclaw
-updated: 2026-08-30T14:39:48+08:00
+updated: 2026-08-30T15:01:15+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_exact_review_protocol_2026_08_30:
+  at: 2026-08-30T14:49:30+08:00
+  agent: TradeClaw PM agent
+  status: ready_for_local_commit
+  scope: Add one structured, read-only review protocol to the exact protected marketing-review response and make the existing Markdown packet render its required checks from that same source
+  base_commit: ebb8b16920b824894d03b3405df49442a4654634
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T06:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-265
+  current_cycle_ends_at: 2026-08-30T09:00:00.000Z
+  receipt_neutral: true
+  new_research_receipt: false
+  audit_basis: >-
+    The protected overview, compact evidence index, exact review item, Markdown
+    packet, visible-only navigation, nextReview, and packet-first startHere are
+    already present. The remaining client-side duplication is that the packet's
+    four required manual checks are prose-only while exact review JSON exposes
+    controls but no structured protocol. A future admin client would otherwise
+    have to parse Markdown or independently restate claim-integrity policy.
+  selected_improvement:
+    exact_protected_review_only: true
+    structured_review_protocol: true
+    stable_required_check_ids: true
+    packet_reuses_same_checks: true
+    completion_tracking: not-recorded-by-this-read-only-api
+    mutation_supported: false
+    authority_granted: false
+  frozen_boundaries:
+    review_queue_payload_changed: false
+    next_review_payload_changed: false
+    public_payload_changed: false
+    csv_payload_changed: false
+    receipt_or_research_outcome_changed: false
+    markdown_packet_copy_changed: false
+    rendered_ui_changed: false
+    auth_or_route_semantics_changed: false
+    docker_dependency_database_or_migration_changed: false
+    publication_posting_billing_signal_allocation_broadcast_broker_execution_or_trading_changed: false
+  red_contract:
+    path: apps/web/lib/__tests__/research-intake-admin-review-protocol.test.ts
+    run_at: 2026-08-30T06:51:47.000Z
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-review-protocol.test.ts
+    result: PASS - all three focused tests failed only because exact protected review JSON had no structured reviewProtocol and the packet still hardcoded its manual checks
+    failed_tests: 3
+    unexpected_failures: 0
+  implementation_checkpoint:
+    exact_review_protocol_added: true
+    protocol_schema_version: 1
+    protocol_status: manual-review-required
+    completion_tracking: not-recorded-by-this-read-only-api
+    mutation_supported: false
+    stable_required_checks: 4
+    packet_renders_from_protocol: true
+    exact_tc255_json_bytes: 7983
+    exact_tc255_json_sha256: d8df1204c8df2cac5c4e08dd141cdc1b0ea5d32a76f86bdde18eb8d68c405784
+    protocol_bytes: 748
+    protocol_sha256: 9d3221f3f1dde6773a975948c3752d3a4cbff2a2f5c1e6d01dfcf8d8459babc4
+    queue_bytes_unchanged: 31246
+    queue_sha256_unchanged: e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea
+    packet_bytes_unchanged: 3527
+    packet_sha256_unchanged: 869f59b3ca4b332f34b2a0b60f39b56e8d67d0ec3503d663e687d2b381ee9ffb
+  focused_green_verification: PASS - 1 suite and 3 tests prove the exact-only frozen protocol, identical four-task reuse, shared packet rendering, and unchanged queue and packet receipts
+  adjacent_first_run: Expected documentation compatibility repair - 28/30 tests passed; two existing README assertions required the exact human-review/does-not-approve wording after the new protocol explanation, with no source, route, payload, packet, auth, or hash failure
+  adjacent_verification: PASS - 60 research-intake, receipt-loop, marketing-review, protected route, and auth suites with 281 tests passed; the focused 11-suite review and documentation set passed 43/43 after the compatibility wording repair
+  authenticated_route_verification: PASS - the real signed-admin-cookie exact-review response exposes schema-v1 manual-review-required protocol with four checks; all 5 auth/visibility cases pass
+  source_reconstruction_verification: PASS - exact pinned awesome-systematic-trading source reconstructs all 61 candidates with frozen category counts and gross discovery-only treatment
+  static_verification: PASS - web TypeScript is clean and full ESLint exits zero with the same 21 inherited warnings and no errors
+  full_test_verification: PASS assertions - 314 suites and 2244 tests passed, 3 suites and 26 tests skipped, and 1 snapshot passed in 91.755 seconds; Jest then reproduced the inherited post-summary open-handle condition and was interrupted after the complete summary rather than misreported as a clean process exit
+  production_build_verification: PASS - npm run build compiled signals, trading-agents, and the Next.js production app, then generated all 331 static pages with exit code zero; only inherited middleware, NFT tracing, edge-runtime, and url.parse warnings appeared
+  deterministic_boundary_audit: PASS - exact TC-255 review is 7983 bytes at SHA-256 d8df1204c8df2cac5c4e08dd141cdc1b0ea5d32a76f86bdde18eb8d68c405784; protocol is 748 bytes at 9d3221f3f1dde6773a975948c3752d3a4cbff2a2f5c1e6d01dfcf8d8459babc4; queue and packet remain byte-identical at 31246/3527 bytes
+  final_gate_observed_at: 2026-08-30T07:00:43.463Z
+  final_gate_snapshot: complete with TC-265 as the sole 06:00Z receipt and latest receipt, 10 receipts total, no additional duplicate window, and all automatic candidate-selection, publication, and trading controls false
+  docker_compose_verification: Docker CLI is unavailable; zero Docker Compose, Dockerfile, package manifest, lockfile, or migration path changed from base ebb8b16920b824894d03b3405df49442a4654634, so the supported Compose flow remains untouched
+  scope_audit: PASS - exactly six intended paths cover README/state, the exact-review protocol builder, packet reuse, focused contract, and real auth-route assertion; no queue/public/CSV, rendered UI, receipt, research evidence, Docker, dependency, migration, database, billing, signal, allocation, broadcast, broker, or execution path changed
+  source_and_state_audit: PASS - STATE.yaml parses, git diff --check has no whitespace errors apart from Windows line-ending notices, the current receipt remains TC-265, and public/compact/queue projections contain no reviewProtocol
+  verification: PASS - focused 3/3, protected review 43/43, adjacent research desk 281/281, real auth boundary 5/5, source reconstruction 61/61, TypeScript, zero-error lint, full repository 2244/2244 assertions, deterministic hashes, six-path scope, YAML/diff checks, and 331/331-page production build
+  implementation_commit: pending
+  closure_commit: pending
+  library_search: MemoryCore contains no reusable exact-review checklist or admin decision-protocol pattern; this slice reuses the existing TradeClaw exact-review and packet contracts without creating a new architecture
+  memory_update: pending until the local implementation and closure commit hashes exist
+  recurring_goal_status: active
+  next_action: Keep the recurring goal active. Do not open another research receipt before exact 2026-08-30T09:00:00.000Z; at or after that boundary, screen at most one untouched cost-first candidate before another product or marketing increment, with rendered UI still owner/design-confirmation gated.
+  safety: No mutation, approval, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment is authorized.
 
 research_good_carry_source_audit_2026_08_30:
   at: 2026-08-30T14:39:48+08:00

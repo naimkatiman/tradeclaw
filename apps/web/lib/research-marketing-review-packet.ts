@@ -25,10 +25,13 @@ function nullableText(value: string | null): string {
 function formatResearchMarketingReviewPacket(
   payload: ResearchIntakeAdminReviewItemPayload,
 ): string {
-  const { navigation, researchLoop, reviewItem } = payload;
+  const { navigation, researchLoop, reviewItem, reviewProtocol } = payload;
   const { candidate, controls, handoff, links, receipt } = reviewItem;
   const { draft } = handoff;
   const { evidenceState } = candidate;
+  const requiredChecks = reviewProtocol.checks.map(
+    (check) => `- ${check.instruction}`,
+  );
   const receiptDescription = receipt === null
     ? 'none (pre-loop closure)'
     : `${inlineCode(receipt.taskId)}, recorded ${receipt.recordedAt}, cycle ${inlineCode(receipt.cycleId)}`;
@@ -83,10 +86,7 @@ function formatResearchMarketingReviewPacket(
     '',
     '## Required manual checks',
     '',
-    '- Compare every numeric claim with the result and artifact files.',
-    '- Preserve the evidence-state label, frozen verdict, and modeled-research framing.',
-    '- Do not present modeled results as live performance, financial advice, or trading authority.',
-    '- Record a separate explicit owner decision before any publication, posting, or promotion.',
+    ...requiredChecks,
     '',
     '## Publication and trading authority',
     '',

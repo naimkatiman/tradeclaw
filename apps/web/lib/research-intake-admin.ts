@@ -607,6 +607,26 @@ export interface ResearchIntakeAdminReviewNavigationItem {
   href: string;
 }
 
+export type ResearchIntakeAdminReviewCheckId =
+  | 'verify-numeric-claims'
+  | 'preserve-evidence-framing'
+  | 'reject-live-or-advice-framing'
+  | 'require-separate-owner-decision';
+
+export interface ResearchIntakeAdminReviewCheck {
+  id: ResearchIntakeAdminReviewCheckId;
+  instruction: string;
+  required: true;
+}
+
+export interface ResearchIntakeAdminReviewProtocol {
+  schemaVersion: 1;
+  status: 'manual-review-required';
+  completionTracking: 'not-recorded-by-this-read-only-api';
+  mutationSupported: false;
+  checks: readonly ResearchIntakeAdminReviewCheck[];
+}
+
 export interface ResearchIntakeAdminReviewItemPayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
@@ -622,6 +642,7 @@ export interface ResearchIntakeAdminReviewItemPayload {
     previous: ResearchIntakeAdminReviewNavigationItem | null;
     next: ResearchIntakeAdminReviewNavigationItem | null;
   };
+  reviewProtocol: ResearchIntakeAdminReviewProtocol;
   reviewItem: ResearchIntakeAdminReviewItem;
 }
 
@@ -1419,6 +1440,39 @@ const ADMIN_REVIEW_CONTROLS: ResearchIntakeAdminReviewControls = {
   externalActions: 'none',
 };
 
+export const RESEARCH_INTAKE_ADMIN_REVIEW_PROTOCOL: ResearchIntakeAdminReviewProtocol =
+  Object.freeze({
+    schemaVersion: 1,
+    status: 'manual-review-required',
+    completionTracking: 'not-recorded-by-this-read-only-api',
+    mutationSupported: false,
+    checks: Object.freeze([
+      Object.freeze({
+        id: 'verify-numeric-claims',
+        instruction: 'Compare every numeric claim with the result and artifact files.',
+        required: true,
+      }),
+      Object.freeze({
+        id: 'preserve-evidence-framing',
+        instruction:
+          'Preserve the evidence-state label, frozen verdict, and modeled-research framing.',
+        required: true,
+      }),
+      Object.freeze({
+        id: 'reject-live-or-advice-framing',
+        instruction:
+          'Do not present modeled results as live performance, financial advice, or trading authority.',
+        required: true,
+      }),
+      Object.freeze({
+        id: 'require-separate-owner-decision',
+        instruction:
+          'Record a separate explicit owner decision before any publication, posting, or promotion.',
+        required: true,
+      }),
+    ]),
+  });
+
 function recordForAdminReviewHandoff(
   handoff: ResearchLoopMarketingHandoff,
 ): ResearchIntakeRecord {
@@ -1804,6 +1858,7 @@ export function buildResearchIntakeAdminReviewItemPayload(
         ? buildResearchIntakeAdminReviewNavigationItem(nextItem)
         : null,
     },
+    reviewProtocol: RESEARCH_INTAKE_ADMIN_REVIEW_PROTOCOL,
     reviewItem,
   };
 }
