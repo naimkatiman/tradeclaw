@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T11:35:47+08:00
+updated: 2026-08-30T11:38:22+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_mean_reversion_source_audit_2026_08_30:
-  at: 2026-08-30T11:35:47+08:00
+  at: 2026-08-30T11:38:22+08:00
   agent: TradeClaw PM agent
-  status: done_source_audit_no_go_verified_pending_local_commit
+  status: done_source_audit_no_go_verified_and_committed_local
   scope: Screen and source-audit exactly one untouched awesome-systematic-trading candidate in the new 03:00Z UTC window before any preregistration, return, artifact, or marketing work
   base_commit: 6843e371d59481714786f51380515e486cb6c7dd
-  implementation_commit: pending-local-implementation-commit
+  implementation_commit: 37569da4176cf74a4a2a290a40c7aad4b66832ab
+  implementation_committed_at: 2026-08-30T03:38:22.7977470Z
   branch: agent/research-intake-desk-20260829
   cycle_id: 2026-08-30T03:00:00.000Z/PT3H
   started_at: 2026-08-30T03:00:47.7987745Z
@@ -5702,7 +5703,7 @@ research_intake_desk_2026_08_29:
     id: 2026-08-30T03:00:00.000Z/PT3H
     recorded_at: 2026-08-30T03:10:26.781Z
     task_id: TC-264
-    implementation_commit: pending-local-implementation-commit
+    implementation_commit: 37569da4176cf74a4a2a290a40c7aad4b66832ab
     started_at: 2026-08-30T03:00:47.7987745Z
     ends_at: 2026-08-30T06:00:00.000Z
     candidate_id: rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation
