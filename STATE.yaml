@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T23:34:06+08:00
+updated: 2026-08-30T23:35:32+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_tc268_commodity_correlation_momentum_2026_08_30:
-  at: 2026-08-30T23:34:06+08:00
+  at: 2026-08-30T23:35:32+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_commit
+  status: done_verified_implementation_committed_local
   scope: Manually screen and, only if fully specifiable before returns, preregister one cost-adjusted replication of the four-ETF commodity momentum/reversal correlation-switch idea from the pinned systematic-trading source
   branch: agent/research-intake-desk-20260829
   base_commit: 4a9986e92e1ebe6cbf139b1b604507817a952050
+  implementation_commit: 360383a85305d32279bef19cc4551a2fd5fd2507
   cycle_id: 2026-08-30T15:00:00.000Z/PT3H
   task_id: TC-268
   receipt_status: recorded
@@ -166,10 +167,11 @@ research_tc268_commodity_correlation_momentum_2026_08_30:
     auth_or_runtime_authority_changed: false
     gate_observed_at: 2026-08-30T15:33:36.630Z
     gate: PASS - TC-268 is the sole 15:00Z-window receipt, the window is complete, another receipt is denied until exact 2026-08-30T18:00:00.000Z, the only duplicate is the expected historical 06:00Z conflict, four drafts remain human-review-only, and zero current-window handoffs or approved drafts exist
+    implementation_commit_audit: PASS - the exact verified 60-path increment committed locally as 360383a85305d32279bef19cc4551a2fd5fd2507 on the intended isolated branch with no residual source changes
   verification: PASS - focused TC-268 and marketing boundaries pass 25/25; research-domain tests pass 272/272; public/admin research routes pass 113/113; pinned source reconstruction passes 61/61; review evidence passes 4/4 manifests and 12/12 files; all 339 runnable repository suites and 2431 tests pass; typecheck, lint, source hash, STATE, scope, diff, gate, and the required 333-page production build pass
   shared_library_search: No reusable commodity-correlation, ETF-replication, Yahoo-adjusted-data, or cost-first preregistration pattern was found under the shared MemoryCore library
   safety_boundary: No price series or returns have been downloaded or inspected; no source record, receipt, preregistration, result, marketing draft, publication state, signal, broker, execution, billing, or trading behavior has changed
-  next_step: Stage the exact verified 60-path increment, commit locally on the isolated branch, record the commit in STATE, save shared project memory, and wait for the exact 18:00Z receipt boundary.
+  next_step: Save shared project memory, commit this STATE-only closure locally, and wait for the exact 2026-08-30T18:00:00.000Z receipt boundary.
 
 research_public_candidate_brief_2026_08_30:
   at: 2026-08-30T22:30:58+08:00
@@ -9931,6 +9933,7 @@ research_intake_desk_2026_08_29:
     id: 2026-08-30T15:00:00.000Z/PT3H
     recorded_at: 2026-08-30T15:08:26.991Z
     task_id: TC-268
+    implementation_commit: 360383a85305d32279bef19cc4551a2fd5fd2507
     started_at: 2026-08-30T15:00:18.430Z
     ends_at: 2026-08-30T18:00:00.000Z
     candidate_id: how-to-improve-commodity-momentum-using-intra-market-correlation
