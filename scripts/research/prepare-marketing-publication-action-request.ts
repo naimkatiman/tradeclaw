@@ -6,6 +6,7 @@ import {
   parseResearchMarketingOwnerDecisionArgs,
 } from './research-marketing-owner-decision-validator';
 import {
+  canonicalizeResearchMarketingPublicationActionRequestArtifact,
   RESEARCH_MARKETING_PUBLICATION_ACTION_REQUEST_CONTROLS,
   prepareResearchMarketingPublicationActionRequestArtifact,
 } from './research-marketing-publication-action-request';
@@ -49,7 +50,9 @@ async function main(): Promise<void> {
         decisionYamlText,
         root: process.cwd(),
       });
-    process.stdout.write(`${JSON.stringify(artifact, null, 2)}\n`);
+    process.stdout.write(
+      canonicalizeResearchMarketingPublicationActionRequestArtifact(artifact),
+    );
     if (!artifact.ok) process.exitCode = 1;
   } catch (error) {
     process.stderr.write(`${JSON.stringify({

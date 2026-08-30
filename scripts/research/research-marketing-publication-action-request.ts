@@ -112,6 +112,12 @@ export function canonicalizeResearchMarketingPublicationActionRequest(
   return canonicalJson(request);
 }
 
+export function canonicalizeResearchMarketingPublicationActionRequestArtifact(
+  artifact: ResearchMarketingPublicationActionRequestArtifact,
+): string {
+  return canonicalJson(artifact);
+}
+
 function fingerprint(canonical: string): ResearchMarketingPublicationFingerprint {
   return {
     algorithm: 'sha256',

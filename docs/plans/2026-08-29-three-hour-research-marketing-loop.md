@@ -149,6 +149,15 @@ select a publication target, does not enqueue the social queue, and does not
 publish or post. A separately authorized publication action is still required,
 and the artifact grants no publication, posting, execution, or trading authority.
 
+Before a separately authorized publication action consumes a saved request, run
+`npm run verify:research-publication-action-request -- --artifact <publication-action-request.json> --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>`.
+The verifier re-derives the canonical request from the exact handoff, decision,
+reviewed draft, and current evidence, then requires the exact saved artifact bytes
+to match, including whitespace and final LF. It emits a read-only report to stdout.
+It does not authenticate owner identity, does not authorize publication, does not
+perform publication, and does not enqueue the social queue. Verification grants
+no publication, posting, execution, or trading authority.
+
 The retained history contains one known contract violation: TC-256 and TC-257
 both use `2026-08-29T06:00:00.000Z/PT3H`. Neither receipt may be deleted,
 renamed, or silently selected as canonical after the fact. The ledger labels

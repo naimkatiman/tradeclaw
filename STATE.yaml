@@ -1,11 +1,175 @@
 project: tradeclaw
-updated: 2026-08-30T19:26:27+08:00
+updated: 2026-08-30T19:47:39+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_publication_request_verifier_2026_08_30:
+  at: 2026-08-30T19:47:39+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_pending_implementation_commit
+  scope: Verify a saved publication-action request against its exact handoff, owner decision, reviewed draft, and current repository evidence without performing or authorizing the publication action
+  base_commit: 944337c495e926546afa8bd6df8cd36aea53b55b
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T09:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-266
+  current_cycle_ends_at: 2026-08-30T12:00:00.000Z
+  observed_at: 2026-08-30T11:29:59.523Z
+  receipt_neutral: true
+  new_research_receipt: false
+  gate_snapshot: >-
+    TC-266 remains the sole current-window and latest receipt; the ledger has 11
+    receipts across 10 windows with only the expected historical 06:00Z
+    duplicate and no additional duplicate. Four marketing handoffs remain
+    review-ready, none belongs to the current window, zero drafts are approved,
+    and automatic candidate selection, publication, posting, and trading are
+    false.
+  audit_basis: >-
+    The approved request can now be generated deterministically, but a separately
+    authorized downstream operator has no standalone way to verify a saved copy
+    against the exact source files and current evidence. Manual regeneration and
+    comparison of the 4,876-byte artifact is error-prone and could miss draft,
+    decision, whitespace, unknown-field, or stale-evidence drift.
+  shared_library_search: no reusable publication-request artifact verifier, approval-artifact integrity validator, or content-bound request verification pattern found under MemoryCore library
+  selected_improvement:
+    command: npm run verify:research-publication-action-request -- --artifact <publication-action-request.json> --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>
+    success_meaning: exact saved artifact bytes equal the freshly re-derived canonical artifact under current repository evidence
+    success_output: deterministic verification report on stdout
+    failure_output: nonzero exit with exact-match false and no publication action
+    rejects:
+      - invalid JSON, duplicate or unknown content through canonical-byte mismatch
+      - missing final LF or any noncanonical whitespace
+      - draft, fingerprint, decision, handoff, or source-file changes
+      - decline, revision, invalid approval, and current evidence drift
+    writes_files: false
+    records_owner_decision: false
+    enqueues_social_queue: false
+    selects_publication_target: false
+    performs_publication: false
+    automatic_publication: false
+    automatic_posting: false
+    owner_identity_authenticated: false
+    cryptographic_signature_verified: false
+    grants_publication_authority: false
+    grants_trading_authority: false
+    external_actions: none
+  boundary_audit: >-
+    Verification may prove only exact artifact/source/evidence parity. It cannot
+    record an owner decision, authenticate the named owner, choose a channel,
+    enqueue, publish, post, grant authority, or trade. Public/admin projections,
+    the social queue, receipts, CSVs, runtime routes, and Compose remain frozen.
+  red_contract:
+    file: scripts/research/__tests__/research-marketing-publication-action-request-verifier.test.ts
+    result: 1 focused suite failed as intended; 18/18 tests failed before implementation
+    proves: >-
+      Registration, exact canonical verification, byte-identical replay, content
+      and whitespace tamper rejection, bounded parsing, decision and evidence
+      rebinding, CLI behavior, documentation, source safety, and frozen-surface
+      guarantees are absent before implementation.
+  implementation:
+    module: scripts/research/research-marketing-publication-action-request-verifier.ts
+    cli: scripts/research/verify-marketing-publication-action-request.ts
+    producer_canonicalizer: scripts/research/research-marketing-publication-action-request.ts
+    input_limits:
+      artifact_bytes: 131072
+      handoff_bytes: 65536
+      decision_bytes: 65536
+    output: deterministic verification report on stdout only
+    canonicalization: json-pretty-2-space-lf-utf8-v1
+    exact_match_required: true
+    writes_files: false
+    performs_publication: false
+    external_actions: none
+  focused_green:
+    command: npm test -- --runInBand scripts/research/__tests__/research-marketing-publication-action-request-verifier.test.ts --silent
+    result: PASS - 1 suite and 18 tests cover registration, exact canonical verification, byte-identical replay, content and whitespace tampering, bounded invalid input, decision and evidence rebinding, real CLI behavior, argument failure, documentation, source safety, and frozen projections
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps.web.lib.__tests__.(research-intake|research-loop|research-marketing)|scripts.research.__tests__.research-marketing).*test.ts$" --silent
+    result: PASS - 53 suites and 336 tests across the complete adjacent intake, research-loop, marketing-review, handoff, owner-request, owner-decision, publication-request, verifier, CSV, and public/admin projection surface
+  targeted_verification:
+    standalone_strict_typescript: PASS - producer, verifier module, and both CLIs compile under strict standalone TypeScript with JSON module resolution
+    pinned_source: PASS - all 61 discovery candidates reconstruct at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a
+    review_evidence: PASS - 4/4 manifests and 12/12 repository evidence files match exact normalized byte and SHA-256 bindings
+    web_typecheck: PASS - npm run typecheck:web
+    lint: PASS - zero errors and 21 inherited warnings
+    research_routes_and_auth: PASS - 26 suites and 99 tests
+    state_and_package: PASS - STATE.yaml and package.json parse; git diff check passes
+  deterministic_replay:
+    completed_handoff: 2873 bytes / ab5d5cde797d6d4fd9cea117f7ec4bb40aec4e2f4fdd3416426f7527a308f98e
+    approved_owner_decision: 2030 bytes / 7a6f50b58d770e77979cd957e2a7c25acccd9bbec2e232f0badd80bc3307bdbd
+    complete_artifact: 4876 bytes / 397e4ac1e4881d82ff741eee2474296095f35f64fed88939350580ceda1241a9
+    verification_report: 2351 pretty-JSON bytes / 94bfc6eb5790277c2549626646901490b999c484bbee344b172dbbf265f94a16
+    byte_identical_replay: true
+    status: request-artifact-verified-no-action-performed
+    exact_canonical_bytes_matched: true
+    publication_action_performed: false
+    external_actions: none
+  deterministic_surfaces_unchanged:
+    admin_overview: 11275 bytes / 9961faff19ef2b2ba34a3f627373bbfadafa455f5f55fe5b40edb61d98000ab4
+    review_queue: 31246 bytes / 15f5f52438a2d4a71b3df43cec0a51b240b4f920a74694af7084f551ea8280fe
+    public_overview: 7637 bytes / 936a0c45f0fa25acbc315ed59edf6776971e882e454344e05355bd0d37184741
+    public_evidence_index: 18666 bytes / af8de9048e234af09552cdb7c5276905e5fb4d2bab54e5c600bccdb163d0b1c9
+    public_catalog_csv: 37314 bytes / 9a8673a9d7ff14c6ec05f4bf3da6e94e8af0eb51220400dbd2fba6dbca371e04
+    public_evidence_csv: 8557 bytes / be4d757a87c8d7903ef5c9f9ab34bbea6764f7d92fe4d3cd66db71b5faea08bf
+    protected_evidence_csv: 18286 bytes / 48ed9e5a2bf916cf87af70e72faef33ffddb6d650f9bc1f9958ee10c2d2b751b
+    protected_review_csv: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  full_repository_tests: PASS - 327 runnable suites, 2381 tests, and 1 snapshot; 3 suites and 26 tests skipped; inherited post-summary open handle was manually terminated only after Jest reported the complete passing result
+  production_build: PASS - shared signals and trading-agents compiled, Next.js production build completed, and 331/331 pages generated with inherited middleware, two Turbopack trace, edge-runtime, and url.parse warnings
+  implementation_file_integrity:
+    verifier_module: 10865 bytes / c6ca69bea1d8e7ff7015e95268720e9f18adf2af562a95dbb4bdab2b073ac72c
+    verifier_cli: 2935 bytes / a80433a021d298e956e79f935e94541bb3764bf2aea5141510fe65644b53ed07
+    focused_test: 24440 bytes / a30bd91e0f0c8893d120995864144dd1a853943cc7b664725ea495f2ff0e2e5f
+    producer_module: 9804 bytes / d9f06091c63e26570ff8fd475b14c6c171aae677f8dfa5c22171c499725612be
+    producer_cli: 2600 bytes / 49f65e51b58049b155b10e1a4d99fc52f2d5ae6b35e5b0b9a61dbebd565abcd9
+  changed_files:
+    - README.md
+    - STATE.yaml
+    - docs/plans/2026-08-29-three-hour-research-marketing-loop.md
+    - package.json
+    - scripts/research/__tests__/research-marketing-publication-action-request-verifier.test.ts
+    - scripts/research/prepare-marketing-publication-action-request.ts
+    - scripts/research/research-marketing-publication-action-request.ts
+    - scripts/research/research-marketing-publication-action-request-verifier.ts
+    - scripts/research/verify-marketing-publication-action-request.ts
+  compose_flow: untouched; Docker Compose files, Dockerfiles, lockfile, migrations, runtime routes, and database behavior are unchanged; Docker CLI remains unavailable for a runtime Compose check
+  final_gate_observed_at: 2026-08-30T11:47:14.527Z
+  final_gate_snapshot: >-
+    Complete with TC-266 still the sole current-window and latest receipt, 11
+    receipts across 10 windows, only the expected historical 06:00Z duplicate,
+    no additional duplicate, four unchanged handoffs, no current-window
+    handoff, zero approved drafts, and automatic selection, publication,
+    posting, and trading false.
+  final_verification:
+    focused: PASS - 1 suite and 18 tests
+    adjacent: PASS - 53 suites and 336 tests
+    strict_standalone_typescript: PASS
+    research_routes_and_auth: PASS - 26 suites and 99 tests
+    pinned_source: PASS - 61/61 candidates
+    review_evidence: PASS - 4/4 manifests and 12/12 files
+    web_typecheck: PASS
+    lint: PASS - 0 errors and 21 inherited warnings
+    deterministic_replay: PASS - exact saved artifact, handoff, decision, reviewed draft, and current evidence rebind byte-identically; content, whitespace, decision, and evidence drift fail closed
+    protected_public_and_csv_surfaces: PASS - all frozen byte counts and SHA-256 values unchanged
+    full_repository_tests: PASS - 327 runnable suites and 2381 tests
+    production_build: PASS - 331/331 pages
+    state_and_package: PASS - YAML and JSON parse and the package command matches the recorded contract
+    scope_and_cleanup: PASS - exactly nine intended paths changed; no temporary fixture or output artifact remains
+    compose: PASS - no Compose, Dockerfile, lockfile, dependency, database, migration, or runtime route changed; Docker CLI remains unavailable for a runtime Compose check
+  recurring_goal_status: active
+  safety: >-
+    The new command reads only three bounded local files plus current repository
+    evidence, writes one deterministic report to stdout, and succeeds only when
+    the saved artifact exactly equals the freshly re-derived canonical request.
+    It does not write a file, record a decision, authenticate an owner, verify a
+    signature, select a target, enqueue, publish, post, signal, allocate,
+    broadcast, call a broker, execute, bill, or trade; it grants no publication
+    or trading authority.
+  external_actions: none
+  next_action: Commit the exact nine-path implementation locally, then verify and commit the STATE-only closure without opening another current-window receipt.
 
 research_admin_publication_action_request_2026_08_30:
   at: 2026-08-30T19:08:37+08:00
