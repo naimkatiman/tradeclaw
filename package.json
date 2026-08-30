@@ -29,6 +29,7 @@
     "verify:research-intake": "node scripts/research/verify-systematic-intake-source.mjs",
     "verify:research-review": "npx tsx scripts/research/verify-marketing-review-evidence.ts",
     "validate:research-review-handoff": "npx tsx scripts/research/validate-marketing-review-handoff.ts",
+    "prepare:research-owner-decision-request": "npx tsx scripts/research/prepare-marketing-owner-decision-request.ts",
     "research:prepare-bitcoin-seasonality": "node scripts/research/prepare-bitcoin-seasonality-inputs.mjs",
     "research:prepare-trading-term-premium": "node scripts/research/prepare-trading-term-premium-input.mjs",
     "research:bitcoin-max-min": "npx tsx scripts/research/bitcoin-max-min-replication.ts",

@@ -110,6 +110,12 @@ The request does not record an owner decision and grants no publication,
 posting, promotion, signal, allocation, broadcast, broker, execution, or
 trading authority.
 
+For a compact transport artifact, run
+`npm run prepare:research-owner-decision-request -- --file <completed-handoff.yaml>`.
+It revalidates the exact handoff and current evidence, succeeds only for the
+ready outcome, and includes the canonical request byte count and SHA-256. It
+writes JSON to stdout and does not write files. The artifact does not record an owner decision, approve publication, post, or grant publication or trading authority.
+
 The retained history contains one known contract violation: TC-256 and TC-257
 both use `2026-08-29T06:00:00.000Z/PT3H`. Neither receipt may be deleted,
 renamed, or silently selected as canonical after the fact. The ledger labels
