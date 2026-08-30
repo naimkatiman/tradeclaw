@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T20:57:00+08:00
+updated: 2026-08-30T20:58:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_receipt_gate_2026_08_30:
-  at: 2026-08-30T20:57:00+08:00
+  at: 2026-08-30T20:58:00+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_ready_to_commit
+  status: done_verified_implementation_committed_local
   scope: Add one explicit observation-safe receipt-slot gate to protected research projections so admins can distinguish an open slot, a completed-window wait, and a receipt conflict without inferring authority from prose
   branch: agent/research-intake-desk-20260829
   base_commit: d8777a160409fc7f0479e94445e9a3c85874f36e
+  implementation_commit: f4a5c9b2f7c071c80c4dda4b1b9609129f7a5c63
   cycle_id: 2026-08-30T12:00:00.000Z/PT3H
   receipt_neutral: true
   new_research_receipt: false
@@ -122,7 +123,7 @@ research_admin_receipt_gate_2026_08_30:
   staged_audit: PASS - all and only the 16 audited paths are staged; the staged diff has 506 insertions and 34 deletions with no whitespace errors
   docker_compose_preservation: PASS by scope and diff; Docker CLI is not installed in this environment, so no Compose runtime command was available
   external_actions: none
-  next_step: Commit the staged implementation locally, then bind its full commit hash in a state-only closure commit.
+  next_step: Commit this STATE.yaml binding as a local state-only closure, then recheck the clean worktree and live receipt gate before the 15:00Z rollover.
 
 research_factor_timing_source_audit_2026_08_30:
   at: 2026-08-30T20:33:00+08:00
