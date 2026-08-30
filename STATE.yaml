@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T19:47:39+08:00
+updated: 2026-08-30T19:49:55+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,9 +8,9 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_publication_request_verifier_2026_08_30:
-  at: 2026-08-30T19:47:39+08:00
+  at: 2026-08-30T19:49:55+08:00
   agent: TradeClaw PM agent
-  status: done_verified_pending_implementation_commit
+  status: done_verified_implementation_committed_local
   scope: Verify a saved publication-action request against its exact handoff, owner decision, reviewed draft, and current repository evidence without performing or authorizing the publication action
   base_commit: 944337c495e926546afa8bd6df8cd36aea53b55b
   branch: agent/research-intake-desk-20260829
@@ -136,7 +136,7 @@ research_admin_publication_request_verifier_2026_08_30:
     - scripts/research/research-marketing-publication-action-request-verifier.ts
     - scripts/research/verify-marketing-publication-action-request.ts
   compose_flow: untouched; Docker Compose files, Dockerfiles, lockfile, migrations, runtime routes, and database behavior are unchanged; Docker CLI remains unavailable for a runtime Compose check
-  final_gate_observed_at: 2026-08-30T11:47:14.527Z
+  final_gate_observed_at: 2026-08-30T11:49:12.768Z
   final_gate_snapshot: >-
     Complete with TC-266 still the sole current-window and latest receipt, 11
     receipts across 10 windows, only the expected historical 06:00Z duplicate,
@@ -169,7 +169,14 @@ research_admin_publication_request_verifier_2026_08_30:
     broadcast, call a broker, execute, bill, or trade; it grants no publication
     or trading authority.
   external_actions: none
-  next_action: Commit the exact nine-path implementation locally, then verify and commit the STATE-only closure without opening another current-window receipt.
+  implementation_commit: 93af06fdaecfba8b625530723b3e9ca7148262f7
+  implementation_committed_at: 2026-08-30T19:48:32+08:00
+  implementation_commit_scope: PASS - exactly the nine intended paths were committed locally
+  state_closure_status: verified_and_committed_local
+  state_closure_verified_at: 2026-08-30T19:49:18+08:00
+  state_closure_committed_at: 2026-08-30T19:49:55+08:00
+  state_closure_verification: PASS - receipt-ledger and marketing-loop suites pass 9/9 against the final gate; STATE.yaml and package.json parse with the committed contract, git diff hygiene passes, the implementation commit contains exactly nine intended paths, and STATE.yaml is the sole closure change
+  next_action: At or after 2026-08-30T12:00:00.000Z, re-observe the receipt and marketing gate before opening any new current-window receipt; then choose one exact-source intake candidate or a higher-value receipt-neutral improvement, preserving one receipt per clean window and every fail-closed publication and trading boundary.
 
 research_admin_publication_action_request_2026_08_30:
   at: 2026-08-30T19:08:37+08:00
