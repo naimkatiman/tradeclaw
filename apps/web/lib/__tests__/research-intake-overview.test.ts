@@ -147,8 +147,8 @@ describe('compact research intake overview contract', () => {
     expect(overview).not.toHaveProperty('records');
     expect(overview).not.toHaveProperty('items');
     expect(fingerprint(overview)).toEqual({
-      bytes: 12_339,
-      sha256: '8996969b97b7a165150d2d212c267c770ca30df119b95284d68324c114719e2f',
+      bytes: 12_407,
+      sha256: 'd470970a2ed1ad0d475d5fd61a9c1d268b093acacf9c8e0489491622af768bd9',
     });
   });
 
@@ -172,6 +172,7 @@ describe('compact research intake overview contract', () => {
       evidence: '/api/admin/research-intake/evidence',
       evidenceCsv: '/api/admin/research-intake/evidence.csv',
       marketingReview: '/api/admin/research-intake/review',
+      marketingReviewBrief: '/api/admin/research-intake/review/index.md',
       marketingReviewCsv: '/api/admin/research-intake/review.csv',
     });
 

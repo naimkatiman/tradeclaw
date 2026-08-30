@@ -23,6 +23,13 @@ function nullableText(value: string | null): string {
   return value === null ? 'not recorded' : oneLine(value);
 }
 
+function formatPacketNavigation(
+  item: ResearchIntakeAdminReviewItemPayload['navigation']['previous'],
+): string {
+  if (item === null) return 'None';
+  return `[${item.taskId} — ${oneLine(item.headline)}](${item.href}/packet.md)`;
+}
+
 function formatClaimReference(
   reference: ResearchIntakeAdminReviewItemPayload['claimVerification']['claims'][number]['references'][number],
 ): string {
@@ -90,6 +97,7 @@ function formatResearchMarketingReviewPacket(
     claimVerification,
     navigation,
     researchLoop,
+    resources,
     reviewHandoffTemplate,
     reviewItem,
     reviewProtocol,
@@ -124,6 +132,10 @@ function formatResearchMarketingReviewPacket(
     '## Review queue and provenance',
     '',
     `- Queue position: ${navigation.currentPosition} of ${navigation.totalVisibleItems}`,
+    `- Human-readable review queue: [Open review queue](${resources.marketingReviewBrief})`,
+    `- Machine-readable review queue: ${inlineCode(navigation.queueHref)}`,
+    `- Previous packet: ${formatPacketNavigation(navigation.previous)}`,
+    `- Next packet: ${formatPacketNavigation(navigation.next)}`,
     `- Observed at: ${researchLoop.observedAt}`,
     `- Available at: ${handoff.availableAt}`,
     `- Availability basis: ${handoff.basis}`,

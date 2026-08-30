@@ -42,6 +42,7 @@ describe('protected research intake resource discovery', () => {
       evidence: '/api/admin/research-intake/evidence',
       evidenceCsv: '/api/admin/research-intake/evidence.csv',
       marketingReview: '/api/admin/research-intake/review',
+      marketingReviewBrief: '/api/admin/research-intake/review/index.md',
       marketingReviewCsv: '/api/admin/research-intake/review.csv',
     });
     expect(Object.isFrozen(RESEARCH_INTAKE_ADMIN_RESOURCES)).toBe(true);

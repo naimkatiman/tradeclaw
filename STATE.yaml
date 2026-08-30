@@ -1,11 +1,97 @@
 project: tradeclaw
-updated: 2026-08-31T00:36:52+08:00
+updated: 2026-08-31T00:58:29+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_marketing_review_queue_brief_2026_08_31:
+  at: 2026-08-31T00:42:15+08:00
+  agent: TradeClaw PM agent
+  status: implementation_complete_full_verification_in_progress
+  scope: Complete the protected marketing journey with a human-readable review queue between the cycle brief and exact review packets
+  branch: agent/research-intake-desk-20260829
+  base_commit: bd7b61531c7af968812508dd784db079e1893944
+  receipt_neutral: true
+  cycle_id: 2026-08-30T15:00:00.000Z/PT3H
+  new_research_receipt: false
+  gate_observed_at: 2026-08-30T16:39:52.708Z
+  gate_snapshot: >-
+    TC-268 is the sole current-window receipt, the current window is complete,
+    and another receipt is denied until exact 2026-08-30T18:00:00.000Z. The
+    ledger holds 13 receipts across 12 windows, with only the expected historical
+    2026-08-29T06:00:00.000Z/PT3H duplicate and no additional duplicate. Four
+    drafts remain human-review-only, zero are approved, and TC-255 remains next.
+  gap_evidence:
+    protected_cycle_brief: Names only the next exact review packet.
+    protected_machine_queue: /api/admin/research-intake/review
+    protected_human_queue: absent
+    protected_exact_packet: /api/admin/research-intake/review/[taskId]/packet.md
+    journey_break: An admin can open the oldest packet or decode JSON and CSV, but cannot scan all four review-ready drafts as a concise human queue or browse packet-to-packet.
+  selected_improvement:
+    - Render one observation-consistent protected Markdown queue from the existing compact admin review payload.
+    - List every visible handoff oldest-first with evidence framing, receipt provenance, authority-neutral controls, and direct exact-packet links.
+    - Advertise the human queue on every protected resource map; link it from the cycle brief and exact packets while retaining machine JSON separately.
+    - Add visible-only previous and next packet navigation without changing research, review, publication, or trading state.
+    - Authenticate before the server clock or research state; keep the route private, no-store, GET-only, query-independent, and authority-neutral.
+  shared_library_search: No protected human-readable review queue, marketing review index, or review/index.md pattern was found under the shared MemoryCore library.
+  red_contract:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-marketing-review-queue-brief.test.ts
+    result: expected_fail_5_of_5
+    missing_contracts:
+      - Deterministic oldest-first Markdown queue with summary-only draft copy and false authority.
+      - Empty-state and exact observation-time handoff visibility.
+      - Protected resource discovery, cycle-brief queue navigation, and previous/next exact packets.
+      - Auth-first private GET-only Markdown route.
+      - README and loop-plan journey documentation while public and CSV bytes remain frozen.
+  implementation:
+    route: /api/admin/research-intake/review/index.md
+    builder: apps/web/lib/research-marketing-review-queue-brief.ts
+    discovery: Every protected JSON resource map advertises marketingReviewBrief; the cycle brief links both human and machine queues.
+    content: Every observation-visible handoff renders oldest-first with evidence framing, receipt provenance, summary-only draft copy, exact packet and blank handoff links, and false authority.
+    packet_navigation: Exact Markdown packets link back to the human queue and to observation-visible previous and next packets.
+    route_boundary: Authentication precedes the server clock and research observation; the response is private, no-store, inline Markdown, query-independent, GET-only, and has no CORS grant.
+    documentation: README.md and the three-hour-loop plan describe the cycle-brief to review-queue to exact-packet journey.
+  focused_verification:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-marketing-review-queue-brief.test.ts apps/web/app/api/admin/research-intake/review/index.md/__tests__/route.test.ts apps/web/app/api/admin/research-intake/review/index.md/__tests__/auth-boundary.test.ts
+    result: pass_3_suites_11_tests
+    deterministic_markdown: 8442_bytes_sha256_afd4038439b32a5b4aac3d5a784b3cfb8134d389fba274ae67644b2a0572ffd9
+  compatibility_verification:
+    affected_tests: pass_29_suites_151_tests
+    typecheck_web: pass
+    protected_json_movement: The advertised marketingReviewBrief property intentionally adds 68 bytes to each protected JSON resource map; only those protected fingerprints were refreshed.
+    markdown_movement: The cycle brief adds human and machine queue links; exact review packets add the queue plus visible previous and next packet navigation.
+    unchanged_receipts:
+      public_catalog_json: 140878_bytes_sha256_4c48acd73a18d967bbf039e7109188c136b0f76d011b4e6da5754cb37326d3ec
+      public_evidence_json: 82070_bytes_sha256_43d0257b89f0011979269732dd45e8fd8672c9f6aa35bb691255cd396f2076cf
+      public_catalog_csv: 37522_bytes_sha256_e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf
+      public_evidence_csv: 9820_bytes_sha256_091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c
+      protected_evidence_csv: 20948_bytes_sha256_a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661
+      protected_review_csv: 7094_bytes_sha256_c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  full_test_verification:
+    command: npm test -- --runInBand --forceExit
+    result: pass
+    suites: 348_passed_3_skipped_351_total
+    tests: 2466_passed_26_skipped_2492_total
+    snapshots: 1_passed
+    note: ForceExit was used only after Jest's complete result because this repository retains a known post-run open handle; no test failed.
+  prebuild_verification:
+    lint: pass_0_errors_21_inherited_warnings
+    typecheck_web: pass
+    pinned_source: pass_61_of_61_candidates_commit_d9c98521c76662d5eae03ab97a4fc721d010dde3
+    review_evidence: pass_4_manifests_12_files
+    docker_compose_config: unavailable_no_docker_executable
+    compose_scope: No Docker Compose, Dockerfile, migration, package-manifest, or environment file changed; deployment-surface integrity tests passed in the full suite.
+  production_build:
+    command: npm run build
+    result: pass
+    static_pages: 333_of_333
+    protected_route: /api/admin/research-intake/review/index.md
+    inherited_warnings: Middleware convention deprecation, three existing broad NFT trace warnings, Node url.parse deprecations, and the existing edge-runtime static-generation notice.
+  safety_boundary: No candidate, source audit, return, receipt, research verdict, evidence artifact, marketing decision, publication, posting, billing, signal, allocation, broker, execution, or trading state will change.
+  next_step: Run the full suite, lint, pinned-source and review-manifest checks, then the required production build before committing locally.
 
 research_admin_evidence_index_brief_2026_08_31:
   at: 2026-08-31T00:36:52+08:00

@@ -77,6 +77,7 @@ export const RESEARCH_INTAKE_ADMIN_RESOURCES = Object.freeze({
   evidence: '/api/admin/research-intake/evidence',
   evidenceCsv: '/api/admin/research-intake/evidence.csv',
   marketingReview: '/api/admin/research-intake/review',
+  marketingReviewBrief: '/api/admin/research-intake/review/index.md',
   marketingReviewCsv: '/api/admin/research-intake/review.csv',
 } as const);
 

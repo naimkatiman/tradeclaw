@@ -97,6 +97,8 @@ export function buildResearchIntakeAdminCycleBrief(
     `- Publication-approved drafts: ${marketingReview.summary.publicationApprovedDrafts}`,
     `- Current-window drafts: ${marketingReview.currentWindowDraftCount}`,
     ...nextReviewLines(marketingReview),
+    `- Human-readable review queue: [Open all review-ready drafts](${overview.resources.marketingReviewBrief})`,
+    `- Machine-readable review queue: \`${overview.resources.marketingReview}\``,
     '- Human review required: Yes',
     '',
     '## Evidence record',

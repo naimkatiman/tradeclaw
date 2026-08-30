@@ -65,8 +65,8 @@ describe('protected human-readable research cycle brief', () => {
 
     expect(replay).toBe(first);
     expect(fingerprint(first)).toEqual({
-      bytes: 2_549,
-      sha256: 'a4c7e7f6ab7dc195a20b9af87682137cf836efd81b102c09ae58adbe20329906',
+      bytes: 2_724,
+      sha256: '4348e8a9789060cc7d2a8b377a624a76b44c79886b75b37e5f6e3f54e058f5ce',
     });
     expect(first.startsWith('# TradeClaw research cycle brief\n')).toBe(true);
     expect(first).toContain(`- Observed at: \`${AUDIT_AT}\``);

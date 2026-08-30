@@ -149,6 +149,17 @@ download of the same visible handoff set. Both routes authenticate before
 observing the clock, ignore filters, stay private/no-store, and expose no
 mutation or outbound action.
 
+The protected human-readable marketing-review queue at
+`/api/admin/research-intake/review/index.md` completes the cycle brief to review
+queue to exact review packet journey without making an admin decode JSON. One
+authenticated observation renders every visible handoff oldest-first with its
+evidence state, receipt provenance, draft summary, false authority, and exact
+packet link; full draft copy remains in the packet. Each exact packet links back
+to the queue and to its observation-visible previous and next packets. The queue
+does not create or authorize a receipt, complete a review, record an owner
+decision, publish, post, or trade. It stays private/no-store, exposes no mutation,
+and grants neither publication nor trading authority.
+
 After an admin fills the exact review's downloaded `handoff.yaml`, the local
 repository command
 `npm run validate:research-review-handoff -- --file <completed-handoff.yaml>`
