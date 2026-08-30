@@ -16,6 +16,10 @@ import {
   summarizeResearchIntakeEvidenceStates,
   type ResearchIntakeEvidenceState,
 } from './research-intake-evidence-state';
+import {
+  buildResearchIntakePublicStartHere,
+  type ResearchIntakePublicStartHere,
+} from './research-intake-start-here';
 
 export type ResearchIntakePublicEvidenceBasis =
   | 'upstream-gross-discovery-only'
@@ -28,6 +32,15 @@ export const RESEARCH_INTAKE_PUBLIC_RESOURCES = Object.freeze({
   evidence: '/api/research/intake/evidence',
   evidenceCsv: '/api/research/intake/evidence.csv',
 } as const);
+
+const RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS = SYSTEMATIC_RESEARCH_INTAKE.filter(
+  (record) => record.tradeClawSourceAudit !== null || record.tradeClawEvidence !== null,
+);
+
+const RESEARCH_INTAKE_PUBLIC_START_HERE = buildResearchIntakePublicStartHere(
+  RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS.length,
+  RESEARCH_INTAKE_PUBLIC_RESOURCES.evidence,
+);
 
 export interface ResearchIntakePublicRecordLinks {
   candidate: string;
@@ -52,6 +65,7 @@ export interface ResearchIntakePublicPayload {
     grantsTradingAuthority: false;
   };
   resources: typeof RESEARCH_INTAKE_PUBLIC_RESOURCES;
+  startHere: ResearchIntakePublicStartHere;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -133,6 +147,7 @@ function buildResearchIntakePublicContext(): Omit<ResearchIntakePublicPayload, '
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_PUBLIC_RESOURCES,
+    startHere: RESEARCH_INTAKE_PUBLIC_START_HERE,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -170,10 +185,6 @@ export function buildResearchIntakePublicPayload(): ResearchIntakePublicPayload 
  * overlay is retained in pinned source order, including adverse and no-go records.
  */
 export function buildResearchIntakePublicEvidencePayload(): ResearchIntakePublicEvidencePayload {
-  const evidenceRecords = SYSTEMATIC_RESEARCH_INTAKE.filter(
-    (record) => record.tradeClawSourceAudit !== null || record.tradeClawEvidence !== null,
-  );
-
   return {
     ...buildResearchIntakePublicContext(),
     evidenceIndex: {
@@ -182,9 +193,11 @@ export function buildResearchIntakePublicEvidencePayload(): ResearchIntakePublic
       performanceRanked: false,
       includesEveryAvailableOverlay: true,
     },
-    evidenceSummary: summarizeResearchIntake(evidenceRecords),
-    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(evidenceRecords),
-    records: evidenceRecords.map(toPublicRecord),
+    evidenceSummary: summarizeResearchIntake(RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS),
+    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS,
+    ),
+    records: RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS.map(toPublicRecord),
   };
 }
 

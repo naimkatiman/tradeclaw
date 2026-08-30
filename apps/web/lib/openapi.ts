@@ -260,6 +260,43 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
           },
         },
+        ResearchIntakeStartHere: {
+          type: "object",
+          description:
+            "One server-authored, evidence-first public navigation action. It is convenience guidance, not a strategy recommendation, evidence claim, publication approval, or trading authority.",
+          required: [
+            "audience",
+            "kind",
+            "label",
+            "reason",
+            "href",
+            "itemCount",
+            "automaticAction",
+            "grantsPublicationAuthority",
+            "grantsTradingAuthority",
+          ],
+          properties: {
+            audience: { type: "string", const: "public" },
+            kind: { type: "string", const: "inspect-complete-evidence" },
+            label: {
+              type: "string",
+              example: `Start with ${OPENAPI_RESEARCH_EVIDENCE_COUNT} examined candidates`,
+            },
+            reason: {
+              type: "string",
+              description:
+                "Explains why the complete adverse-inclusive evidence desk is the safe first view.",
+            },
+            href: { type: "string", const: "/api/research/intake/evidence" },
+            itemCount: {
+              type: "integer",
+              const: OPENAPI_RESEARCH_EVIDENCE_COUNT,
+            },
+            automaticAction: { type: "boolean", const: false },
+            grantsPublicationAuthority: { type: "boolean", const: false },
+            grantsTradingAuthority: { type: "boolean", const: false },
+          },
+        },
         ResearchIntakePublicRecordLinks: {
           type: "object",
           description: "Canonical public detail link for one exact candidate ID.",
@@ -439,6 +476,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "schemaVersion",
             "access",
             "resources",
+            "startHere",
             "source",
             "selectionPolicy",
             "workflow",
@@ -468,6 +506,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
             resources: {
               $ref: "#/components/schemas/ResearchIntakePublicResources",
+            },
+            startHere: {
+              $ref: "#/components/schemas/ResearchIntakeStartHere",
             },
             source: {
               type: "object",
@@ -603,6 +644,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "schemaVersion",
             "access",
             "resources",
+            "startHere",
             "source",
             "selectionPolicy",
             "workflow",
@@ -621,6 +663,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
             access: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/access" },
             resources: {
               $ref: "#/components/schemas/ResearchIntakePublicResources",
+            },
+            startHere: {
+              $ref: "#/components/schemas/ResearchIntakeStartHere",
             },
             source: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/source" },
             selectionPolicy: {
@@ -764,6 +809,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "schemaVersion",
             "access",
             "resources",
+            "startHere",
             "source",
             "selectionPolicy",
             "workflow",
@@ -780,6 +826,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
             access: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/access" },
             resources: {
               $ref: "#/components/schemas/ResearchIntakePublicResources",
+            },
+            startHere: {
+              $ref: "#/components/schemas/ResearchIntakeStartHere",
             },
             source: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/source" },
             selectionPolicy: {

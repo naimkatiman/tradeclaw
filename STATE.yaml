@@ -1,11 +1,161 @@
 project: tradeclaw
-updated: 2026-08-30T08:56:55+08:00
+updated: 2026-08-30T09:16:46+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_start_here_guidance_2026_08_30:
+  at: 2026-08-30T09:16:46+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Give every public and protected systematic-research JSON projection one server-authored, audience-safe resource to open next without client-side workflow inference
+  base_commit: c46103f70408fdf95b393fac175faa5fc703acba
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-263
+  current_cycle_id: 2026-08-30T00:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-263
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T03:00:00.000Z
+  gate_observed_at: 2026-08-30T01:16:46.0058777Z
+  gate_decision: The 03:00Z gate remains closed and TC-263 is the sole current-window receipt; implement only an additive derived read-model improvement and create no candidate, receipt, return, preregistration, artifact, or marketing draft
+  library_search: MemoryCore contains recommendation-tier-by-audience; the user's explicit simple framing selects one execution-first action instead of a multi-item expert matrix, while no TradeClaw-specific start-here or admin-attention pattern exists
+  problem: >-
+    Public and protected research responses expose resources, evidence states,
+    UTC receipt state, review queues, filters, and links, but clients must still
+    infer which resource matters next. Public clients can accidentally start from
+    upstream gross discovery scores instead of complete adverse evidence. Admin
+    clients must independently prioritize a current receipt conflict, an open UTC
+    window, a human-review queue, or the evidence desk.
+  decision: >-
+    Add one required top-level `startHere` object to all three public and all four
+    protected JSON projections. Public guidance always opens the complete,
+    source-ordered, non-performance-ranked evidence desk. Protected guidance is
+    observation-consistent and applies one frozen priority: current-window receipt
+    conflict, awaiting current-window receipt, human-review drafts, then evidence.
+    Every action remains navigation-only with automatic action and publication or
+    trading authority explicitly false.
+  frozen_shape:
+    fields: [audience, kind, label, reason, href, itemCount, automaticAction, grantsPublicationAuthority, grantsTradingAuthority]
+    automaticAction: false
+    grantsPublicationAuthority: false
+    grantsTradingAuthority: false
+  public_contract:
+    audience: public
+    kind: inspect-complete-evidence
+    label: Start with 9 examined candidates
+    href: /api/research/intake/evidence
+    itemCount: 9
+    reason_contains: complete TradeClaw source audits and replications, adverse/no-result inclusion, pinned source order, and no performance ranking
+    identical_across: [catalog, exact-candidate, evidence]
+  protected_priority:
+    - current-window-conflict
+    - current-window-awaiting-receipt
+    - marketing-review-ready
+    - complete-evidence
+  protected_contracts:
+    current-window-conflict:
+      kind: resolve-receipt-conflict
+      href: /api/admin/research-intake
+      itemCount: current-window receipt count
+    current-window-awaiting-receipt:
+      kind: screen-current-window
+      href: /api/admin/research-intake
+      itemCount: 0
+    marketing-review-ready:
+      kind: review-marketing-drafts
+      href: /api/admin/research-intake/review
+      itemCount: available draft count
+    complete-evidence:
+      kind: inspect-complete-evidence
+      href: /api/admin/research-intake/evidence
+      itemCount: complete examined-record count
+    identical_at_same_observation_across: [catalog, exact-candidate, evidence, review]
+  frozen_prechange_json_receipts_at_2026_08_29T15_59_59_999Z:
+    public_catalog: 103080 bytes / dd22e08dc20dd2bc3dc096f80b862468a637123d5e65c7123ef95a3931af18ce
+    public_candidate: 8952 bytes / 206f8577ecf6a372113251d92aa4b7056214f4fcee47fecd6577e52e7ae69ec3
+    public_evidence: 46708 bytes / 66b5066d9ba990d009141fe3cc5d6306ba71286bdda1f0975b3a1a7920c9e30f
+    protected_catalog: 73264 bytes / c403d457817dff2323fb6a5011d3794d80923da6ae1587fd404df730340f7b80
+    protected_candidate: 12427 bytes / ee09ae3f5acaa00eac57aa4d69ffd5d94a9fb8d902c4aea7ca72cc87886eca83
+    protected_evidence: 74357 bytes / 85f021b073aeec06c774e4345801af6154534fad92cd9b99366e184a9ef3e37a
+    protected_review: 26935 bytes / caf52d7544a6de267198b8c021c19ed1c4f646dab18ae40c4eee86d6cc95623f
+  expected_core_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake-start-here.ts
+    - apps/web/lib/research-intake-public.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/openapi.ts
+    - apps/web/lib/__tests__/research-intake-start-here.test.ts
+  deterministic_expectation_policy: Widened RED may update only existing exact JSON fingerprint expectations whose serialized payload gains the required additive `startHere`; CSV, navigation-only, filter-only, facet-only, source, receipt, and unrelated expectations must remain green
+  frozen_boundaries:
+    public_or_protected_record_shape_changed: false
+    csv_changed: false
+    source_catalog_evidence_or_verdict_changed: false
+    route_or_auth_semantics_changed: false
+    receipt_handoff_draft_or_marketing_state_changed: false
+    rendered_ui_changed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  red_verification: >-
+    PASS - the dedicated start-here suite ran five tests and all five failed
+    one-to-one because the field is absent from the three public projections,
+    protected conflict/awaiting/review priority states, and public OpenAPI/README.
+    Existing underlying receipt and four-draft queue assertions stayed green, and
+    no implementation code had changed.
+  focused_green_verification: >-
+    PASS - six focused tests cover identical public guidance, protected
+    current-window conflict, awaiting-receipt priority over four existing drafts,
+    identical post-closure review guidance across all four protected projections,
+    the pure completed/no-drafts evidence fallback, and required OpenAPI/README
+    discovery. All six pass with explicit false automatic/publication/trading authority.
+  widened_red_verification: >-
+    EXPECTED RED - the first 14 widened intake suites ran 75 tests: 66 passed
+    and nine failed across eight suites. Every failure is an existing whole-JSON
+    byte/hash receipt whose payload now gains only the required additive
+    `startHere` object. Focused behavior, CSV receipts, navigation-only objects,
+    query/filter/facet/result-view logic, receipt state, and the four-draft review
+    queue remain green. No unrelated regression has appeared.
+  widened_green_verification: >-
+    PASS - all 28 research-intake and publication-boundary suites pass 141/141
+    tests after updating only the seven intentional JSON projection receipts and
+    their full-catalog variants. CSV, navigation, filter, facet, source, evidence,
+    receipt, review-queue, OpenAPI-parity, README-discovery, and publication-boundary
+    contracts remain green.
+  static_verification: >-
+    PASS - pinned-source verification reports the unchanged 61-candidate
+    gross-of-trading-costs discovery-only catalog; web typecheck passes; lint
+    exits zero with the same 21 repository warnings and no errors.
+  full_test_verification: >-
+    PASS - 294 suites and 2166 tests pass, with the existing three suites and
+    26 tests skipped. The increase from the preceding 293/2160 baseline is
+    exactly the new six-test start-here contract suite.
+  production_build_verification: >-
+    PASS - the required root production build compiles signals, trading-agents,
+    and Next.js successfully and generates all 329 static pages. Only existing
+    middleware, Turbopack NFT-trace, edge-runtime, and Node deprecation warnings appear.
+  scope_verification: >-
+    PASS - the exact 15-file patch is limited to STATE, README API discovery,
+    one new derived start-here module, the existing public/admin JSON builders,
+    the public OpenAPI schema, one new contract suite, and eight intentional JSON
+    receipt expectation files. `git diff --check` passes. Docker Compose,
+    dependencies, lockfiles, databases, migrations, rendered UI, research records,
+    receipts, drafts, marketing state, and trading/runtime code have zero diff.
+  docker_compose_verification: >-
+    NOT RUN - the local environment has no `docker` executable. The supported
+    Compose flow is preserved by zero diff to every Compose, manifest, lockfile,
+    database, and migration surface; no container was started or changed.
+  state_yaml_verification: PASS - STATE.yaml parses successfully
+  current_step: Commit the fully verified implementation locally
+  next_action: Close STATE with the implementation hash in a separate local commit, save MemoryCore, and preserve the active 03:00Z gate
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: Navigation guidance only; no UI, mutation, receipt, return, preregistration, evidence artifact, marketing draft, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized
 
 research_openapi_catalog_parity_2026_08_30:
   at: 2026-08-30T08:44:29+08:00

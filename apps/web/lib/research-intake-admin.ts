@@ -44,6 +44,10 @@ import {
   type ResearchLoopMarketingHandoff,
   type ResearchLoopMarketingReview,
 } from './research-loop-marketing';
+import {
+  buildResearchIntakeAdminStartHere,
+  type ResearchIntakeAdminStartHere,
+} from './research-intake-start-here';
 
 const VERDICTS = Object.freeze(['not-tested', 'pass', 'fail', 'inconclusive'] as const);
 const SOURCE_AUDIT_DISPOSITIONS = Object.freeze(['advance', 'hold', 'no-go'] as const);
@@ -66,6 +70,10 @@ export const RESEARCH_INTAKE_ADMIN_RESOURCES = Object.freeze({
   marketingReview: '/api/admin/research-intake/review',
   marketingReviewCsv: '/api/admin/research-intake/review.csv',
 } as const);
+
+const RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS = SYSTEMATIC_RESEARCH_INTAKE.filter(
+  (record) => record.tradeClawSourceAudit !== null || record.tradeClawEvidence !== null,
+);
 
 export type ResearchIntakeAdminResources = typeof RESEARCH_INTAKE_ADMIN_RESOURCES;
 
@@ -351,6 +359,7 @@ export interface ResearchIntakeAdminPayload {
     grantsTradingAuthority: false;
   };
   resources: ResearchIntakeAdminResources;
+  startHere: ResearchIntakeAdminStartHere;
   queryContract: ResearchIntakeAdminQueryContract;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
@@ -394,6 +403,7 @@ export interface ResearchIntakeAdminCandidatePayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
   resources: ResearchIntakeAdminResources;
+  startHere: ResearchIntakeAdminStartHere;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -430,6 +440,7 @@ export interface ResearchIntakeAdminEvidencePayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
   resources: ResearchIntakeAdminResources;
+  startHere: ResearchIntakeAdminStartHere;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -482,6 +493,7 @@ export interface ResearchIntakeAdminReviewPayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
   resources: ResearchIntakeAdminResources;
+  startHere: ResearchIntakeAdminStartHere;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -1010,19 +1022,29 @@ function buildResearchIntakeAdminObservation(at: Date | string | number) {
   const currentWindow = getResearchLoopWindow(observedDate);
   const receiptSnapshot = getResearchLoopReceiptSnapshot(observedDate);
   const marketingReview = getResearchLoopMarketingReview(observedDate);
+  const researchLoop = {
+    observedAt,
+    alignment: 'UTC' as const,
+    cadence: 'PT3H' as const,
+    currentWindow,
+    nextRolloverAt: currentWindow.endsAt,
+    ...receiptSnapshot,
+  };
 
   return {
     observedAt,
     observedAtMs: observedDate.getTime(),
     marketingReview,
-    researchLoop: {
-      observedAt,
-      alignment: 'UTC' as const,
-      cadence: 'PT3H' as const,
-      currentWindow,
-      nextRolloverAt: currentWindow.endsAt,
-      ...receiptSnapshot,
-    },
+    researchLoop,
+    startHere: buildResearchIntakeAdminStartHere({
+      currentWindowStatus: receiptSnapshot.currentWindowStatus,
+      currentWindowId: currentWindow.id,
+      currentWindowReceiptCount: receiptSnapshot.currentWindowReceipts.length,
+      availableDrafts: marketingReview.summary.availableDrafts,
+      publicationApprovedDrafts: marketingReview.summary.publicationApprovedDrafts,
+      evidenceCount: RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS.length,
+      resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    }),
   };
 }
 
@@ -1189,6 +1211,7 @@ export function buildResearchIntakeAdminPayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    startHere: observation.startHere,
     queryContract: RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
@@ -1254,6 +1277,7 @@ export function buildResearchIntakeAdminCandidatePayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    startHere: observation.startHere,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -1278,9 +1302,6 @@ export function buildResearchIntakeAdminEvidencePayload(
   at: Date | string | number = new Date(),
 ): ResearchIntakeAdminEvidencePayload {
   const observation = buildResearchIntakeAdminObservation(at);
-  const evidenceRecords = SYSTEMATIC_RESEARCH_INTAKE.filter(
-    (record) => record.tradeClawSourceAudit !== null || record.tradeClawEvidence !== null,
-  );
 
   return {
     schemaVersion: 1,
@@ -1290,6 +1311,7 @@ export function buildResearchIntakeAdminEvidencePayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    startHere: observation.startHere,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -1304,9 +1326,11 @@ export function buildResearchIntakeAdminEvidencePayload(
       performanceRanked: false,
       includesEveryAvailableOverlay: true,
     },
-    evidenceSummary: summarizeResearchIntake(evidenceRecords),
-    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(evidenceRecords),
-    items: evidenceRecords.map((record, index) => {
+    evidenceSummary: summarizeResearchIntake(RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS),
+    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS,
+    ),
+    items: RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS.map((record, index) => {
       const candidateWorkflow = buildResearchIntakeAdminCandidateWorkflow(
         record,
         observation,
@@ -1353,6 +1377,7 @@ export function buildResearchIntakeAdminReviewPayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    startHere: observation.startHere,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
