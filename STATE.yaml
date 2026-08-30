@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T15:26:00+08:00
+updated: 2026-08-30T15:28:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,7 +10,7 @@ description: >
 research_admin_exact_review_claim_map_2026_08_30:
   at: 2026-08-30T15:10:00+08:00
   agent: TradeClaw PM agent
-  status: done_verified_ready_for_local_commit
+  status: done_verified_implementation_committed_local
   scope: Add one structured numeric claim-to-evidence map to exact protected marketing reviews, render it in the existing Markdown packet, and remove stale examined-row counts from README handoff copy
   base_commit: 0a3290f2a606ad25eb5d8ddceab8d447d523eb96
   branch: agent/research-intake-desk-20260829
@@ -116,8 +116,26 @@ research_admin_exact_review_claim_map_2026_08_30:
     queue_sha256_unchanged: e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea
     public_overview_index_and_all_csv_fingerprints_unchanged: true
   docker_compose_verification: Existing deployment-surface integrity tests and the production build pass; Docker CLI remains unavailable locally, so no runtime Compose command was attempted and no Compose, database, dependency, or migration file changed.
+  implementation_commit: 9573ccc2e29c106a44e0b6c06f290470e335f5f9
+  final_gate_observed_at: 2026-08-30T07:27:11.393Z
+  final_gate_snapshot:
+    current_window_id: 2026-08-30T06:00:00.000Z/PT3H
+    current_window_ends_at: 2026-08-30T09:00:00.000Z
+    current_window_status: complete
+    current_window_receipt_count: 1
+    current_window_task_id: TC-265
+    current_window_outcome: verified-no-go
+    latest_receipt_is_current_window_receipt: true
+    total_receipts: 10
+    expected_legacy_duplicate_windows:
+      - 2026-08-29T06:00:00.000Z/PT3H
+    additional_duplicate_windows: []
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_trading: false
+    new_receipt_opened_by_this_slice: false
   recurring_goal_status: active
-  next_action: Commit the verified implementation locally, record its hash and the final receipt-gate snapshot in closure state, update shared MemoryCore, and keep the recurring goal active without opening another receipt before 2026-08-30T09:00:00.000Z.
+  next_action: At or after 2026-08-30T09:00:00.000Z, re-observe the receipt gate before selecting the next bounded cost-first intake or admin simplification; until then open no additional research receipt. Keep marketing drafts manual and unapproved.
   safety: No mutation, review completion, approval, owner decision, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment is authorized.
 
 research_admin_exact_review_protocol_2026_08_30:
