@@ -121,7 +121,7 @@ describe('protected research catalog filter facets', () => {
     const facets = readFilterFacets(payload);
 
     expect(payload.catalogEvidenceStateSummary.plainLanguageSummary).toBe(
-      '61 candidates: 48 not tested by TradeClaw, 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+      '61 candidates: 47 not tested by TradeClaw, 10 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
 
     expect(withoutOptionHrefs(facets?.dimensions.assetClass)).toEqual({
@@ -143,8 +143,8 @@ describe('protected research catalog filter facets', () => {
       selected: 'all',
       options: [
         option('all', 'All stages', 61, true),
-        option('discovered', 'Discovered', 48),
-        option('source-audited', 'Source audited', 9),
+        option('discovered', 'Discovered', 47),
+        option('source-audited', 'Source audited', 10),
         option('preregistered', 'Preregistered', 0),
         option('replicated', 'Replicated', 4),
         option('prospective', 'Prospective', 0),
@@ -168,7 +168,7 @@ describe('protected research catalog filter facets', () => {
         option('all', 'All records', 61, true),
         option('advance', 'Advance', 3),
         option('hold', 'Hold', 0),
-        option('no-go', 'No-go', 9),
+        option('no-go', 'No-go', 10),
       ],
     });
     expect(withoutOptionHrefs(facets?.dimensions.evidenceStatus)).toEqual({
@@ -176,8 +176,8 @@ describe('protected research catalog filter facets', () => {
       selected: 'all',
       options: [
         option('all', 'All evidence statuses', 61, true),
-        option('not-tested', 'Not tested by TradeClaw', 48),
-        option('source-audit-only-no-local-backtest', 'Source audit only', 9),
+        option('not-tested', 'Not tested by TradeClaw', 47),
+        option('source-audit-only-no-local-backtest', 'Source audit only', 10),
         option('qa-only-no-performance-result', 'QA complete; no performance result', 1),
         option('modeled-historical-pass', 'Modeled historical pass', 0),
         option('modeled-historical-fail', 'Modeled historical fail', 3),
@@ -204,10 +204,10 @@ describe('protected research catalog filter facets', () => {
       count,
       selected,
     }))).toEqual([
-      { value: 'all', count: 48, selected: false },
+      { value: 'all', count: 47, selected: false },
       { value: 'Equities', count: 11, selected: true },
       { value: 'Bonds', count: 10, selected: false },
-      { value: 'Commodities', count: 2, selected: false },
+      { value: 'Commodities', count: 1, selected: false },
       { value: 'Currencies', count: 3, selected: false },
       { value: 'Cryptocurrencies', count: 3, selected: false },
       { value: 'Derivatives', count: 9, selected: false },
@@ -319,13 +319,13 @@ describe('protected research catalog filter facets', () => {
     expect(createHash('sha256').update(contract).digest('hex')).toBe(
       '9e394bbb17792c06f2d536ec312d8c79113e32f48a69fe2a2db8b000254c64e6',
     );
-    expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(5_234);
+    expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(5_237);
     expect(createHash('sha256').update(defaultBody).digest('hex')).toBe(
-      'f41f1193e82c86d551d2a192d0bc2d99025d1b4c411e03771a063a7fe16ea800',
+      '52bb66640ee3dcba32e2ee5391be403037d9cb81e4c366c4f3fa36a273bbc886',
     );
     expect(Buffer.byteLength(disjunctiveBody, 'utf8')).toBe(6_063);
     expect(createHash('sha256').update(disjunctiveBody).digest('hex')).toBe(
-      '9051ffb3bcd5be65e8e6377a4d56fdf7f4c1c364251998d501038478c244a401',
+      '2cad3fd10be56b519c7331462eb3d3b63db9e04f7cc3a5d10378de99b16d5283',
     );
   });
 

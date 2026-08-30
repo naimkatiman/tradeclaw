@@ -235,14 +235,14 @@ describe('TC-266 Risk Parity Portfolios with Risk Factors source audit', () => {
   it('moves exactly one more row into adverse source-audit evidence', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 48,
-      sourceAudited: 9,
+      discovered: 47,
+      sourceAudited: 10,
       replicated: 4,
       passed: 0,
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 9,
+      sourceNoGo: 10,
     });
   });
 
@@ -269,8 +269,8 @@ describe('TC-266 Risk Parity Portfolios with Risk Factors source audit', () => {
     const adminEvidence = buildResearchIntakeAdminEvidencePayload(recordedAt);
     expect(publicEvidence.records.map(taskId)).toContain('TC-266');
     expect(adminEvidence.items.map((item) => taskId(item.record))).toContain('TC-266');
-    expect(publicEvidence.evidenceSummary).toMatchObject({ total: 13, sourceAudited: 9, sourceNoGo: 9 });
-    expect(adminEvidence.evidenceSummary).toMatchObject({ total: 13, sourceAudited: 9, sourceNoGo: 9 });
+    expect(publicEvidence.evidenceSummary).toMatchObject({ total: 14, sourceAudited: 10, sourceNoGo: 10 });
+    expect(adminEvidence.evidenceSummary).toMatchObject({ total: 14, sourceAudited: 10, sourceNoGo: 10 });
 
     expect(adminCandidate.record.marketingReviewDraft).toBeNull();
     expect(adminCandidate.candidateWorkflow).toMatchObject({

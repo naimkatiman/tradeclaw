@@ -99,8 +99,8 @@ describe('public human-readable exact candidate brief', () => {
       id: record.id,
       brief: briefModule.buildResearchIntakePublicCandidateBrief(record.id),
     })))).toEqual({
-      bytes: 144_350,
-      sha256: '4de0cdea57d5ac9645742082249410de5e515c1d1d72e3ff686a3ed4f511ba5e',
+      bytes: 144_612,
+      sha256: '6686e4c9664b4c66da87a04d00bcc11e7676a693ec05c8ee2ee65748f1225c47',
     });
     expect({
       untouched: fingerprint(
@@ -176,8 +176,8 @@ describe('public human-readable exact candidate brief', () => {
       expect(indexBrief.indexOf(human)).toBeLessThan(indexBrief.indexOf(machine));
     }
     expect(fingerprint(indexBrief)).toEqual({
-      bytes: 11_853,
-      sha256: '5180ed5b7a95cdee714a649f82acd25cbe26773557852320bc1f40c968f44887',
+      bytes: 12_695,
+      sha256: 'f2409c5d6fcb2dc2a7da91e84489b115a8b6214a6fd4b980b9667478c710fc80',
     });
     expect({
       catalogLinks: fingerprint(catalog.records.map((record) => record.links)),
@@ -188,8 +188,8 @@ describe('public human-readable exact candidate brief', () => {
         sha256: '957a66e1dda4f057304512d8b666350b1c153e3f8d51eb4a18bd94ceec049dce',
       },
       indexLinks: {
-        bytes: 2_527,
-        sha256: '469987b2e9f106712e97aa650bbfea2f2e8e311ad0f9428e1d5d86203cf9b99a',
+        bytes: 2_743,
+        sha256: '271434e14399d927991ffd71793e772d8c8a452043619fe1f301a59ee07780a2',
       },
     });
   });
@@ -277,40 +277,40 @@ describe('public human-readable exact candidate brief', () => {
       ),
     }).toEqual({
       sourceRecords: {
-        bytes: 93_140,
-        sha256: '4ad2dfe02ba0f68f1f000f24f03fd8802a712a485909d34069060b7097c683e9',
+        bytes: 97_705,
+        sha256: '867fbeb87ea5164e7e67210b38e4a3babe3f0719be7a68473d93d97a73fcb9c2',
       },
       catalogRecordBodies: {
-        bytes: 116_908,
-        sha256: '081e897581b02b318f4c6d74fd8a5a7edaff47160a33ae1ea3c04c6026b3b3b7',
+        bytes: 121_640,
+        sha256: 'bfa71b19da61927f8b2897c2c40580ee940b5474984e6ea0bc1db94e554a1563',
       },
       evidenceRecordBodies: {
-        bytes: 65_453,
-        sha256: 'ae64874074790dff3d10d1c65b7973751eec8b7cafaf3ed646433a3e9d572d39',
+        bytes: 71_246,
+        sha256: 'a83039c8b228ba44ede153417475f5e41dd5b2c7aeebd2fd67b6b2a555ab4943',
       },
       compactItemBodies: {
-        bytes: 10_420,
-        sha256: 'f348393a3e3cfbf6691bbca6a026589c0aa8d652515453f841da2ee0b40deada',
+        bytes: 11_280,
+        sha256: '3922b3de65e2a5d4d36187328387e901d06fb6ef076addc47361869a6805b5a8',
       },
       overview: {
-        bytes: 7_749,
-        sha256: 'ad38ae1c4caa50b7e21afd524e8ff188346b34cee535e108f9245de0722d5870',
+        bytes: 7_758,
+        sha256: 'bfe147f9c5bbe293f9b966b0f902c029a45d099918cbb32338a350f939a8d274',
       },
       resources: {
         bytes: 374,
         sha256: 'c2ab8ff38c715b07414a0ddcdd73b0e7f016c0eac9e66db17caca18d784c3323',
       },
       publicCatalogCsv: {
-        bytes: 37_418,
-        sha256: '2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f',
+        bytes: 37_522,
+        sha256: 'e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf',
       },
       publicEvidenceCsv: {
-        bytes: 9_138,
-        sha256: 'e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941',
+        bytes: 9_820,
+        sha256: '091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c',
       },
       protectedEvidenceCsv: {
-        bytes: 19_965,
-        sha256: 'e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f',
+        bytes: 20_948,
+        sha256: 'a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661',
       },
       protectedReviewCsv: {
         bytes: 7_094,

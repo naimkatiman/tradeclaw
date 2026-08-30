@@ -187,16 +187,16 @@ describe('protected next marketing review', () => {
       )),
     }).toEqual({
       publicCatalog: {
-        bytes: 37_418,
-        sha256: '2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f',
+        bytes: 37_522,
+        sha256: 'e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf',
       },
       publicEvidence: {
-        bytes: 9_138,
-        sha256: 'e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941',
+        bytes: 9_820,
+        sha256: '091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c',
       },
       protectedEvidence: {
-        bytes: 19_965,
-        sha256: 'e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f',
+        bytes: 20_948,
+        sha256: 'a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661',
       },
       protectedReview: {
         bytes: 7_094,

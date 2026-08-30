@@ -54,8 +54,8 @@ describe('public research intake CSV projection', () => {
     }, {});
 
     expect(counts).toEqual({
-      'not-tested': 48,
-      'source-audit-only-no-local-backtest': 9,
+      'not-tested': 47,
+      'source-audit-only-no-local-backtest': 10,
       'modeled-historical-fail': 3,
       'qa-only-no-performance-result': 1,
     });
@@ -75,7 +75,7 @@ describe('public research intake CSV projection', () => {
       verdict: 'not-tested',
       tradeClawArtifactPath: '',
     }));
-    expect(sourceNoGos).toHaveLength(9);
+    expect(sourceNoGos).toHaveLength(10);
     expect(riskBasedSourceNoGo).toEqual(expect.objectContaining({
       evidenceBasis: 'tradeclaw-source-audit-only',
       performanceEvidenceStatus: 'source-audit-only-no-local-backtest',

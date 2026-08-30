@@ -117,24 +117,24 @@ describe('protected packet-first startHere action', () => {
         sha256: 'b196b34b8bacb345d3f1ed17227e88ef16ec3a59982ebc593919f8ffd651bb08',
       },
       publicOverview: {
-        bytes: 7_749,
-        sha256: 'ad38ae1c4caa50b7e21afd524e8ff188346b34cee535e108f9245de0722d5870',
+        bytes: 7_758,
+        sha256: 'bfe147f9c5bbe293f9b966b0f902c029a45d099918cbb32338a350f939a8d274',
       },
       publicIndex: {
-        bytes: 20_990,
-        sha256: '7ffa524ec8648f5b4274ae3b24a12c937f1fff388cf736b43f981d932893859d',
+        bytes: 22_083,
+        sha256: 'f33f5fcf6df43a0a26228b429d66a719a59724aba46429a8cbd0abb68f14813c',
       },
       publicCatalogCsv: {
-        bytes: 37_418,
-        sha256: '2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f',
+        bytes: 37_522,
+        sha256: 'e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf',
       },
       publicEvidenceCsv: {
-        bytes: 9_138,
-        sha256: 'e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941',
+        bytes: 9_820,
+        sha256: '091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c',
       },
       protectedEvidenceCsv: {
-        bytes: 19_965,
-        sha256: 'e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f',
+        bytes: 20_948,
+        sha256: 'a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661',
       },
       protectedReviewCsv: {
         bytes: 7_094,

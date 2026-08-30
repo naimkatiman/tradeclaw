@@ -22,9 +22,10 @@ describe('GET /api/research/intake/evidence/index.md', () => {
     expect(response.headers.get('vary')).toBeNull();
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
     expect(body).toContain('# TradeClaw examined-candidate index');
-    expect(body.match(/^## \d+\./gm)).toHaveLength(13);
+    expect(body.match(/^## \d+\./gm)).toHaveLength(14);
     expect(body).toContain('`TC-255`');
     expect(body).toContain('`TC-267`');
+    expect(body).toContain('`TC-268`');
     expect(body).toContain('- Performance-ranked: No');
     expect(body).not.toContain('/api/admin');
   });

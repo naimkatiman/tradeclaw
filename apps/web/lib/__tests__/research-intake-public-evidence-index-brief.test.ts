@@ -60,14 +60,14 @@ describe('public human-readable examined-candidate index', () => {
 
     expect(replay).toBe(first);
     expect(fingerprint(first)).toEqual({
-      bytes: 11_853,
-      sha256: '5180ed5b7a95cdee714a649f82acd25cbe26773557852320bc1f40c968f44887',
+      bytes: 12_695,
+      sha256: 'f2409c5d6fcb2dc2a7da91e84489b115a8b6214a6fd4b980b9667478c710fc80',
     });
     expect(first).toContain('# TradeClaw examined-candidate index');
     expect(first).toContain(
-      '**13 of 61 pinned candidates have a TradeClaw source audit or replication record. This list is in pinned upstream source order and is not performance-ranked.**',
+      '**14 of 61 pinned candidates have a TradeClaw source audit or replication record. This list is in pinned upstream source order and is not performance-ranked.**',
     );
-    expect(first.match(/^## \d+\./gm)).toHaveLength(13);
+    expect(first.match(/^## \d+\./gm)).toHaveLength(14);
 
     for (const item of payload.items) {
       const state = item.candidate.evidenceState;
@@ -188,7 +188,7 @@ describe('public human-readable examined-candidate index', () => {
     expect(operation).toBeDefined();
     expect(operation?.security).toEqual([]);
     expect(operation?.description).toMatch(
-      /human-readable.*13.*pinned source order.*not performance-ranked.*no API key/i,
+      /human-readable.*14.*pinned source order.*not performance-ranked.*no API key/i,
     );
     expect(operation?.responses?.['200']?.content?.['text/markdown']?.schema).toMatchObject({
       type: 'string',
@@ -210,28 +210,28 @@ describe('public human-readable examined-candidate index', () => {
       ),
     }).toEqual({
       compactItems: {
-        bytes: 13_050,
-        sha256: '5c9a212db38a963ccaa0d0305c7f102d4ad65a08feddb888cca860ea9d0601fd',
+        bytes: 14_134,
+        sha256: '8cce648fd31ba003c745e63290133dffd34f96772937ea4d949a7f4c226eb311',
       },
       catalogRecords: {
-        bytes: 130_682,
-        sha256: '46d16a3331dc0c863ddaa7f99778cc63d2a0292ba4ae24256c84c58bfb7ca049',
+        bytes: 135_414,
+        sha256: 'bed828a10ff88a5569dd9a5a21a14b44f55d11a166da4e837794707155bd82a5',
       },
       evidenceRecords: {
-        bytes: 68_083,
-        sha256: '0539db65ddaf5c6dbdc139dcef9003d7c32160a9f0f3d373c12c30476a8e23b8',
+        bytes: 74_100,
+        sha256: 'b66d184179aea4cf205896862328f15a8eb29b973b9ecb2d11f58800249d6f93',
       },
       publicCatalogCsv: {
-        bytes: 37_418,
-        sha256: '2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f',
+        bytes: 37_522,
+        sha256: 'e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf',
       },
       publicEvidenceCsv: {
-        bytes: 9_138,
-        sha256: 'e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941',
+        bytes: 9_820,
+        sha256: '091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c',
       },
       protectedEvidenceCsv: {
-        bytes: 19_965,
-        sha256: 'e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f',
+        bytes: 20_948,
+        sha256: 'a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661',
       },
       protectedReviewCsv: {
         bytes: 7_094,

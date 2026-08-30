@@ -44,7 +44,7 @@ describe('protected research catalog result view', () => {
     const payload = buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT);
 
     expect(payload.filteredEvidenceStateSummary.plainLanguageSummary).toBe(
-      '61 candidates: 48 not tested by TradeClaw, 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+      '61 candidates: 47 not tested by TradeClaw, 10 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
     expect(resultView(payload)).toEqual({
       status: 'showing-results',
@@ -175,12 +175,12 @@ describe('protected research catalog result view', () => {
         sha256: '8b6a57c2f009b530e4837352e72f51caca318a486890ca5bbc951adcf5ad1d07',
       },
       noMatchesCatalog: {
-        bytes: 29_047,
-        sha256: '9f39dfaddc20d1ffdf1182aab4e9ac48bdc7b5f834e305b11e8dfe263eb33d91',
+        bytes: 29_051,
+        sha256: 'f2694825f8d635e8fbd88197f0c1fa3a257af13ca29f7245d7ab2032339f88f1',
       },
       outOfRangeCatalog: {
-        bytes: 28_681,
-        sha256: '7dbb685a39e029b7f4cd97799c3c42a856b528194053fd79d8e59f69b5e9eaa1',
+        bytes: 28_685,
+        sha256: 'bef73865a22b2e3652f9fb3f44685db91fa93e5ed96dd07c87ad71bb378d139d',
       },
     });
   });

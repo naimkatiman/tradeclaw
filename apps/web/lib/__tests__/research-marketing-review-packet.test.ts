@@ -156,12 +156,12 @@ describe('protected exact Markdown marketing-review packet', () => {
       expect(route).not.toMatch(/export async function (?:POST|PUT|PATCH|DELETE)/);
     }
 
-    expect(Buffer.byteLength(buildResearchIntakeCsv(), 'utf8')).toBe(37_418);
-    expect(Buffer.byteLength(buildResearchIntakeEvidenceCsv(), 'utf8')).toBe(9_138);
+    expect(Buffer.byteLength(buildResearchIntakeCsv(), 'utf8')).toBe(37_522);
+    expect(Buffer.byteLength(buildResearchIntakeEvidenceCsv(), 'utf8')).toBe(9_820);
     expect(Buffer.byteLength(
       buildResearchIntakeAdminEvidenceCsv('2026-08-29T18:00:40.000Z'),
       'utf8',
-    )).toBe(19_965);
+    )).toBe(20_948);
     expect(Buffer.byteLength(
       buildResearchMarketingReviewCsv('2026-08-29T14:59:59.999Z'),
       'utf8',

@@ -27,7 +27,7 @@ interface StateCycle {
 }
 
 describe('research-loop receipt ledger', () => {
-  it('retains the exact twelve receipts and exposes only the known historical collision', () => {
+  it('retains the exact thirteen receipts and exposes only the known historical collision', () => {
     expect(RESEARCH_LOOP_RECEIPTS.map((receipt) => receipt.taskId)).toEqual([
       'TC-256',
       'TC-257',
@@ -41,11 +41,12 @@ describe('research-loop receipt ledger', () => {
       'TC-265',
       'TC-266',
       'TC-267',
+      'TC-268',
     ]);
     expect(RESEARCH_LOOP_RECEIPT_LEDGER_AUDIT).toEqual({
       status: 'historical-conflict',
-      receiptCount: 12,
-      uniqueWindowCount: 11,
+      receiptCount: 13,
+      uniqueWindowCount: 12,
       duplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
       expectedLegacyDuplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
       additionalDuplicateWindowIds: [],
@@ -221,6 +222,7 @@ describe('research-loop receipt ledger', () => {
       desk.cycle_10,
       desk.cycle_11,
       desk.cycle_12,
+      desk.cycle_13,
     ];
 
     expect(

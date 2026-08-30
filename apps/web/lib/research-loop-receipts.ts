@@ -17,7 +17,8 @@ export type ResearchLoopReceiptTaskId =
   | 'TC-264'
   | 'TC-265'
   | 'TC-266'
-  | 'TC-267';
+  | 'TC-267'
+  | 'TC-268';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -347,6 +348,26 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Archive the exact-source no-go; any causal ETF correlation-timing study must begin as a separately hashed hypothesis with frozen universe, estimator, lookback, fills, costs, folds, and holdout before returns',
+  },
+  {
+    cycleId: '2026-08-30T15:00:00.000Z/PT3H',
+    recordedAt: '2026-08-30T15:08:26.991Z',
+    taskId: 'TC-268',
+    candidateId: 'how-to-improve-commodity-momentum-using-intra-market-correlation',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-30-commodity-correlation-momentum-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-source no-go; any independent commodity ETF correlation-switch study must begin in a later receipt window with authorized immutable data and a separately hashed protocol freezing transforms, fills, full costs including borrow and financing, controls, folds, and holdout before returns',
   },
 ] as const;
 

@@ -15,9 +15,9 @@ import {
 const DETERMINISTIC_AT = '2026-08-29T15:59:59.999Z';
 const CANDIDATE_ID = 'a-risk-based-approach-to-tactical-asset-allocation';
 const CATALOG_PLAIN_LANGUAGE_SUMMARY =
-  '61 candidates: 48 not tested by TradeClaw, 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.';
+  '61 candidates: 47 not tested by TradeClaw, 10 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.';
 const EVIDENCE_PLAIN_LANGUAGE_SUMMARY =
-  '13 candidates: 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 10 candidates.';
+  '14 candidates: 10 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 11 candidates.';
 
 const EXPECTED_RESOURCES = {
   overview: '/api/research/intake/overview',
@@ -90,7 +90,7 @@ describe('public research-intake discovery context', () => {
     const catalogSummary = context(catalog).catalogEvidenceStateSummary;
     expect(catalogSummary).toMatchObject({
       totalCandidates: 61,
-      withTradeClawRecord: 13,
+      withTradeClawRecord: 14,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 58,
       plainLanguageSummary: CATALOG_PLAIN_LANGUAGE_SUMMARY,
@@ -99,8 +99,8 @@ describe('public research-intake discovery context', () => {
       performanceEvidenceStatus,
       count,
     }))).toEqual([
-      { performanceEvidenceStatus: 'not-tested', count: 48 },
-      { performanceEvidenceStatus: 'source-audit-only-no-local-backtest', count: 9 },
+      { performanceEvidenceStatus: 'not-tested', count: 47 },
+      { performanceEvidenceStatus: 'source-audit-only-no-local-backtest', count: 10 },
       { performanceEvidenceStatus: 'qa-only-no-performance-result', count: 1 },
       { performanceEvidenceStatus: 'modeled-historical-pass', count: 0 },
       { performanceEvidenceStatus: 'modeled-historical-fail', count: 3 },
@@ -109,13 +109,13 @@ describe('public research-intake discovery context', () => {
     expect(context(evidence).catalogEvidenceStateSummary).toEqual(catalogSummary);
     expect(context(candidate).catalogEvidenceStateSummary).toEqual(catalogSummary);
     expect(evidence.evidenceStateSummary).toMatchObject({
-      totalCandidates: 13,
+      totalCandidates: 14,
       performanceGatesEvaluated: 3,
-      performanceGatesNotEvaluated: 10,
+      performanceGatesNotEvaluated: 11,
       plainLanguageSummary: EVIDENCE_PLAIN_LANGUAGE_SUMMARY,
     });
     expect(evidence.evidenceStateSummary.statuses.map((status) => status.count)).toEqual([
-      0, 9, 1, 0, 3, 0,
+      0, 10, 1, 0, 3, 0,
     ]);
   });
 
@@ -217,20 +217,20 @@ describe('public research-intake discovery context', () => {
         sha256: 'c2ab8ff38c715b07414a0ddcdd73b0e7f016c0eac9e66db17caca18d784c3323',
       },
       catalogEvidenceStateSummary: {
-        bytes: 2_001,
-        sha256: '808a2195004f110f780f913ede5bfc4cf637a2ecddb7773dc5f3e3fd53851d0b',
+        bytes: 2_003,
+        sha256: 'c5874ca9d16b71d27359a51f4ed3c4adf90a6323667dc0c6f1907bcddf087304',
       },
       recordLinks: {
         bytes: 18_344,
         sha256: 'bec6946454c77f5f874a73325db60718ec08c40342b237671280f0f02de07522',
       },
       catalog: {
-        bytes: 136_142,
-        sha256: '4e361c23e4b908e029190b9c20b13a76e4210bf0e6dbb264f25fc603e46f6da5',
+        bytes: 140_878,
+        sha256: '4c48acd73a18d967bbf039e7109188c136b0f76d011b4e6da5754cb37326d3ec',
       },
       evidence: {
-        bytes: 76_044,
-        sha256: '58291697bcc603bd17ecb71b28fb89e9c783dc8ba7acb5eb1cca8fed6a794277',
+        bytes: 82_070,
+        sha256: '43d0257b89f0011979269732dd45e8fd8672c9f6aa35bb691255cd396f2076cf',
       },
     });
   });
@@ -240,16 +240,16 @@ describe('public research-intake discovery context', () => {
       new URLSearchParams(),
       DETERMINISTIC_AT,
     ))).toEqual({
-      bytes: 78_211,
-      sha256: 'e4ff64c2ce4519df53af0ccdaffa14b48c9758dc5500cd78c8f97dab5cf13a7f',
+      bytes: 83_163,
+      sha256: '7bd16fe28b7e5c2bd623907112a137ca86a251dbb3241a3b43f86cd020cf7d84',
     });
     const protectedEvidence = buildResearchIntakeAdminEvidencePayload(DETERMINISTIC_AT);
     expect(protectedEvidence.catalogEvidenceStateSummary).toEqual(
       context(buildResearchIntakePublicPayload()).catalogEvidenceStateSummary,
     );
     expect(fingerprint(protectedEvidence)).toEqual({
-      bytes: 105_804,
-      sha256: 'b1ad4b8f672a470b815a41aa22c71c47e5d415b6f32e4f7055ffca9fadf49423',
+      bytes: 112_492,
+      sha256: '6e96790b2912fd28b488884377ffcc6ae1ea166f551ffca96a52773e9782bd2c',
     });
   });
 });

@@ -37,19 +37,19 @@ const EXPECTED_BRIEF = [
   '**3 of 61 pinned candidates reached TradeClaw performance gates; all 3 failed. The other 58 have no evaluated TradeClaw performance gate.**',
   '',
   '- Pinned candidates: 61',
-  '- TradeClaw evidence records: 13',
-  '- Source-audit-only records: 9',
+  '- TradeClaw evidence records: 14',
+  '- Source-audit-only records: 10',
   '- QA-only records with no performance result: 1',
   '- Modeled historical passes: 0',
   '- Modeled historical failures: 3',
   '- Modeled historical inconclusive results: 0',
   '- Performance gates evaluated: 3',
   '- Performance gates not evaluated: 58',
-  '- Summary: 61 candidates: 48 not tested by TradeClaw, 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+  '- Summary: 61 candidates: 47 not tested by TradeClaw, 10 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
   '',
   '## Start here',
   '',
-  '**Browse 13 examined candidates**',
+  '**Browse 14 examined candidates**',
   '',
   'This lightweight index includes every TradeClaw source audit and replication in pinned source order, with exact candidate-detail links and no performance ranking.',
   '',
@@ -133,8 +133,8 @@ describe('public human-readable research evidence brief', () => {
     expect(replay).toBe(first);
     expect(first).toBe(EXPECTED_BRIEF);
     expect(fingerprint(first)).toEqual({
-      bytes: 3_761,
-      sha256: '2c6160b0185d429b8fb197e1839d2f2425e9ec5bf57d05eecba2ec753c8b55c1',
+      bytes: 3_763,
+      sha256: '05bdb1852be0475717e4e878f32a6ecfd2a96c01a65f422e31389c3e74f51d0b',
     });
     expect(first).not.toMatch(
       /\/api\/admin|receipt|marketing|owner decision|candidate record bodies/i,
@@ -168,12 +168,12 @@ describe('public human-readable research evidence brief', () => {
       candidateRecord: fingerprint(candidate?.record ?? null),
     }).toEqual({
       catalogRecords: {
-        bytes: 130_682,
-        sha256: '46d16a3331dc0c863ddaa7f99778cc63d2a0292ba4ae24256c84c58bfb7ca049',
+        bytes: 135_414,
+        sha256: 'bed828a10ff88a5569dd9a5a21a14b44f55d11a166da4e837794707155bd82a5',
       },
       evidenceRecords: {
-        bytes: 68_083,
-        sha256: '0539db65ddaf5c6dbdc139dcef9003d7c32160a9f0f3d373c12c30476a8e23b8',
+        bytes: 74_100,
+        sha256: 'b66d184179aea4cf205896862328f15a8eb29b973b9ecb2d11f58800249d6f93',
       },
       candidateRecord: {
         bytes: 6_381,
@@ -249,16 +249,16 @@ describe('public human-readable research evidence brief', () => {
       ),
     }).toEqual({
       publicCatalog: {
-        bytes: 37_418,
-        sha256: '2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f',
+        bytes: 37_522,
+        sha256: 'e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf',
       },
       publicEvidence: {
-        bytes: 9_138,
-        sha256: 'e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941',
+        bytes: 9_820,
+        sha256: '091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c',
       },
       protectedEvidence: {
-        bytes: 19_965,
-        sha256: 'e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f',
+        bytes: 20_948,
+        sha256: 'a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661',
       },
       protectedReview: {
         bytes: 7_094,

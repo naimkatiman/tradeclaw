@@ -94,8 +94,8 @@ describe('compact research intake overview contract', () => {
       /\"(?:records|items|researchLoop|marketingReview|latestReceipt|currentWindowReceipts|marketingReviewDraft)\"/,
     );
     expect(fingerprint(overview)).toEqual({
-      bytes: 7_749,
-      sha256: 'ad38ae1c4caa50b7e21afd524e8ff188346b34cee535e108f9245de0722d5870',
+      bytes: 7_758,
+      sha256: 'bfe147f9c5bbe293f9b966b0f902c029a45d099918cbb32338a350f939a8d274',
     });
   });
 
@@ -147,8 +147,8 @@ describe('compact research intake overview contract', () => {
     expect(overview).not.toHaveProperty('records');
     expect(overview).not.toHaveProperty('items');
     expect(fingerprint(overview)).toEqual({
-      bytes: 12_017,
-      sha256: 'c591ddad18e07fe2f3b7c445d03636a8d5f48cd3277f1e3ac21dd527df1f60d2',
+      bytes: 12_026,
+      sha256: 'f5da5a6650da9f7d3a4cf8d9b2e3d92933567bc764ad38101c8cd1a55a345650',
     });
   });
 
@@ -279,8 +279,8 @@ describe('compact research intake overview contract', () => {
       api.indexOf('curl https://tradeclaw.win/api/research/intake\n'),
     );
     expect(fingerprint(spec)).toEqual({
-      bytes: 43_594,
-      sha256: '62e194e0f55164821b4689d9bf9a8a7f400afb52494d48e4378889455a40ddfb',
+      bytes: 43_600,
+      sha256: '89f8f57dd34bd35864e96ac32becb87ad1ee46cbf69553ee6d08a5d3d52403b8',
     });
   });
 });

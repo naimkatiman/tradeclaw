@@ -45,7 +45,7 @@ describe('GET /api/admin/research-intake/overview real admin-cookie boundary', (
 
     expect(response.status).toBe(200);
     expect(body.catalogSummary.total).toBe(61);
-    expect(body.evidenceSummary.total).toBe(13);
+    expect(body.evidenceSummary.total).toBe(14);
     expect(body.researchLoop).toMatchObject({
       observedAt: '2026-08-29T15:59:59.999Z',
       currentWindowStatus: 'complete',

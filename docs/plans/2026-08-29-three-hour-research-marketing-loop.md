@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Task: TC-256 through TC-267
+Task: TC-256 through TC-268
 
 Status: active operating contract; local-only until separately authorized
 
@@ -432,10 +432,27 @@ stopped before preregistration or returns. TC-267 remains `not-tested`, with no
 result artifact or marketing draft. Its receipt is
 `docs/research/2026-08-30-when-factor-timing-makes-sense-source-audit.md`.
 
+TC-268 selected *How to Improve Commodity Momentum Using Intra-Market
+Correlation* because its four-ETF monthly rule is small enough to audit and its
+long/short implementation makes data, causal-fill, turnover, borrow, and
+financing requirements directly falsifiable before returns. The author page
+specifies `DBA`, `DBB`, `DBE`, and `DBP`, twelve-month ranking, 20- versus
+250-day average pairwise correlation, and a monthly momentum/reversal switch.
+It also names Yahoo Finance adjusted closes, now says free end-of-day downloads
+were discontinued, and suggests a different sponsored vendor. Yahoo's current
+Terms prohibit automated collection without express prior permission; no such
+permission or immutable authorized four-ETF input package is present. SSRN's
+eight-page PDF delivery returned HTTP 403, and the public methodology does not
+freeze causal fills, equality and edge-case rules, or full long-short ETF
+costs. Exact replay therefore stopped before preregistration or returns rather
+than silently substituting a new provider and data vintage. TC-268 remains
+`not-tested`, with no result artifact or marketing draft. Its receipt is
+`docs/research/2026-08-30-commodity-correlation-momentum-source-audit.md`.
+
 Do not open another catalog receipt before the exact
-`2026-08-30T15:00:00.000Z` boundary. The TC-267 no-go does not authorize a
-public-data proxy backtest, marketing claim, publication, signal, allocation,
-broadcast, broker action, or execution change.
+`2026-08-30T18:00:00.000Z` boundary. The TC-268 no-go does not authorize a
+Yahoo scrape, substitute-vendor backtest, marketing claim, publication,
+signal, allocation, broadcast, broker action, or execution change.
 
 ## Marketing handoff
 

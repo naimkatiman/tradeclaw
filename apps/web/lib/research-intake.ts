@@ -906,6 +906,88 @@ export interface TradeClawFactorTimingSourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawCommodityCorrelationMomentumSourceAuditEvidence {
+  taskId: 'TC-268';
+  auditDate: '2026-08-30';
+  researchPath: 'docs/research/2026-08-30-commodity-correlation-momentum-source-audit.md';
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  marketReturnsInspected: false;
+  primarySource: {
+    title: 'How to Improve Commodity Momentum Using Intra-Market Correlation';
+    authors: readonly ['Radovan Vojtko', 'Margaréta Pauchlyová'];
+    discoveryUrl: 'https://paperswithbacktest.com/strategies/how-to-improve-commodity-momentum-using-intra-market-correlation';
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4964417';
+    doi: 'https://doi.org/10.2139/ssrn.4964417';
+    authorMethodologyUrl: 'https://quantpedia.com/how-to-improve-commodity-momentum-using-intra-market-correlation/';
+    authorPresentationUrl: 'https://www.linkedin.com/posts/quantpedia_quantpedia-explains-trading-strategies-activity-7243866882598965248-Ucre';
+    yahooTermsUrl: 'https://legal.yahoo.com/xw/en/yahoo/terms/otos/index.html';
+    paperDate: '2024-09-16';
+    documentPages: 8;
+    exactPrimaryBytesAcquired: false;
+    documentSha256: null;
+    localByteAcquisition: 'blocked-http-403-no-bytes';
+    publicReplicationPackageSupplied: false;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    universe: readonly ['DBA', 'DBB', 'DBE', 'DBP'];
+    dataProvider: 'Yahoo-Finance';
+    sourceField: 'adjusted-close';
+    sampleStarts: '2007';
+    rebalanceCadence: 'monthly';
+    holdMonths: 1;
+    momentumLookbackMonths: 12;
+    robustnessLookbacksMonths: readonly [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    longCount: 2;
+    shortCount: 2;
+    correlationPairCount: 6;
+    shortCorrelationTradingDays: 20;
+    longCorrelationTradingDays: 250;
+    highCorrelationRegime: 'momentum';
+    lowCorrelationRegime: 'reversal';
+    equalityRuleSupplied: false;
+    causalFillRuleSupplied: false;
+  };
+  upstreamResult: {
+    treatment: 'gross-upstream-discovery-only';
+    annualReturnApproxPct: 14;
+    annualVolatilityApproxPct: 16;
+    maximumDrawdownApproxPct: -27;
+    sharpeApprox: 0.8;
+    calmarApprox: 0.5;
+    tradeClawRecalculated: false;
+  };
+  inputProvenance: {
+    intendedProviderNamed: true;
+    immutableDatasetManifestSupplied: false;
+    exactPriceBytesSupplied: false;
+    corporateActionVintageSupplied: false;
+    providerAutomatedAccessPermissionPresent: false;
+    authorizedHistoricalDatasetPresent: false;
+    substituteVendorWouldBeNewHypothesis: true;
+  };
+  publishedCostTreatment: {
+    commissionModelSupplied: false;
+    spreadSlippageModelSupplied: false;
+    shortBorrowModelSupplied: false;
+    financingModelSupplied: false;
+    turnoverLinkedLedgerSupplied: false;
+    completeFrictionModelSupplied: false;
+  };
+  validation: {
+    preregistrationSupplied: false;
+    chronologicalFoldsSupplied: false;
+    untouchedPostPublicationHoldoutSupplied: false;
+    externalFalsificationMarketSupplied: false;
+    deterministicReplayArtifactSupplied: false;
+    possiblePostPaperMonthsThrough2026July: 22;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -1032,6 +1114,7 @@ export type TradeClawResearchSourceAuditEvidence =
   | TradeClawGoodCarrySourceAuditEvidence
   | TradeClawRiskFactorParitySourceAuditEvidence
   | TradeClawFactorTimingSourceAuditEvidence
+  | TradeClawCommodityCorrelationMomentumSourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -1120,6 +1203,8 @@ const ROLLING_VS_EXPANDING_MEAN_REVERSION_ID =
 const GOOD_CARRY_BAD_CARRY_ID = 'good-carry-bad-carry';
 const RISK_FACTOR_PARITY_ID = 'risk-parity-portfolios-with-risk-factors';
 const FACTOR_TIMING_ID = 'when-factor-timing-makes-sense';
+const COMMODITY_CORRELATION_MOMENTUM_ID =
+  'how-to-improve-commodity-momentum-using-intra-market-correlation';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -1870,6 +1955,108 @@ const TC267_FACTOR_TIMING_SOURCE_AUDIT: TradeClawFactorTimingSourceAuditEvidence
     'The primary paper is theoretical and synthetic, granting perfect current-period correlation knowledge; the hidden clone adds an undisclosed nine-ETF history. Exact replay would invent the universe, causal estimator, lookback, fills, costs, and validation, so an ETF study is a new hypothesis.',
 };
 
+const TC268_COMMODITY_CORRELATION_MOMENTUM_SOURCE_AUDIT:
+  TradeClawCommodityCorrelationMomentumSourceAuditEvidence = {
+    taskId: 'TC-268',
+    auditDate: '2026-08-30',
+    researchPath: 'docs/research/2026-08-30-commodity-correlation-momentum-source-audit.md',
+    researchSha256: '13b0f1fcbe8acff281a3aee7d9685a5eadb6fbbdb1447f5a61a592c8cb142af6',
+    disposition: 'no-go',
+    tradeClawBacktestRun: false,
+    marketReturnsInspected: false,
+    primarySource: {
+      title: 'How to Improve Commodity Momentum Using Intra-Market Correlation',
+      authors: ['Radovan Vojtko', 'Margaréta Pauchlyová'],
+      discoveryUrl:
+        'https://paperswithbacktest.com/strategies/how-to-improve-commodity-momentum-using-intra-market-correlation',
+      ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4964417',
+      doi: 'https://doi.org/10.2139/ssrn.4964417',
+      authorMethodologyUrl:
+        'https://quantpedia.com/how-to-improve-commodity-momentum-using-intra-market-correlation/',
+      authorPresentationUrl:
+        'https://www.linkedin.com/posts/quantpedia_quantpedia-explains-trading-strategies-activity-7243866882598965248-Ucre',
+      yahooTermsUrl: 'https://legal.yahoo.com/xw/en/yahoo/terms/otos/index.html',
+      paperDate: '2024-09-16',
+      documentPages: 8,
+      exactPrimaryBytesAcquired: false,
+      documentSha256: null,
+      localByteAcquisition: 'blocked-http-403-no-bytes',
+      publicReplicationPackageSupplied: false,
+      redistributionRightsEstablished: false,
+    },
+    publishedRule: {
+      universe: ['DBA', 'DBB', 'DBE', 'DBP'],
+      dataProvider: 'Yahoo-Finance',
+      sourceField: 'adjusted-close',
+      sampleStarts: '2007',
+      rebalanceCadence: 'monthly',
+      holdMonths: 1,
+      momentumLookbackMonths: 12,
+      robustnessLookbacksMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      longCount: 2,
+      shortCount: 2,
+      correlationPairCount: 6,
+      shortCorrelationTradingDays: 20,
+      longCorrelationTradingDays: 250,
+      highCorrelationRegime: 'momentum',
+      lowCorrelationRegime: 'reversal',
+      equalityRuleSupplied: false,
+      causalFillRuleSupplied: false,
+    },
+    upstreamResult: {
+      treatment: 'gross-upstream-discovery-only',
+      annualReturnApproxPct: 14,
+      annualVolatilityApproxPct: 16,
+      maximumDrawdownApproxPct: -27,
+      sharpeApprox: 0.8,
+      calmarApprox: 0.5,
+      tradeClawRecalculated: false,
+    },
+    inputProvenance: {
+      intendedProviderNamed: true,
+      immutableDatasetManifestSupplied: false,
+      exactPriceBytesSupplied: false,
+      corporateActionVintageSupplied: false,
+      providerAutomatedAccessPermissionPresent: false,
+      authorizedHistoricalDatasetPresent: false,
+      substituteVendorWouldBeNewHypothesis: true,
+    },
+    publishedCostTreatment: {
+      commissionModelSupplied: false,
+      spreadSlippageModelSupplied: false,
+      shortBorrowModelSupplied: false,
+      financingModelSupplied: false,
+      turnoverLinkedLedgerSupplied: false,
+      completeFrictionModelSupplied: false,
+    },
+    validation: {
+      preregistrationSupplied: false,
+      chronologicalFoldsSupplied: false,
+      untouchedPostPublicationHoldoutSupplied: false,
+      externalFalsificationMarketSupplied: false,
+      deterministicReplayArtifactSupplied: false,
+      possiblePostPaperMonthsThrough2026July: 22,
+    },
+    blockers: [
+      'Exact eight-page primary-paper bytes could not be acquired or hashed.',
+      'No public author replication package, code, immutable dataset manifest, or order ledger was found.',
+      'The cited Yahoo adjusted-close histories are not supplied as immutable inputs.',
+      'The author page says Yahoo free end-of-day download was discontinued.',
+      'Yahoo automated collection requires express prior permission, and no permission is present for this job.',
+      'No authorized equivalent four-ETF dataset is present in the repository.',
+      'Substituting a current vendor would change source, adjustment process, and vintage.',
+      'The causal month-end signal-to-fill convention is not supplied.',
+      'Equality, tie, warm-up, missing-data, stale-price, and corporate-action rules are not supplied.',
+      'Gross and net exposure, cash collateral, and rebalance tolerance are not fully supplied.',
+      'No commission, spread, slippage, short-borrow, financing, expense, or impact model is supplied.',
+      'No turnover-linked trade ledger or break-even cost is supplied.',
+      'No preregistered chronological folds, post-publication holdout, external falsification market, or deterministic pass gate is supplied.',
+      'Only about 22 complete post-paper months would be available through July 2026 for a newly frozen monthly holdout.',
+    ],
+    reason:
+      'Exact paper bytes and authorized immutable Yahoo inputs are absent. The public rule also omits causal fills, edge cases, full long-short ETF costs, and frozen validation. A current-vendor implementation would be a separately preregistered hypothesis, so TradeClaw opened no market returns.',
+  };
+
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
   taskId: 'TC-257',
   auditDate: '2026-08-29',
@@ -2456,6 +2643,8 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
                             ? TC266_RISK_FACTOR_PARITY_SOURCE_AUDIT
                             : candidate.id === FACTOR_TIMING_ID
                               ? TC267_FACTOR_TIMING_SOURCE_AUDIT
+                              : candidate.id === COMMODITY_CORRELATION_MOMENTUM_ID
+                                ? TC268_COMMODITY_CORRELATION_MOMENTUM_SOURCE_AUDIT
                               : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
@@ -2500,7 +2689,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         stage: 'source-audited' as const,
         verdict: 'not-tested' as const,
         costStatus: 'unassessed' as const,
-        nextAction: tradeClawSourceAudit.taskId === 'TC-267'
+        nextAction: tradeClawSourceAudit.taskId === 'TC-268'
+          ? 'Archive the exact-source no-go; any independent commodity ETF correlation-switch study must begin in a later receipt window with authorized immutable data and a separately hashed protocol freezing transforms, fills, full costs including borrow and financing, controls, folds, and holdout before returns.'
+          : tradeClawSourceAudit.taskId === 'TC-267'
           ? 'Archive the exact-source no-go; any causal ETF correlation-timing study must begin as a separately hashed hypothesis with frozen universe, estimator, lookback, fills, costs, folds, and holdout before returns.'
           : tradeClawSourceAudit.taskId === 'TC-266'
             ? 'Archive the exact-source no-go; any public risk-factor-parity implementation must begin as a separately hashed hypothesis with frozen universe, data, estimator, costs, folds, and holdout before returns.'

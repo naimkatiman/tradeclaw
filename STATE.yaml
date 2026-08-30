@@ -1,11 +1,175 @@
 project: tradeclaw
-updated: 2026-08-30T22:53:24+08:00
+updated: 2026-08-30T23:34:06+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_tc268_commodity_correlation_momentum_2026_08_30:
+  at: 2026-08-30T23:34:06+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Manually screen and, only if fully specifiable before returns, preregister one cost-adjusted replication of the four-ETF commodity momentum/reversal correlation-switch idea from the pinned systematic-trading source
+  branch: agent/research-intake-desk-20260829
+  base_commit: 4a9986e92e1ebe6cbf139b1b604507817a952050
+  cycle_id: 2026-08-30T15:00:00.000Z/PT3H
+  task_id: TC-268
+  receipt_status: recorded
+  new_research_receipt: true
+  gate_observed_at: 2026-08-30T15:00:18.430Z
+  gate_snapshot: >-
+    The new 2026-08-30T15:00:00.000Z/PT3H window is awaiting a receipt and
+    exposes exactly one manual slot. TC-267 remains the latest prior receipt.
+    The ledger holds 12 receipts across 11 windows, with only the expected
+    historical 2026-08-29T06:00:00.000Z/PT3H duplicate and no additional
+    duplicate. Four drafts remain manual-review-ready, zero are approved,
+    TC-255 remains next, and automatic selection, receipt creation,
+    publication, posting, and trading controls remain false.
+  selected_candidate:
+    id: how-to-improve-commodity-momentum-using-intra-market-correlation
+    title: How to Improve Commodity Momentum Using Intra-Market Correlation
+    asset_class: Commodities
+    zero_based_source_position: 24
+    one_based_source_row: 25
+    pinned_source_commit: d9c98521c76662d5eae03ab97a4fc721d010dde3
+    upstream_metrics_treatment: gross discovery metadata only; not ranking, evidence, or a performance claim
+  manual_selection_rationale: >-
+    The candidate is a four-liquid-ETF, monthly, market-neutral concept with a
+    simple observable regime variable and a post-September-2024 period. It is
+    more bounded, public-data-friendly, and directly cost-testable than the
+    remaining proprietary cross-sectional equity, corporate-bond, options,
+    annuity, and high-dimensional allocation candidates. Selection did not use
+    upstream Sharpe or current clone performance as a score.
+  primary_source_screen:
+    ssrn_abstract: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4964417
+    doi: https://doi.org/10.2139/ssrn.4964417
+    author_presentation: https://www.linkedin.com/posts/quantpedia_quantpedia-explains-trading-strategies-activity-7243866882598965248-Ucre
+    author_methodology: https://quantpedia.com/how-to-improve-commodity-momentum-using-intra-market-correlation/
+    paper_title: How to Improve Commodity Momentum Using Intra-Market Correlation
+    authors: Radovan Vojtko and Margareta Pauchlyova
+    paper_date: 2024-09-16
+    paper_pages: 8
+    pdf_delivery: SSRN PDF endpoint returned HTTP 403 in both browser extraction and direct local acquisition; no local PDF exists and no PDF hash is claimed
+    author_specification_observed:
+      - Yahoo Finance daily data beginning in 2007 for DBA, DBB, DBE, and DBP
+      - monthly ranking of each ETF under 1-through-12-month momentum variants
+      - long two winners and short two losers for momentum; reverse those legs for reversal
+      - average of all six pairwise daily-return correlations over 20 and 250 trading days
+      - use momentum when the 20-day average exceeds the 250-day average; use reversal otherwise
+    missing_from_source_so_far:
+      - causal signal-to-fill timestamp and adjusted-price convention
+      - transaction costs, borrow, financing, dividend, and short implementation protocol
+      - exact tie, missing-data, month-end, and delisting rules
+      - preregistered folds, pass gates, and untouched holdout
+  source_audit_decision:
+    disposition: verified_no_go_not_tested
+    reason: >-
+      The authors now state that Yahoo Finance discontinued free end-of-day
+      downloads, and Yahoo's current Terms prohibit automated collection
+      without express prior permission. TradeClaw has neither that permission
+      nor an immutable authorized four-ETF dataset. SSRN also denied the exact
+      PDF bytes, while the public methodology omits causal fills, equality and
+      tie rules, complete costs including borrow and financing, and a frozen
+      falsification protocol. Substituting EODHD, Stooq, or newly downloaded
+      current-vintage prices would create a materially new hypothesis rather
+      than reproduce the cited study.
+    exact_primary_pdf_acquired: false
+    authorized_market_dataset_present: false
+    price_or_return_observations_opened: false
+    preregistration_created: false
+    performance_verdict: none
+  canonical_source_audit: docs/research/2026-08-30-commodity-correlation-momentum-source-audit.md
+  red_contract:
+    file: apps/web/lib/__tests__/research-intake-tc268-source-audit.test.ts
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-tc268-source-audit.test.ts --silent
+    result: EXPECTED_RED - 0/4 tests passed
+    proves: >-
+      TC-268 is absent from the canonical source overlay, evidence summaries,
+      public/admin projections, and receipt ledger while the prior TC-267
+      record remains intact. No unexpected implementation or evidence drift
+      appeared before the change.
+  implementation:
+    canonical_overlay: apps/web/lib/research-intake.ts
+    typed_evidence: TradeClawCommodityCorrelationMomentumSourceAuditEvidence
+    receipt_ledger: apps/web/lib/research-loop-receipts.ts
+    recorded_at: 2026-08-30T15:08:26.991Z
+    research_sha256: 13b0f1fcbe8acff281a3aee7d9685a5eadb6fbbdb1447f5a61a592c8cb142af6
+    summary_after:
+      total: 61
+      discovered: 47
+      source_audited: 10
+      replicated: 4
+      untested: 57
+      source_no_go: 10
+      examined_evidence_total: 14
+    receipt_after:
+      count: 13
+      unique_windows: 12
+      duplicate_windows:
+        - 2026-08-29T06:00:00.000Z/PT3H
+      additional_duplicate_windows: []
+    marketing_handoff: none
+    price_or_return_observations_opened: false
+  focused_green:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-tc268-source-audit.test.ts --silent
+    result: PASS - 1 suite / 4 tests
+    covers: canonical document hash, typed source facts, no-return and no-cost-evidence boundaries, evidence summaries, public/admin projections, sole current-window receipt, ledger integrity, and absent marketing handoff
+  first_adjacent_run:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research --silent
+    result: EXPECTED_DERIVED_FIXTURE_DRIFT - 11/53 suites and 190/272 tests passed
+    failures: 42 suites / 82 tests
+    interpretation: >-
+      The new focused contract and marketing controls passed. Failures are
+      explicit prior-cycle expectations for 13 versus 14 examined records,
+      9 versus 10 source audits, 12 versus 13 receipts, TC-267 as the former
+      ledger tail, and deterministic public/admin/index/CSV hashes derived
+      from the added TC-268 evidence. No failure indicated a return,
+      marketing, publication, or trading authority leak.
+  adjacent_fixture_repair:
+    scope: Explicit derived counts, source-order arrays, receipt-tail assertions, human-index copy, CSV line counts, and deterministic public/admin fingerprints only
+    historical_receipt_semantics: TC-267 now resolves by task ID instead of pretending to remain the ledger tail
+    canonical_state_receipt: research_intake_desk_2026_08_29.cycle_13
+    public_evidence_compactness_bound: relaxed narrowly from 0.58 to 0.59 after one adverse record increased the evidence subset; the evidence payload remains materially smaller than the 61-row catalog
+    unintended_runtime_change: false
+  research_domain_green:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research --silent
+    result: PASS - 53 suites / 272 tests
+    covers: intake, evidence state, source audits, receipts, public/admin JSON, human briefs, CSVs, facets, review workflows, marketing fail-closed controls, and deterministic fingerprints
+  route_and_auth_green:
+    command: npm test -- --runInBand apps/web/app/api/research/intake apps/web/app/api/admin/research-intake --silent
+    result: PASS - 31 suites / 113 tests
+    covers: public and protected catalog, candidate, overview, evidence, evidence index, CSV, Markdown, review, cache, query neutrality, GET-only behavior, and authentication boundaries
+  targeted_verification:
+    pinned_source: PASS - all 61 candidates reconstruct at source commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+    review_evidence: PASS - 4/4 review manifests and 12/12 preregistration, result, and artifact files match exact normalized bytes and SHA-256 bindings; the verifier records neither review completion, publication authority, nor trading authority
+  first_static_verification:
+    handoff_validator_invocation: EXPECTED_USAGE_FAILURE - the repository CLI requires an explicit completed-handoff --file, so the no-argument command produced no evidence and changed no state
+    web_typecheck: EXPECTED_INTEGRATION_FAILURE - adding TC-268 to the receipt task union exposed that the marketing handoff builder had not explicitly classified TC-268 as a no-draft task
+    repair: Add TC-268 to the fail-closed no-draft guard; runtime behavior and the focused no-marketing-handoff contract were already correct
+    full_lint: PASS - zero errors and 21 inherited warnings; no warning points to this increment
+  static_reverification:
+    web_typecheck: PASS
+    focused_marketing_and_handoff_contracts: PASS - 3 suites / 25 tests cover TC-268 source evidence, absent marketing handoff, existing draft-only ledger behavior, and completed-handoff validator acceptance/rejection fixtures
+  full_repository_tests: PASS - 339 runnable suites, 2431 tests, and 1 snapshot; 3 suites and 26 tests skipped; the inherited post-summary Jest open handle was manually terminated only after complete green totals printed
+  build_verification: PASS - the required root production build compiled signals, trading-agents, and the Next.js app, then generated all 333/333 static pages; only inherited middleware deprecation, whole-project Turbopack trace, edge-runtime static-generation, and Node url.parse warnings remained
+  final_lint: PASS - zero errors and 21 inherited warnings after the TC-268 no-draft type boundary repair; no warning points to this increment
+  final_integrity:
+    source_audit: PASS - 13294 raw and normalized LF bytes at SHA-256 13b0f1fcbe8acff281a3aee7d9685a5eadb6fbbdb1447f5a61a592c8cb142af6
+    state_yaml: PASS
+    diff_check: PASS
+    changed_path_scope: PASS - exactly 60 expected paths are changed, comprising 58 tracked and 2 new intake, source-audit, receipt, deterministic-contract, loop-plan, and STATE paths
+    docker_compose_unchanged: true
+    database_or_migration_changed: false
+    rendered_ui_changed: false
+    auth_or_runtime_authority_changed: false
+    gate_observed_at: 2026-08-30T15:33:36.630Z
+    gate: PASS - TC-268 is the sole 15:00Z-window receipt, the window is complete, another receipt is denied until exact 2026-08-30T18:00:00.000Z, the only duplicate is the expected historical 06:00Z conflict, four drafts remain human-review-only, and zero current-window handoffs or approved drafts exist
+  verification: PASS - focused TC-268 and marketing boundaries pass 25/25; research-domain tests pass 272/272; public/admin research routes pass 113/113; pinned source reconstruction passes 61/61; review evidence passes 4/4 manifests and 12/12 files; all 339 runnable repository suites and 2431 tests pass; typecheck, lint, source hash, STATE, scope, diff, gate, and the required 333-page production build pass
+  shared_library_search: No reusable commodity-correlation, ETF-replication, Yahoo-adjusted-data, or cost-first preregistration pattern was found under the shared MemoryCore library
+  safety_boundary: No price series or returns have been downloaded or inspected; no source record, receipt, preregistration, result, marketing draft, publication state, signal, broker, execution, billing, or trading behavior has changed
+  next_step: Stage the exact verified 60-path increment, commit locally on the isolated branch, record the commit in STATE, save shared project memory, and wait for the exact 18:00Z receipt boundary.
 
 research_public_candidate_brief_2026_08_30:
   at: 2026-08-30T22:30:58+08:00
@@ -9763,6 +9927,43 @@ research_intake_desk_2026_08_29:
       - exact source audit is 14962 LF bytes at SHA-256 3060198a6e17db2d4262d02ea26d9b6eef6b730feab5fab4de6370ba06d535f1
       - final gate has TC-267 as the sole current-window receipt with no marketing handoff or automatic authority
     next_action: Archive the exact-source no-go; any causal ETF correlation-timing study must begin as a separately hashed hypothesis with frozen universe, estimator, lookback, fills, costs, folds, and holdout before returns
+  cycle_13:
+    id: 2026-08-30T15:00:00.000Z/PT3H
+    recorded_at: 2026-08-30T15:08:26.991Z
+    task_id: TC-268
+    started_at: 2026-08-30T15:00:18.430Z
+    ends_at: 2026-08-30T18:00:00.000Z
+    candidate_id: how-to-improve-commodity-momentum-using-intra-market-correlation
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    source_audit_sha256: 13b0f1fcbe8acff281a3aee7d9685a5eadb6fbbdb1447f5a61a592c8cb142af6
+    source_pdf_sha256: null
+    source_pdf_hash_status: blocked_http_403_no_bytes
+    evidence_paths:
+      - docs/research/2026-08-30-commodity-correlation-momentum-source-audit.md
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    verification:
+      - focused RED observed 4/4 intended absent-overlay, summary, projection, and receipt failures
+      - focused TC-268 source-audit contract passes 4/4 with no market returns opened and no marketing handoff
+      - research-domain verification passes 53 suites and 272 tests; public and protected research routes pass 31 suites and 113 tests
+      - pinned source reconstruction passes 61/61 candidates and review evidence passes 4/4 manifests with 12/12 bound files
+      - all 339 runnable repository suites and 2431 tests pass; 3 suites and 26 tests are skipped and 1 snapshot passes
+      - web typecheck and lint pass, with zero lint errors and 21 inherited warnings
+      - required production build compiles shared packages and generates 333/333 pages
+      - exact source audit is 13294 LF bytes at SHA-256 13b0f1fcbe8acff281a3aee7d9685a5eadb6fbbdb1447f5a61a592c8cb142af6
+      - final gate has TC-268 as the sole current-window receipt with no marketing handoff or automatic authority and denies another receipt until 2026-08-30T18:00:00.000Z
+    next_action: Archive the exact-source no-go; any independent commodity ETF correlation-switch study must begin in a later receipt window with authorized immutable data and a separately hashed protocol freezing transforms, fills, full costs including borrow and financing, controls, folds, and holdout before returns
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00

@@ -3,7 +3,7 @@ import { buildResearchIntakeAdminEvidencePayload } from '../research-intake-admi
 
 const AUDIT_AT = '2026-08-29T15:59:59.999Z';
 const TASK_ORDER = [
-  'TC-262', 'TC-259', 'TC-257', 'TC-264', 'TC-265', 'TC-255', 'TC-261', 'TC-258', 'TC-256',
+  'TC-262', 'TC-259', 'TC-257', 'TC-268', 'TC-264', 'TC-265', 'TC-255', 'TC-261', 'TC-258', 'TC-256',
   'TC-263', 'TC-267', 'TC-266', 'TC-260',
 ];
 
@@ -41,41 +41,41 @@ describe('protected research evidence desk projection', () => {
         includesEveryAvailableOverlay: true,
       },
       evidenceSummary: {
-        total: 13,
+        total: 14,
         discovered: 0,
-        sourceAudited: 9,
+        sourceAudited: 10,
         replicated: 4,
         passed: 0,
         failed: 3,
         inconclusive: 1,
-        untested: 9,
-        sourceNoGo: 9,
+        untested: 10,
+        sourceNoGo: 10,
       },
       catalogEvidenceStateSummary: {
         totalCandidates: 61,
-        withTradeClawRecord: 13,
+        withTradeClawRecord: 14,
         performanceGatesEvaluated: 3,
         performanceGatesNotEvaluated: 58,
         plainLanguageSummary:
-          '61 candidates: 48 not tested by TradeClaw, 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+          '61 candidates: 47 not tested by TradeClaw, 10 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
       },
       evidenceStateSummary: {
-        totalCandidates: 13,
+        totalCandidates: 14,
         performanceGatesEvaluated: 3,
-        performanceGatesNotEvaluated: 10,
+        performanceGatesNotEvaluated: 11,
         plainLanguageSummary:
-          '13 candidates: 9 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 10 candidates.',
+          '14 candidates: 10 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 11 candidates.',
       },
     });
     expect(payload.selectionPolicy).toMatch(/gross discovery metadata/i);
     expect(payload.workflow).toHaveLength(5);
-    expect(payload.items).toHaveLength(13);
+    expect(payload.items).toHaveLength(14);
     expect(payload.items.map(taskIdOf)).toEqual(TASK_ORDER);
     expect(payload.items.map((item) => item.record.sourcePosition + 1)).toEqual([
-      7, 22, 24, 27, 28, 32, 33, 34, 37, 39, 42, 60, 61,
+      7, 22, 24, 25, 27, 28, 32, 33, 34, 37, 39, 42, 60, 61,
     ]);
     expect(payload.items.map((item) => item.evidencePosition)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
     ]);
     for (const omitted of ['records', 'appliedFilters', 'filteredSummary', 'pagination', 'marketingReview']) {
       expect(payload).not.toHaveProperty(omitted);
@@ -95,10 +95,10 @@ describe('protected research evidence desk projection', () => {
     }
 
     expect(payload.items.map((item) => item.candidateWorkflow.receiptCount)).toEqual([
-      0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1,
+      0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1,
     ]);
     expect(payload.items.map((item) => item.candidateWorkflow.marketingHandoff?.taskId ?? null))
-      .toEqual([null, 'TC-259', 'TC-257', null, null, 'TC-255', null, 'TC-258', null, null, null, null, null]);
+      .toEqual([null, 'TC-259', 'TC-257', null, null, null, 'TC-255', null, 'TC-258', null, null, null, null, null]);
 
     expect(tc262).toMatchObject({
       record: {
@@ -304,9 +304,9 @@ describe('protected research evidence desk projection', () => {
     const second = JSON.stringify(buildResearchIntakeAdminEvidencePayload(AUDIT_AT));
 
     expect(second).toBe(first);
-    expect(Buffer.byteLength(first, 'utf8')).toBe(105_804);
+    expect(Buffer.byteLength(first, 'utf8')).toBe(112_492);
     expect(createHash('sha256').update(first).digest('hex')).toBe(
-      'b1ad4b8f672a470b815a41aa22c71c47e5d415b6f32e4f7055ffca9fadf49423',
+      '6e96790b2912fd28b488884377ffcc6ae1ea166f551ffca96a52773e9782bd2c',
     );
   });
 });

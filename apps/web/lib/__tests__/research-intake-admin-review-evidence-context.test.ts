@@ -92,12 +92,12 @@ describe('protected marketing-review evidence context', () => {
     ]);
     expect(payload.catalogEvidenceStateSummary).toMatchObject({
       totalCandidates: 61,
-      withTradeClawRecord: 13,
+      withTradeClawRecord: 14,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 58,
     });
     expect(payload.catalogEvidenceStateSummary?.statuses.map((status) => status.count)).toEqual([
-      48, 9, 1, 0, 3, 0,
+      47, 10, 1, 0, 3, 0,
     ]);
     expect(emptyQueue.evidenceStateSummary).toMatchObject({
       totalCandidates: 0,
@@ -187,32 +187,32 @@ describe('protected marketing-review evidence context', () => {
       publicCandidate: fingerprint(buildResearchIntakePublicCandidatePayload(TC260_CANDIDATE_ID)),
     }).toEqual({
       protectedCatalog: {
-        bytes: 78_211,
-        sha256: 'e4ff64c2ce4519df53af0ccdaffa14b48c9758dc5500cd78c8f97dab5cf13a7f',
+        bytes: 83_163,
+        sha256: '7bd16fe28b7e5c2bd623907112a137ca86a251dbb3241a3b43f86cd020cf7d84',
       },
       protectedCandidate: {
-        bytes: 14_203,
-        sha256: '69ba5b46dda7ff8f7c1baeb46f65ad067d19327a8c4f7acb82d75d08e8c0fffd',
+        bytes: 14_207,
+        sha256: '382e8888b38a220cfe50a379df95350ec2a2ceda6ab24117a6a9b8fcc6287288',
       },
       protectedEvidence: {
-        bytes: 105_804,
-        sha256: 'b1ad4b8f672a470b815a41aa22c71c47e5d415b6f32e4f7055ffca9fadf49423',
+        bytes: 112_492,
+        sha256: '6e96790b2912fd28b488884377ffcc6ae1ea166f551ffca96a52773e9782bd2c',
       },
       protectedReview: {
-        bytes: 31_986,
-        sha256: 'b4a70171571700068b28dca6aca1f05ab0a492b4ea0881ef6f6e9a174d891116',
+        bytes: 31_988,
+        sha256: '20bc8578dd14ddbe53a2fb5f9cbc87dcc508bbbc6c74175091dabc562f51a9f3',
       },
       publicCatalog: {
-        bytes: 136_142,
-        sha256: '4e361c23e4b908e029190b9c20b13a76e4210bf0e6dbb264f25fc603e46f6da5',
+        bytes: 140_878,
+        sha256: '4c48acd73a18d967bbf039e7109188c136b0f76d011b4e6da5754cb37326d3ec',
       },
       publicEvidence: {
-        bytes: 76_044,
-        sha256: '58291697bcc603bd17ecb71b28fb89e9c783dc8ba7acb5eb1cca8fed6a794277',
+        bytes: 82_070,
+        sha256: '43d0257b89f0011979269732dd45e8fd8672c9f6aa35bb691255cd396f2076cf',
       },
       publicCandidate: {
-        bytes: 10_042,
-        sha256: '497ed3ad63b4c988101ef5dec01d15950aef582db2c1908b89f61b9ff1166651',
+        bytes: 10_046,
+        sha256: '7f8bd9d315eca8fdba14b2098ef4c00adc98c2b0d3b92ac4b3e8590b87a2d94a',
       },
     });
   });

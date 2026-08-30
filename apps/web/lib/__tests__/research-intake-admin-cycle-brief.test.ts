@@ -65,8 +65,8 @@ describe('protected human-readable research cycle brief', () => {
 
     expect(replay).toBe(first);
     expect(fingerprint(first)).toEqual({
-      bytes: 2_420,
-      sha256: '1b3671e006126d2bdba8695f79fab4a8c28421adc16ba64271b222ef804e6a45',
+      bytes: 2_421,
+      sha256: '032ae51f778dc2289010694f58e39a1e18f07b2b525e858162931cf231114098',
     });
     expect(first.startsWith('# TradeClaw research cycle brief\n')).toBe(true);
     expect(first).toContain(`- Observed at: \`${AUDIT_AT}\``);
@@ -94,7 +94,7 @@ describe('protected human-readable research cycle brief', () => {
     expect(first).toContain('- Publication-approved drafts: 0');
     expect(first).toContain('## Evidence record');
     expect(first).toContain('- Pinned candidates: 61');
-    expect(first).toContain('- Evidence records: 13');
+    expect(first).toContain('- Evidence records: 14');
     expect(first).toContain('- Performance gates evaluated: 3');
     expect(first).toContain('## Safety');
     expect(first).toContain('- Creates or authorizes a receipt: No');
@@ -189,24 +189,24 @@ describe('protected human-readable research cycle brief', () => {
       ),
     }).toEqual({
       publicCatalog: {
-        bytes: 136_142,
-        sha256: '4e361c23e4b908e029190b9c20b13a76e4210bf0e6dbb264f25fc603e46f6da5',
+        bytes: 140_878,
+        sha256: '4c48acd73a18d967bbf039e7109188c136b0f76d011b4e6da5754cb37326d3ec',
       },
       publicEvidence: {
-        bytes: 76_044,
-        sha256: '58291697bcc603bd17ecb71b28fb89e9c783dc8ba7acb5eb1cca8fed6a794277',
+        bytes: 82_070,
+        sha256: '43d0257b89f0011979269732dd45e8fd8672c9f6aa35bb691255cd396f2076cf',
       },
       publicCatalogCsv: {
-        bytes: 37_418,
-        sha256: '2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f',
+        bytes: 37_522,
+        sha256: 'e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf',
       },
       publicEvidenceCsv: {
-        bytes: 9_138,
-        sha256: 'e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941',
+        bytes: 9_820,
+        sha256: '091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c',
       },
       protectedEvidenceCsv: {
-        bytes: 19_965,
-        sha256: 'e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f',
+        bytes: 20_948,
+        sha256: 'a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661',
       },
       protectedReviewCsv: {
         bytes: 7_094,

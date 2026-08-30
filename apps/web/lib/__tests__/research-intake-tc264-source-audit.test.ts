@@ -164,14 +164,14 @@ describe('TC-264 rolling-versus-expanding mean-reversion source audit', () => {
     const summary = summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE);
     expect(summary).toMatchObject({
       total: 61,
-      discovered: 48,
-      sourceAudited: 9,
+      discovered: 47,
+      sourceAudited: 10,
       replicated: 4,
       passed: 0,
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 9,
+      sourceNoGo: 10,
     });
   });
 

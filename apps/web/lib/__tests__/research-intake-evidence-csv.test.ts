@@ -11,11 +11,12 @@ describe('public research evidence CSV projection', () => {
     const rows = buildResearchIntakeCsvRows(buildResearchIntakePublicEvidencePayload());
     const csv = buildResearchIntakeEvidenceCsv();
 
-    expect(rows).toHaveLength(13);
+    expect(rows).toHaveLength(14);
     expect(rows.map((row) => row.tradeClawTaskId)).toEqual([
       'TC-262',
       'TC-259',
       'TC-257',
+      'TC-268',
       'TC-264',
       'TC-265',
       'TC-255',
@@ -27,11 +28,12 @@ describe('public research evidence CSV projection', () => {
       'TC-266',
       'TC-260',
     ]);
-    expect(rows.map((row) => row.sourceOrder)).toEqual([7, 22, 24, 27, 28, 32, 33, 34, 37, 39, 42, 60, 61]);
+    expect(rows.map((row) => row.sourceOrder)).toEqual([7, 22, 24, 25, 27, 28, 32, 33, 34, 37, 39, 42, 60, 61]);
     expect(rows.map((row) => row.performanceEvidenceStatus)).toEqual([
       'source-audit-only-no-local-backtest',
       'modeled-historical-fail',
       'qa-only-no-performance-result',
+      'source-audit-only-no-local-backtest',
       'source-audit-only-no-local-backtest',
       'source-audit-only-no-local-backtest',
       'modeled-historical-fail',
@@ -73,12 +75,12 @@ describe('public research evidence CSV projection', () => {
     }
   });
 
-  it('serializes deterministically as one shared header plus thirteen rows without protected state', () => {
+  it('serializes deterministically as one shared header plus fourteen rows without protected state', () => {
     const first = buildResearchIntakeEvidenceCsv();
     const second = buildResearchIntakeEvidenceCsv();
 
     expect(second).toBe(first);
-    expect(first.split('\r\n')).toHaveLength(14);
+    expect(first.split('\r\n')).toHaveLength(15);
     expect(first.startsWith(RESEARCH_INTAKE_CSV_COLUMNS.join(','))).toBe(true);
     expect(RESEARCH_INTAKE_CSV_COLUMNS).toHaveLength(25);
     expect(first).not.toMatch(
