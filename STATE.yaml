@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-31T00:36:05+08:00
+updated: 2026-08-31T00:36:52+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,9 +8,9 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_evidence_index_brief_2026_08_31:
-  at: 2026-08-31T00:36:05+08:00
+  at: 2026-08-31T00:36:52+08:00
   agent: TradeClaw PM agent
-  status: ready_for_local_commit
+  status: complete_receipt_neutral
   scope: Complete the protected human journey with a source-ordered evidence index between the research cycle brief and exact candidate briefs
   branch: agent/research-intake-desk-20260829
   base_commit: e44a070852b674e6a355c81187bc6e5ae8181d26
@@ -93,8 +93,21 @@ research_admin_evidence_index_brief_2026_08_31:
     diff_check: clean
     broad_checkout: C:/Ai/tradeclaw remains on its pre-existing dirty feat/premium-ui-overhaul checkout and was not edited.
     external_actions: none
+  closure:
+    implementation_commit: 2c64783798ef982a1bdefc3c991dd72d2cc82277
+    observed_at: 2026-08-30T16:36:47.218Z
+    current_window_status: complete
+    receipt_gate: wait-for-next-window
+    current_window_receipts: 1_of_1_TC-268
+    next_exact_run_at: 2026-08-30T18:00:00.000Z
+    ledger: 13_receipts_across_12_windows
+    duplicate_windows: only_expected_2026-08-29T06:00:00.000Z_PT3H
+    marketing: 4_review_ready_0_approved_0_current_window_TC-255_next
+    new_receipt: false
+    new_marketing_draft: false
+    push_deploy_publish_post_bill_signal_execute_trade: false
   safety_boundary: No candidate, source audit, return, receipt, research verdict, evidence artifact, marketing decision, publication, posting, billing, signal, allocation, broker, execution, or trading state will change.
-  next_step: Commit the verified implementation locally, then record the implementation commit and final gate closure in STATE.yaml.
+  next_step: Wait for exact 2026-08-30T18:00:00.000Z before any new intake receipt; in the next authorized cycle, re-observe the gate and select one highest-value cost-first improvement.
 
 research_admin_candidate_brief_2026_08_30:
   at: 2026-08-31T00:12:49+08:00
