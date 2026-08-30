@@ -65,6 +65,7 @@ describe('protected manual-review YAML handoff', () => {
       taskId: 'TC-255',
       candidateId: exact.reviewItem.candidate.id,
       reviewedProjectionObservedAt: AUDIT_AT,
+      evidenceIntegrity: exact.claimVerification.evidenceIntegrity,
       requiredCheckIds: exact.reviewProtocol.checks.map((check) => check.id),
       claimIds: exact.claimVerification.claims.map((claim) => claim.id),
       allowedOutcomes: [

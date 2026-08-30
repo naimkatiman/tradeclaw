@@ -58,6 +58,24 @@ function formatReviewHandoffTemplate(
   ];
 }
 
+function formatEvidenceIntegrity(
+  integrity: ResearchIntakeAdminReviewItemPayload['claimVerification']['evidenceIntegrity'],
+): string[] {
+  return [
+    '> These hashes bind this review projection to repository evidence bytes. They do not record completed human verification or grant approval.',
+    '',
+    `- Algorithm: ${inlineCode(integrity.algorithm)}`,
+    '- Normalization: UTF-8 text normalized to LF before byte count and hashing',
+    `- Manifest canonicalization: ${inlineCode(integrity.manifestCanonicalization)}`,
+    `- Manifest SHA-256: ${inlineCode(integrity.manifestSha256)}`,
+    '',
+    ...integrity.files.map(
+      (file) =>
+        `- ${file.role}: ${inlineCode(file.path)} · ${file.normalizedBytes.toLocaleString('en-US')} normalized bytes · SHA-256 ${inlineCode(file.sha256)}`,
+    ),
+  ];
+}
+
 function formatResearchMarketingReviewPacket(
   payload: ResearchIntakeAdminReviewItemPayload,
 ): string {
@@ -83,6 +101,9 @@ function formatResearchMarketingReviewPacket(
     ...claim.references.map(formatClaimReference),
     '',
   ]);
+  const evidenceIntegrity = formatEvidenceIntegrity(
+    claimVerification.evidenceIntegrity,
+  );
   const reviewHandoffLines = formatReviewHandoffTemplate(reviewHandoffTemplate);
   const receiptDescription = receipt === null
     ? 'none (pre-loop closure)'
@@ -135,6 +156,10 @@ function formatResearchMarketingReviewPacket(
     `- Public candidate JSON: ${inlineCode(links.publicCandidate)}`,
     `- Exact review JSON: ${inlineCode(links.reviewItem)}`,
     `- This Markdown packet: ${inlineCode(links.reviewPacket)}`,
+    '',
+    '## Evidence file integrity (verify before review)',
+    '',
+    ...evidenceIntegrity,
     '',
     '## Numeric claim map (manual cross-check required)',
     '',

@@ -1,11 +1,137 @@
 project: tradeclaw
-updated: 2026-08-30T16:09:00+08:00
+updated: 2026-08-30T16:26:35+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_review_evidence_integrity_2026_08_30:
+  at: 2026-08-30T16:26:35+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_pending_local_commit
+  scope: Cryptographically bind every exact manual-review projection, packet, and blank YAML handoff to the repository preregistration, result, and artifact bytes under review
+  base_commit: a203595274c52c4682abfa14b49642f30c0418b8
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T06:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-265
+  current_cycle_ends_at: 2026-08-30T09:00:00.000Z
+  observed_at: 2026-08-30T08:11:18.891Z
+  receipt_neutral: true
+  new_research_receipt: false
+  audit_basis: >-
+    The exact review now identifies canonical evidence paths and provides a
+    downloadable handoff, but neither surface records the bytes a reviewer is
+    expected to inspect. A later file change could therefore leave a completed
+    manual handoff observationally bound but not cryptographically bound to the
+    preregistration, result, and artifact that supported its claims.
+  selected_improvement:
+    exact_protected_review_only: true
+    repository_evidence_manifest: true
+    roles:
+      - preregistration
+      - result
+      - artifact
+    algorithm: sha256
+    normalization: utf8-lf
+    per_file_normalized_bytes: true
+    canonical_manifest_digest: true
+    exact_packet_and_yaml_reuse_same_manifest: true
+    review_verification_recorded: false
+    mutation_supported: false
+    publication_or_trading_authority_granted: false
+  success_contract:
+    - Every observation-visible exact review carries one deeply frozen three-file evidence-integrity manifest whose paths exactly match its preregistration, result, and artifact sources.
+    - Every normalized byte count and SHA-256 digest independently recomputes from current repository files, and one canonical ordered manifest digest covers all three entries.
+    - The Markdown packet renders the same file hashes and normalization rule before numeric claims, and the blank YAML handoff embeds the same manifest for a separate manual workflow.
+    - Queue, nextReview, compact overview/index, public JSON/OpenAPI, every CSV, every research receipt, and rendered UI remain unchanged.
+    - Integrity binding records no completed human verification, review outcome, owner decision, publication approval, or trading authority.
+  frozen_boundaries:
+    current_receipt_changed: false
+    research_candidate_stage_or_verdict_changed: false
+    return_preregistration_result_or_marketing_handoff_changed: false
+    review_queue_payload_changed: false
+    next_review_payload_changed: false
+    public_payload_or_openapi_changed: false
+    csv_payload_changed: false
+    exact_review_payload_changed: true
+    markdown_packet_changed: true
+    handoff_yaml_changed: true
+    rendered_ui_changed: false
+    docker_dependency_database_or_migration_changed: false
+    publication_posting_billing_signal_allocation_broadcast_broker_execution_or_trading_changed: false
+  library_search: MemoryCore contains no reusable evidence-integrity manifest, normalized repository fingerprint, or review-to-evidence binding pattern; keep this first proof project-local and exact-review-scoped.
+  red_contract:
+    path: apps/web/lib/__tests__/research-intake-admin-review-evidence-integrity.test.ts
+    run_at: 2026-08-30T08:16:00.000Z
+    result: EXPECTED RED - eight assertions failed only because the four exact evidence manifests and their packet/YAML reuse do not exist; the queue/compact/public/CSV exclusion boundary already passed
+    failed_tests: 8
+    passing_boundary_tests: 1
+    unexpected_failures: 0
+  implementation_checkpoint:
+    at: 2026-08-30T08:19:00.000Z
+    manifest_tasks:
+      - TC-255
+      - TC-257
+      - TC-258
+      - TC-259
+    source_files_pinned: 12
+    normalized_byte_counts_pinned: true
+    per_file_sha256_pinned: true
+    canonical_manifest_sha256_pinned: true
+    exact_path_parity_enforced: true
+    deeply_frozen: true
+    claim_verification_reuses_manifest: true
+    handoff_template_reuses_same_object: true
+    packet_and_yaml_render_same_manifest: true
+    review_verification_recorded: false
+    mutation_supported: false
+    publication_or_trading_authority_granted: false
+  focused_green_verification:
+    at: 2026-08-30T08:19:00.000Z
+    result: PASS - all nine focused tests independently recompute twelve normalized repository file hashes and four canonical manifests, prove exact/template/packet/YAML reuse, deep freeze, path parity, and excluded surfaces
+    tests: 9
+  adjacent_preflight:
+    at: 2026-08-30T08:20:00.000Z
+    result: EXPECTED COMPATIBILITY UPDATE - 59 of 63 tests passed; only the intentionally enriched exact-template shape, YAML shape, and two packet byte/hash assertions failed, while claim maps, queue, README, public, CSV, and exclusion contracts passed
+    unexpected_failures: 0
+  adjacent_green_verification:
+    at: 2026-08-30T08:22:00.000Z
+    result: PASS - 13 exact-review, integrity, handoff, packet, queue, CSV, and README suites pass 63 tests; six signed-cookie exact/packet/YAML and queue route suites pass 23 tests
+    suites: 19
+    tests: 86
+    real_auth_delivery_covered: true
+  deterministic_boundary_audit:
+    result: PASS
+    exact_tc255_json_bytes: 16123
+    exact_tc255_json_sha256: 2e972f150052fbef012562a3de7023576cf033c10ba7ec8182953b9402569ab8
+    integrity_tc255_bytes: 903
+    integrity_tc255_sha256: 8513c5d85a170eb9d007a03e1432ed9edc4b8bfb6c6d99e646105904c7bf4519
+    template_tc255_bytes: 1994
+    template_tc255_sha256: f38fd35bc46ba3065ab5919ff5b0cd151017faabf33fc6e26761e1ded071ad7e
+    handoff_tc255_bytes: 1939
+    handoff_tc255_sha256: 49a8c3606349088aabd6e04cd16d3f80b517c268661d97932758856c3aadfebd
+    packet_tc255_bytes: 9944
+    packet_tc255_sha256: 11074ec744334a469c51fd41fc9abc6dae6dae6dbf3bb012ed0973e5734720fd
+    queue_bytes_unchanged: 31246
+    queue_sha256_unchanged: e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea
+    source_files_verified: 12
+    canonical_manifests_verified: 4
+    public_and_csv_integrity_exclusion: true
+    review_verification_recorded: false
+    publication_authority: false
+    trading_authority: false
+  scope_audit: PASS - exactly fourteen intended paths cover README/state, exact-review assembly, the frozen evidence-integrity registry, packet/YAML rendering, exact authenticated route assertions, focused contracts, and expected packet/template fingerprints; no receipt, public/OpenAPI/CSV, research evidence, rendered UI, Docker, dependency, migration, database, billing, signal, allocation, broadcast, broker, or execution path changed
+  source_reconstruction_verification: PASS - exact pinned awesome-systematic-trading source reconstructs all 61 candidates in frozen source order with gross discovery-only treatment
+  static_verification: PASS - web TypeScript exits zero; changed-file lint exits zero; full ESLint exits zero with 21 inherited warnings and no error; STATE.yaml parses and git diff check passes
+  broad_test_verification: PASS - explicit force-exit run passes 319 suites, 2277 tests, and 1 snapshot with 3 suites and 26 tests skipped in 80.319 seconds; force-exit only terminates the inherited post-summary open handle
+  production_build_verification: PASS - npm run build compiled signals, trading-agents, and the Next.js production app, generated all 331 static pages, and registered the exact JSON, packet.md, and handoff.yaml admin routes with exit code zero; only inherited middleware, NFT tracing, edge-runtime, and url.parse warnings appeared
+  docker_compose_verification: Existing deployment-surface integrity tests and the production build pass; Docker CLI remains unavailable locally, so no runtime Compose command was attempted and the fourteen-path diff contains no Compose, Dockerfile, lockfile, dependency, database, or migration path.
+  post_state_verification: PASS - eleven exact-review, evidence-integrity, packet, YAML handoff, receipt, and marketing-loop suites pass 56 tests after the terminal STATE update; STATE.yaml parses, git diff check passes, and exactly fourteen intended paths remain
+  next_action: Recheck focused exact-review/manifest/packet/YAML/receipt contracts plus STATE parsing, diff hygiene, and exact changed-path scope, then commit implementation and state closure locally and reobserve the recurring gate without minting a second receipt.
+  safety: No new receipt, source outcome, return, preregistration, result artifact, review completion, owner decision, mutation, rendered UI, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment is authorized.
 
 research_admin_review_handoff_download_2026_08_30:
   at: 2026-08-30T15:57:00+08:00

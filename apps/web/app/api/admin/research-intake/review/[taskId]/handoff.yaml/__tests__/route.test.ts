@@ -118,6 +118,17 @@ describe('GET /api/admin/research-intake/review/[taskId]/handoff.yaml', () => {
       outcome: null,
       notes: null,
     });
+    expect(parsed.evidenceIntegrity).toMatchObject({
+      schemaVersion: 1,
+      status: 'repository-evidence-pinned',
+      algorithm: 'sha256',
+      normalization: 'utf8-lf',
+      manifestSha256:
+        'baa1778585d32bd9a5b99f2dc7a7157d8b29f32f7046b5c83610e4b051c170a8',
+    });
+    expect(
+      (parsed.evidenceIntegrity as { files: unknown[] }).files,
+    ).toHaveLength(3);
   });
 
   it('uses one generic private 404 for future, unknown, and non-canonical tasks', async () => {

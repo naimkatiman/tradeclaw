@@ -103,6 +103,10 @@ describe('GET /api/admin/research-intake/review/[taskId]/packet.md', () => {
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
     expect(packet).toContain('# TradeClaw marketing review packet: TC-255');
     expect(packet).toContain(`- Observed at: ${AUDIT_AT}`);
+    expect(packet).toContain('## Evidence file integrity (verify before review)');
+    expect(packet).toContain(
+      'baa1778585d32bd9a5b99f2dc7a7157d8b29f32f7046b5c83610e4b051c170a8',
+    );
     expect(packet).toContain('- Publication approved: No');
   });
 

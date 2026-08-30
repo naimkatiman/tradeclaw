@@ -45,6 +45,10 @@ import {
   type ResearchLoopMarketingReview,
 } from './research-loop-marketing';
 import {
+  getResearchMarketingReviewEvidenceIntegrity,
+  type ResearchMarketingReviewEvidenceIntegrity,
+} from './research-marketing-review-integrity';
+import {
   buildResearchIntakeAdminStartHere,
   type ResearchIntakeCurrentResource,
   type ResearchIntakeAdminStartHere,
@@ -670,6 +674,7 @@ export interface ResearchIntakeAdminClaimVerification {
   mutationSupported: false;
   grantsPublicationAuthority: false;
   grantsTradingAuthority: false;
+  evidenceIntegrity: ResearchMarketingReviewEvidenceIntegrity;
   files: {
     candidateJsonHref: string;
     preregistrationPath: string;
@@ -691,6 +696,7 @@ export interface ResearchIntakeAdminReviewHandoffTemplate {
   grantsPublicationAuthority: false;
   grantsTradingAuthority: false;
   downloadHref: string;
+  evidenceIntegrity: ResearchMarketingReviewEvidenceIntegrity;
   requiredCheckIds: readonly ResearchIntakeAdminReviewCheckId[];
   claimIds: readonly string[];
   allowedOutcomes: typeof RESEARCH_INTAKE_ADMIN_REVIEW_OUTCOMES;
@@ -1597,6 +1603,23 @@ function buildResearchIntakeAdminClaimVerification(
     resultPath: evidence.resultPath,
     artifactPath: evidence.artifactPath,
   });
+  const evidenceIntegrity = getResearchMarketingReviewEvidenceIntegrity(
+    reviewItem.handoff.taskId,
+  );
+  const [preregistrationFile, resultFile, artifactFile] =
+    evidenceIntegrity.files;
+  if (
+    preregistrationFile.role !== 'preregistration' ||
+    preregistrationFile.path !== files.preregistrationPath ||
+    resultFile.role !== 'result' ||
+    resultFile.path !== files.resultPath ||
+    artifactFile.role !== 'artifact' ||
+    artifactFile.path !== files.artifactPath
+  ) {
+    throw new Error(
+      `marketing review ${reviewItem.handoff.taskId} has mismatched evidence integrity`,
+    );
+  }
   const candidateReference = (
     jsonPointer: string,
     rawValue: unknown,
@@ -1985,6 +2008,7 @@ function buildResearchIntakeAdminClaimVerification(
     mutationSupported: false,
     grantsPublicationAuthority: false,
     grantsTradingAuthority: false,
+    evidenceIntegrity,
     files,
     claims: Object.freeze(claims),
   });
@@ -2012,6 +2036,7 @@ function buildResearchIntakeAdminReviewHandoffTemplate(
     downloadHref: `${buildResearchIntakeAdminReviewItemHref(
       reviewItem.handoff.taskId,
     )}/handoff.yaml`,
+    evidenceIntegrity: claimVerification.evidenceIntegrity,
     requiredCheckIds: Object.freeze(
       reviewProtocol.checks.map((check) => check.id),
     ),

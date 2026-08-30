@@ -11,6 +11,29 @@ function yamlStringList(label: string, values: readonly string[]): string[] {
   return [label, ...values.map((value) => `  - ${yamlString(value)}`)];
 }
 
+function yamlEvidenceIntegrity(
+  integrity: ResearchIntakeAdminReviewHandoffTemplate['evidenceIntegrity'],
+): string[] {
+  return [
+    'evidenceIntegrity:',
+    `  schemaVersion: ${integrity.schemaVersion}`,
+    `  status: ${yamlString(integrity.status)}`,
+    `  algorithm: ${yamlString(integrity.algorithm)}`,
+    `  normalization: ${yamlString(integrity.normalization)}`,
+    `  manifestCanonicalization: ${yamlString(
+      integrity.manifestCanonicalization,
+    )}`,
+    `  manifestSha256: ${yamlString(integrity.manifestSha256)}`,
+    '  files:',
+    ...integrity.files.flatMap((file) => [
+      `    - role: ${yamlString(file.role)}`,
+      `      path: ${yamlString(file.path)}`,
+      `      normalizedBytes: ${file.normalizedBytes}`,
+      `      sha256: ${yamlString(file.sha256)}`,
+    ]),
+  ];
+}
+
 /**
  * Serialize the editable blank record from the exact-review template. All
  * strings are quoted so the attachment remains deterministic and cannot gain
@@ -35,6 +58,7 @@ export function formatResearchMarketingReviewHandoff(
     `reviewedProjectionObservedAt: ${yamlString(
       blankRecord.reviewedProjectionObservedAt,
     )}`,
+    ...yamlEvidenceIntegrity(template.evidenceIntegrity),
     ...yamlStringList('requiredCheckIds:', template.requiredCheckIds),
     ...yamlStringList('claimIds:', template.claimIds),
     ...yamlStringList('allowedOutcomes:', template.allowedOutcomes),

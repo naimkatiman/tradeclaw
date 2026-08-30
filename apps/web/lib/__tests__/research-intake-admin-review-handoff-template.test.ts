@@ -35,6 +35,7 @@ interface ReviewHandoffTemplate {
   grantsPublicationAuthority: false;
   grantsTradingAuthority: false;
   downloadHref: string;
+  evidenceIntegrity: unknown;
   requiredCheckIds: readonly string[];
   claimIds: readonly string[];
   allowedOutcomes: readonly (typeof REVIEW_OUTCOMES)[number][];
@@ -77,6 +78,7 @@ describe('protected exact-review blank manual handoff template', () => {
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
       downloadHref: '/api/admin/research-intake/review/TC-255/handoff.yaml',
+      evidenceIntegrity: exact.claimVerification.evidenceIntegrity,
       requiredCheckIds: exact.reviewProtocol.checks.map((check) => check.id),
       claimIds: exact.claimVerification.claims.map((claim) => claim.id),
       allowedOutcomes: REVIEW_OUTCOMES,
