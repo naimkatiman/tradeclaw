@@ -95,6 +95,28 @@ describe('GET /api/admin/research-intake/review/[taskId] real admin-cookie bound
       grantsTradingAuthority: false,
     });
     expect(body.claimVerification.claims).toHaveLength(5);
+    expect(body.reviewHandoffTemplate).toMatchObject({
+      schemaVersion: 1,
+      status: 'blank-template-not-recorded',
+      purpose: 'copy-to-separate-manual-review-workflow',
+      completionRecorded: false,
+      mutationSupported: false,
+      ownerDecisionRecorded: false,
+      ownerDecisionRequiredForPublication: true,
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+      allowedOutcomes: [
+        'reject-draft',
+        'needs-revision',
+        'ready-for-separate-owner-decision',
+      ],
+      blankRecord: {
+        taskId: 'TC-255',
+        outcome: null,
+      },
+    });
+    expect(body.reviewHandoffTemplate.requiredCheckIds).toHaveLength(4);
+    expect(body.reviewHandoffTemplate.claimIds).toHaveLength(5);
     expect(body.startHere).toMatchObject({
       href: '/api/admin/research-intake/review/TC-255/packet.md',
       targetResource: 'marketing-review-packet',

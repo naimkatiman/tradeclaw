@@ -627,6 +627,15 @@ export interface ResearchIntakeAdminReviewProtocol {
   checks: readonly ResearchIntakeAdminReviewCheck[];
 }
 
+export const RESEARCH_INTAKE_ADMIN_REVIEW_OUTCOMES = Object.freeze([
+  'reject-draft',
+  'needs-revision',
+  'ready-for-separate-owner-decision',
+] as const);
+
+export type ResearchIntakeAdminReviewOutcome =
+  (typeof RESEARCH_INTAKE_ADMIN_REVIEW_OUTCOMES)[number];
+
 export interface ResearchIntakeAdminCandidateClaimReference {
   source: 'protected-candidate-json';
   path: string;
@@ -670,6 +679,33 @@ export interface ResearchIntakeAdminClaimVerification {
   claims: readonly ResearchIntakeAdminClaim[];
 }
 
+export interface ResearchIntakeAdminReviewHandoffTemplate {
+  schemaVersion: 1;
+  status: 'blank-template-not-recorded';
+  purpose: 'copy-to-separate-manual-review-workflow';
+  completionTracking: 'not-recorded-by-this-read-only-api';
+  completionRecorded: false;
+  mutationSupported: false;
+  ownerDecisionRecorded: false;
+  ownerDecisionRequiredForPublication: true;
+  grantsPublicationAuthority: false;
+  grantsTradingAuthority: false;
+  requiredCheckIds: readonly ResearchIntakeAdminReviewCheckId[];
+  claimIds: readonly string[];
+  allowedOutcomes: typeof RESEARCH_INTAKE_ADMIN_REVIEW_OUTCOMES;
+  blankRecord: {
+    taskId: ResearchLoopMarketingHandoff['taskId'];
+    candidateId: string;
+    reviewedProjectionObservedAt: string;
+    reviewer: null;
+    reviewedAt: null;
+    completedCheckIds: readonly [];
+    verifiedClaimIds: readonly [];
+    outcome: null;
+    notes: null;
+  };
+}
+
 export interface ResearchIntakeAdminReviewItemPayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
@@ -687,6 +723,7 @@ export interface ResearchIntakeAdminReviewItemPayload {
   };
   reviewProtocol: ResearchIntakeAdminReviewProtocol;
   claimVerification: ResearchIntakeAdminClaimVerification;
+  reviewHandoffTemplate: ResearchIntakeAdminReviewHandoffTemplate;
   reviewItem: ResearchIntakeAdminReviewItem;
 }
 
@@ -1952,6 +1989,46 @@ function buildResearchIntakeAdminClaimVerification(
   });
 }
 
+const EMPTY_REVIEW_HANDOFF_IDS = Object.freeze([]) as readonly [];
+
+function buildResearchIntakeAdminReviewHandoffTemplate(
+  reviewItem: ResearchIntakeAdminReviewItem,
+  observedAt: string,
+  reviewProtocol: ResearchIntakeAdminReviewProtocol,
+  claimVerification: ResearchIntakeAdminClaimVerification,
+): ResearchIntakeAdminReviewHandoffTemplate {
+  return Object.freeze({
+    schemaVersion: 1,
+    status: 'blank-template-not-recorded',
+    purpose: 'copy-to-separate-manual-review-workflow',
+    completionTracking: 'not-recorded-by-this-read-only-api',
+    completionRecorded: false,
+    mutationSupported: false,
+    ownerDecisionRecorded: false,
+    ownerDecisionRequiredForPublication: true,
+    grantsPublicationAuthority: false,
+    grantsTradingAuthority: false,
+    requiredCheckIds: Object.freeze(
+      reviewProtocol.checks.map((check) => check.id),
+    ),
+    claimIds: Object.freeze(
+      claimVerification.claims.map((claim) => claim.id),
+    ),
+    allowedOutcomes: RESEARCH_INTAKE_ADMIN_REVIEW_OUTCOMES,
+    blankRecord: Object.freeze({
+      taskId: reviewItem.handoff.taskId,
+      candidateId: reviewItem.candidate.id,
+      reviewedProjectionObservedAt: observedAt,
+      reviewer: null,
+      reviewedAt: null,
+      completedCheckIds: EMPTY_REVIEW_HANDOFF_IDS,
+      verifiedClaimIds: EMPTY_REVIEW_HANDOFF_IDS,
+      outcome: null,
+      notes: null,
+    }),
+  });
+}
+
 function recordForAdminReviewHandoff(
   handoff: ResearchLoopMarketingHandoff,
 ): ResearchIntakeRecord {
@@ -2311,6 +2388,10 @@ export function buildResearchIntakeAdminReviewItemPayload(
   const candidate = recordForAdminReviewHandoff(reviewItem.handoff);
   const previousItem = items[currentIndex - 1] ?? null;
   const nextItem = items[currentIndex + 1] ?? null;
+  const claimVerification = buildResearchIntakeAdminClaimVerification(
+    candidate,
+    reviewItem,
+  );
 
   return {
     schemaVersion: 1,
@@ -2339,9 +2420,12 @@ export function buildResearchIntakeAdminReviewItemPayload(
         : null,
     },
     reviewProtocol: RESEARCH_INTAKE_ADMIN_REVIEW_PROTOCOL,
-    claimVerification: buildResearchIntakeAdminClaimVerification(
-      candidate,
+    claimVerification,
+    reviewHandoffTemplate: buildResearchIntakeAdminReviewHandoffTemplate(
       reviewItem,
+      observation.researchLoop.observedAt,
+      RESEARCH_INTAKE_ADMIN_REVIEW_PROTOCOL,
+      claimVerification,
     ),
     reviewItem,
   };

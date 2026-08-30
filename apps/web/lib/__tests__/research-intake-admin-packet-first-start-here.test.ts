@@ -113,8 +113,8 @@ describe('protected packet-first startHere action', () => {
       )),
     }).toEqual({
       packet: {
-        bytes: 6_070,
-        sha256: '4827be6e4de261b10460ad1ca2822e9d9840063e45974d1714e0581c7801c535',
+        bytes: 7_495,
+        sha256: 'ca0695c7f015e6032544a95d2d896c6fa1ee4672639558670ce2d3eaf8cd0ba7',
       },
       publicOverview: {
         bytes: 7_637,

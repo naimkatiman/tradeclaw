@@ -31,6 +31,43 @@ function formatClaimReference(
   return `- Preregistration ${inlineCode(reference.locator)}: ${inlineCode(reference.renderedValue)}`;
 }
 
+function formatReviewHandoffTemplate(
+  template: ResearchIntakeAdminReviewItemPayload['reviewHandoffTemplate'],
+): string[] {
+  const { blankRecord } = template;
+  return [
+    '> Copy this blank record into a separate manual workflow after completing the checks above. This read-only API does not save the copy or approve an outcome.',
+    '',
+    `- Required check IDs: ${template.requiredCheckIds.map(inlineCode).join(', ')}`,
+    `- Numeric claim IDs: ${template.claimIds.map(inlineCode).join(', ')}`,
+    `- Allowed review outcomes: ${template.allowedOutcomes.map(inlineCode).join(', ')}`,
+    '',
+    '```yaml',
+    `taskId: ${blankRecord.taskId}`,
+    `candidateId: ${blankRecord.candidateId}`,
+    `reviewedProjectionObservedAt: ${blankRecord.reviewedProjectionObservedAt}`,
+    'requiredCheckIds:',
+    ...template.requiredCheckIds.map((id) => `  - ${id}`),
+    'claimIds:',
+    ...template.claimIds.map((id) => `  - ${id}`),
+    'allowedOutcomes:',
+    ...template.allowedOutcomes.map((outcome) => `  - ${outcome}`),
+    'reviewer: null',
+    'reviewedAt: null',
+    'completedCheckIds: []',
+    'verifiedClaimIds: []',
+    'outcome: null',
+    'notes: null',
+    '```',
+    '',
+    `- Completion recorded by this API: ${yesNo(template.completionRecorded)}`,
+    `- Owner decision recorded by this API: ${yesNo(template.ownerDecisionRecorded)}`,
+    `- Owner decision required for publication: ${yesNo(template.ownerDecisionRequiredForPublication)}`,
+    `- Publication authority granted: ${yesNo(template.grantsPublicationAuthority)}`,
+    `- Trading authority granted: ${yesNo(template.grantsTradingAuthority)}`,
+  ];
+}
+
 function formatResearchMarketingReviewPacket(
   payload: ResearchIntakeAdminReviewItemPayload,
 ): string {
@@ -38,6 +75,7 @@ function formatResearchMarketingReviewPacket(
     claimVerification,
     navigation,
     researchLoop,
+    reviewHandoffTemplate,
     reviewItem,
     reviewProtocol,
   } = payload;
@@ -55,6 +93,7 @@ function formatResearchMarketingReviewPacket(
     ...claim.references.map(formatClaimReference),
     '',
   ]);
+  const reviewHandoffLines = formatReviewHandoffTemplate(reviewHandoffTemplate);
   const receiptDescription = receipt === null
     ? 'none (pre-loop closure)'
     : `${inlineCode(receipt.taskId)}, recorded ${receipt.recordedAt}, cycle ${inlineCode(receipt.cycleId)}`;
@@ -120,6 +159,10 @@ function formatResearchMarketingReviewPacket(
     '## Required manual checks',
     '',
     ...requiredChecks,
+    '',
+    '## Manual review handoff template (not recorded)',
+    '',
+    ...reviewHandoffLines,
     '',
     '## Publication and trading authority',
     '',
