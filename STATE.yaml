@@ -1,11 +1,147 @@
 project: tradeclaw
-updated: 2026-08-30T20:58:00+08:00
+updated: 2026-08-30T21:27:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_cycle_brief_2026_08_30:
+  at: 2026-08-30T21:27:00+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_implementation_ready_to_commit
+  scope: Add one authenticated human-readable research cycle brief so an admin can see the current manual action, receipt window, review queue, evidence state, and safety boundary without reconstructing the large protected JSON graph
+  branch: agent/research-intake-desk-20260829
+  base_commit: 79385de5a586d842d92c470c0999f24b145869ad
+  cycle_id: 2026-08-30T12:00:00.000Z/PT3H
+  receipt_neutral: true
+  new_research_receipt: false
+  observed_at: 2026-08-30T13:21:21.109Z
+  gate_snapshot: >-
+    TC-267 is the sole current-window and latest receipt; the protected gate is
+    wait-for-next-window until exact 2026-08-30T15:00:00.000Z. The ledger has
+    12 receipts across 11 windows with only the expected historical duplicate.
+    Four review drafts remain visible, zero are approved, and all automatic
+    selection, receipt, publication, posting, and trading controls remain false.
+  audit_basis: >-
+    The protected overview contains the authoritative record-free state and a
+    single startHere action, but it still requires an admin to compose a large
+    JSON graph to answer five basic questions: what to do now, whether research
+    intake is open, when the next slot opens, which draft is next, and what the
+    evidence record currently says. Existing exact-review Markdown proves a
+    private human-readable surface can preserve auth-first and no-store bounds.
+  shared_library_search: No reusable operator-cycle, status-brief, Markdown-brief, or do-now/up-next workflow pattern was found under the shared MemoryCore library; the only recommendation-tier pattern is output-format guidance and is not an API contract
+  intended_contract:
+    route: /api/admin/research-intake/brief.md
+    method: GET only
+    format: deterministic UTF-8 Markdown at one server observation instant
+    content:
+      - exact do-now action from the shared admin startHere projection
+      - current UTC receipt window and one-receipt gate
+      - latest and current receipt context without invented authority
+      - review-queue count and exact next packet when present
+      - compact catalog and evidence interpretation
+      - explicit read-only, publication, posting, and trading safety boundary
+    resource_discovery: protected resources map only
+    authentication_first: true
+    cache_control: private no-store
+    public_surface_change: false
+    mutation_supported: false
+  boundary_audit: >-
+    This is a protected read-only projection over existing observation-safe
+    state. It must create no receipt, candidate selection, result, handoff,
+    review completion, owner decision, publication request, external action, or
+    trading authority. Public JSON/OpenAPI/CSV, protected CSV, rendered UI,
+    database, migrations, Compose, billing, signals, broker, and execution stay
+    frozen.
+  red_contract:
+    file: apps/web/lib/__tests__/research-intake-admin-cycle-brief.test.ts
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-cycle-brief.test.ts --silent
+    result: PASS - the focused suite failed as intended with 5/5 tests red
+    proves: >-
+      The cycle-brief builder and route are absent, protected resources do not
+      advertise a brief, and README/loop documentation does not define the
+      entry point. Existing public catalog/evidence JSON and all four
+      public/protected CSV fingerprints remained frozen before the docs failure.
+  implementation:
+    builder: apps/web/lib/research-intake-admin-cycle-brief.ts
+    route: apps/web/app/api/admin/research-intake/brief.md/route.ts
+    shared_source: protected record-free overview at one observation instant
+    resource_discovery: all protected research projections through RESEARCH_INTAKE_ADMIN_RESOURCES
+    sections:
+      - do now
+      - research cadence
+      - marketing review
+      - evidence record
+      - safety
+    public_payload_change: false
+    csv_change: false
+    rendered_ui_change: false
+    mutation_supported: false
+  focused_green:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-cycle-brief.test.ts apps/web/app/api/admin/research-intake/brief.md/__tests__/route.test.ts --silent
+    result: PASS - 2 suites and 8 tests cover deterministic current/open/conflict briefs, protected-only resource discovery, frozen public and CSV bytes, docs, auth-before-build behavior, inline private headers, and GET-only delivery
+  real_auth_green:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-cycle-brief.test.ts apps/web/app/api/admin/research-intake/brief.md/__tests__/route.test.ts apps/web/app/api/admin/research-intake/brief.md/__tests__/auth-boundary.test.ts --silent
+    result: PASS - 3 suites and 11 tests add real signed-cookie acceptance plus anonymous and malformed-cookie denial without protected content leakage
+  deterministic_brief:
+    observed_at: 2026-08-30T13:00:26.528Z
+    normalized_bytes: 2420
+    sha256: 1b3671e006126d2bdba8695f79fab4a8c28421adc16ba64271b222ef804e6a45
+  first_adjacent_run: EXPECTED_PROTECTED_RESOURCE_DRIFT - 45/56 suites and 338/350 tests passed; all 12 failures were the one new cycleBrief path in exact protected resource maps or deterministic protected JSON fingerprints, each payload moving by exactly 51 bytes. Public JSON, public/protected CSV, packet, navigation, workflow, receipt, review, owner-decision, and publication-request behavior remained green.
+  second_adjacent_run: EXPECTED_COMPLETE_CATALOG_FOLLOW_ON - 55/56 suites and 349/350 tests passed; the sole remaining fixture was the 100-record protected catalog moving by the same 51-byte resource path
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps.web.lib.__tests__.(research-intake|research-loop|research-marketing)|scripts.research.__tests__.research-marketing).*test.ts$" --silent
+    result: PASS - 56 suites and 350 tests across intake, receipt timing, evidence, deterministic projections, admin navigation, review workflow, marketing, owner decisions, and publication-request safety
+  route_and_auth_green:
+    command: npm test -- --runInBand apps/web/app/api/research/intake apps/web/app/api/admin/research-intake --silent
+    result: PASS - 28 suites and 105 tests cover every public/protected research-intake JSON, CSV, Markdown, YAML, exact-item, packet, catalog, evidence, review, real-cookie, malformed-cookie, private-cache, and auth-first boundary
+  targeted_verification:
+    pinned_source: PASS - all 61 candidates reconstruct at commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+    review_evidence: PASS - 4/4 review manifests and 12/12 preregistration, result, and artifact files match exact normalized bytes and SHA-256 bindings
+    web_typecheck: PASS
+    lint: PASS - 0 errors and 21 inherited warnings; no warning points to this increment
+  full_repository_tests: PASS - 332 runnable suites, 2401 tests, and 1 snapshot; 3 suites and 26 tests skipped; the inherited post-summary open handle was manually terminated only after Jest printed the complete passing totals
+  post_build_refinement: The final content audit made the known legacy conflict explicit in the brief by adding ledger integrity plus expected and additional duplicate-window counts; rerun focused, adjacent, full, and production-build gates against the final bytes
+  post_refinement_verification:
+    focused: PASS - 3 suites and 11 tests
+    adjacent: PASS - 56 suites and 350 tests
+    full_repository: PASS - 332 runnable suites, 2401 tests, and 1 snapshot; 3 suites and 26 tests skipped; inherited post-summary open handle terminated after passing totals
+    web_typecheck: PASS
+    changed_file_lint: PASS - five new builder, contract, route, and route-auth files with zero warnings or errors
+  closure_green:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-cycle-brief.test.ts apps/web/lib/__tests__/research-intake-admin-resources.test.ts apps/web/lib/__tests__/research-loop-receipts.test.ts apps/web/app/api/admin/research-intake/brief.md/__tests__/route.test.ts apps/web/app/api/admin/research-intake/brief.md/__tests__/auth-boundary.test.ts --silent
+    result: PASS - 5 suites and 19 tests immediately before staging
+  production_build: PASS - signals and trading-agents built, Next.js compiled, /api/admin/research-intake/brief.md appears as a dynamic protected route, and 331/331 static pages generated; only inherited middleware, Turbopack trace, url.parse, and edge-runtime warnings remained
+  deterministic_fingerprints:
+    protected_brief: 1b3671e006126d2bdba8695f79fab4a8c28421adc16ba64271b222ef804e6a45
+    protected_overview: c591ddad18e07fe2f3b7c445d03636a8d5f48cd3277f1e3ac21dd527df1f60d2
+    protected_catalog: e4ff64c2ce4519df53af0ccdaffa14b48c9758dc5500cd78c8f97dab5cf13a7f
+    protected_evidence_index: 50b0d4f9331bd9b287b2f3f7e3d91397be3000e3acdd845709745f018fd1bb11
+    protected_evidence: b1ad4b8f672a470b815a41aa22c71c47e5d415b6f32e4f7055ffca9fadf49423
+    protected_candidate_tc260: 69ba5b46dda7ff8f7c1baeb46f65ad067d19327a8c4f7acb82d75d08e8c0fffd
+    protected_review: b4a70171571700068b28dca6aca1f05ab0a492b4ea0881ef6f6e9a174d891116
+    public_catalog_unchanged: f61ce7db203f1a214b928a3f300931f625a2ab7520c9a218866bb104bbce52b7
+    public_evidence_unchanged: d42a955706e8a60e95d514153a3a645683b61768e87fef1f39d265ed6986ed37
+    public_catalog_csv_unchanged: 2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f
+    public_evidence_csv_unchanged: e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941
+    protected_evidence_csv_unchanged: e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f
+    protected_review_csv_unchanged: c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  final_gate_audit: >-
+    At 2026-08-30T13:21:21.109Z, TC-267 remains the sole current-window and
+    latest receipt. Twelve receipts occupy 11 windows with only the expected
+    historical duplicate and zero additional duplicates. The gate remains
+    wait-for-next-window until exact 2026-08-30T15:00:00.000Z. Four drafts
+    remain human-review-ready, none belongs to the current window, zero are
+    approved, and every automatic selection, receipt, publication, posting, and
+    trading control remains false.
+  final_scope_audit: PASS - exactly 20 intended paths are changed (15 tracked plus five new builder, contract, route, and route-test files); public JSON/OpenAPI and all CSV bytes remain frozen, and rendered UI, database, migrations, Compose, Dockerfiles, lockfiles, billing, signals, broker, and execution surfaces are untouched
+  final_state_and_diff: PASS - STATE.yaml parses, the exact 20-path allowlist matches, and git diff --check reports no whitespace errors
+  staged_audit: PASS - exactly 20 audited paths are staged with 721 insertions and 34 deletions; the cached diff has no whitespace errors and no unrelated path is present
+  docker_compose_preservation: PASS by scope and diff; Docker CLI is not installed in this environment, so no Compose runtime command was available
+  external_actions: none
+  next_step: Commit the verified implementation locally, bind its full hash in a state-only closure commit, then recheck the clean branch and live gate.
 
 research_admin_receipt_gate_2026_08_30:
   at: 2026-08-30T20:58:00+08:00

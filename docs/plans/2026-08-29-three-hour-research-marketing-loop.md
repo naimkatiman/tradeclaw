@@ -78,6 +78,15 @@ authorize a receipt, select a candidate, publish, post, or trade. Manual
 screening remains required, the per-window limit remains one, and automatic
 receipt creation remains false.
 
+The authenticated human-readable research cycle brief at
+`/api/admin/research-intake/brief.md` renders that gate beside the shared
+`startHere` action, latest receipt, next review packet, and compact evidence
+interpretation from one server observation. It is an inline, private, no-store
+Markdown orientation surface for an admin who should not have to compose the
+complete JSON graph before acting. It does not create or authorize a receipt,
+complete a review, record an owner decision, publish, post, or trade. Every
+protected resource map advertises it; public JSON/OpenAPI and every CSV omit it.
+
 The sibling `marketingReview` projection is also independent of candidate
 filters and pagination. It lists every server-authored draft whose evidence was
 available at the observation instant, plus the latest handoff and any handoff in

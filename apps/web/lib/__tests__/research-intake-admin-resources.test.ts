@@ -35,6 +35,7 @@ describe('protected research intake resource discovery', () => {
 
     expect(RESEARCH_INTAKE_ADMIN_RESOURCES).toEqual({
       overview: '/api/admin/research-intake/overview',
+      cycleBrief: '/api/admin/research-intake/brief.md',
       catalog: '/api/admin/research-intake',
       evidenceIndex: '/api/admin/research-intake/evidence/index',
       evidence: '/api/admin/research-intake/evidence',
