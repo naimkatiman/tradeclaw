@@ -123,6 +123,7 @@ describe('compact research intake overview contract', () => {
         status: catalog.marketingReview.status,
         summary: catalog.marketingReview.summary,
         currentWindowDraftCount: catalog.marketingReview.currentWindowHandoffs.length,
+        nextReview: catalog.marketingReview.nextReview,
         controls: catalog.marketingReview.controls,
       },
       catalogSummary: catalog.catalogSummary,
@@ -146,8 +147,8 @@ describe('compact research intake overview contract', () => {
     expect(overview).not.toHaveProperty('records');
     expect(overview).not.toHaveProperty('items');
     expect(fingerprint(overview)).toEqual({
-      bytes: 9_527,
-      sha256: 'fb11d7e6bee728412c9a8e7562d3dd259cf894807ac37a345769ad55a1d5ce7b',
+      bytes: 11_084,
+      sha256: 'a0f3e77b0f3a6b3b261127309b01e77aa5a17232f7113de755eab6ca46fd1a90',
     });
   });
 

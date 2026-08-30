@@ -374,7 +374,9 @@ export interface ResearchIntakeAdminPayload {
     currentWindow: ResearchLoopWindow;
     nextRolloverAt: string;
   } & ResearchLoopReceiptSnapshot;
-  marketingReview: ResearchLoopMarketingReview;
+  marketingReview: ResearchLoopMarketingReview & {
+    nextReview: ResearchIntakeAdminNextReview | null;
+  };
   appliedFilters: ResearchIntakeAdminQuery;
   filterFacets: ResearchIntakeAdminFilterFacets;
   filterNavigation: ResearchIntakeAdminFilterNavigation;
@@ -413,6 +415,7 @@ export interface ResearchIntakeAdminOverviewPayload {
   researchLoop: ResearchIntakeAdminPayload['researchLoop'];
   marketingReview: Pick<ResearchLoopMarketingReview, 'status' | 'summary' | 'controls'> & {
     currentWindowDraftCount: number;
+    nextReview: ResearchIntakeAdminNextReview | null;
   };
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
   catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
@@ -531,6 +534,24 @@ export interface ResearchIntakeAdminReviewControls {
   externalActions: 'none';
 }
 
+export interface ResearchIntakeAdminNextReview {
+  selection: 'oldest-visible-human-review-handoff';
+  queuePosition: number;
+  taskId: ResearchLoopMarketingHandoff['taskId'];
+  candidate: Pick<ResearchIntakeRecord, 'id' | 'title'> & {
+    evidenceState: ResearchIntakeAdminEvidenceIndexState;
+  };
+  handoff: {
+    availableAt: string;
+    basis: ResearchLoopMarketingHandoff['basis'];
+    cycleId: string | null;
+    headline: string;
+    summary: string;
+  };
+  links: ResearchIntakeCandidateLinks;
+  controls: ResearchIntakeAdminReviewControls;
+}
+
 export interface ResearchIntakeAdminReviewItem {
   queuePosition: number;
   candidate: Pick<
@@ -566,6 +587,7 @@ export interface ResearchIntakeAdminReviewPayload {
     status: ResearchLoopMarketingReview['status'];
     summary: ResearchLoopMarketingReview['summary'];
     evidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
+    nextReview: ResearchIntakeAdminNextReview | null;
     latestItem: ResearchIntakeAdminReviewItem | null;
     currentWindowItems: readonly ResearchIntakeAdminReviewItem[];
     items: readonly ResearchIntakeAdminReviewItem[];
@@ -1113,6 +1135,8 @@ function buildResearchIntakeAdminProjectionStartHere(
     availableDrafts: observation.marketingReview.summary.availableDrafts,
     publicationApprovedDrafts:
       observation.marketingReview.summary.publicationApprovedDrafts,
+    nextReviewHeadline:
+      observation.marketingReview.handoffs[0]?.draft.title ?? null,
     evidenceCount: RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS.length,
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
     currentResource,
@@ -1262,6 +1286,7 @@ export function buildResearchIntakeAdminOverviewPayload(
       status: observation.marketingReview.status,
       summary: observation.marketingReview.summary,
       currentWindowDraftCount: observation.marketingReview.currentWindowHandoffs.length,
+      nextReview: buildResearchIntakeAdminNextReview(observation),
       controls: observation.marketingReview.controls,
     },
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
@@ -1305,6 +1330,7 @@ export function buildResearchIntakeAdminEvidenceIndexPayload(
       status: observation.marketingReview.status,
       summary: observation.marketingReview.summary,
       currentWindowDraftCount: observation.marketingReview.currentWindowHandoffs.length,
+      nextReview: buildResearchIntakeAdminNextReview(observation),
       controls: observation.marketingReview.controls,
     },
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
@@ -1394,6 +1420,39 @@ function toAdminReviewItem(
   };
 }
 
+function buildResearchIntakeAdminNextReview(
+  observation: ReturnType<typeof buildResearchIntakeAdminObservation>,
+): ResearchIntakeAdminNextReview | null {
+  const handoff = observation.marketingReview.handoffs[0];
+  if (!handoff) return null;
+
+  const candidate = recordForAdminReviewHandoff(handoff);
+  const evidenceState = compactAdminEvidenceState(candidate);
+  if (evidenceState.taskId !== handoff.taskId) {
+    throw new Error(`next marketing review ${handoff.taskId} has mismatched evidence state`);
+  }
+
+  return {
+    selection: 'oldest-visible-human-review-handoff',
+    queuePosition: 1,
+    taskId: handoff.taskId,
+    candidate: {
+      id: candidate.id,
+      title: candidate.title,
+      evidenceState,
+    },
+    handoff: {
+      availableAt: handoff.availableAt,
+      basis: handoff.basis,
+      cycleId: handoff.cycleId,
+      headline: handoff.draft.title,
+      summary: handoff.draft.summary,
+    },
+    links: buildResearchIntakeCandidateLinks(candidate.id),
+    controls: ADMIN_REVIEW_CONTROLS,
+  };
+}
+
 export function buildResearchIntakeAdminPayload(
   searchParams: URLSearchParams,
   at: Date | string | number = new Date(),
@@ -1436,7 +1495,10 @@ export function buildResearchIntakeAdminPayload(
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
     researchLoop: observation.researchLoop,
-    marketingReview: observation.marketingReview,
+    marketingReview: {
+      ...observation.marketingReview,
+      nextReview: buildResearchIntakeAdminNextReview(observation),
+    },
     appliedFilters: query,
     filterFacets: buildResearchIntakeAdminFilterFacets(query),
     filterNavigation,
@@ -1611,6 +1673,7 @@ export function buildResearchIntakeAdminReviewPayload(
       status: observation.marketingReview.status,
       summary: observation.marketingReview.summary,
       evidenceStateSummary: summarizeResearchIntakeEvidenceStates(reviewRecords),
+      nextReview: buildResearchIntakeAdminNextReview(observation),
       latestItem: items.at(-1) ?? null,
       currentWindowItems: items.filter(
         (item) => item.handoff.cycleId === observation.researchLoop.currentWindow.id,

@@ -1,11 +1,178 @@
 project: tradeclaw
-updated: 2026-08-30T12:20:30+08:00
+updated: 2026-08-30T12:42:55+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_next_marketing_review_2026_08_30:
+  at: 2026-08-30T12:42:55+08:00
+  agent: TradeClaw PM agent
+  status: done_protected_next_review_verified_pending_local_commit
+  scope: Give a protected admin one exact manual marketing-review action from the compact overview and complete review queue without inventing review completion, publication approval, or another research receipt
+  base_commit: a65b8b7424bffa48920a558b6cd1a7bcb6c415ec
+  implementation_commit: pending-local-implementation-commit
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-264
+  current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-264
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T06:00:00.000Z
+  gate_observed_at: 2026-08-30T04:24:05.607Z
+  gate_decision: TC-264 remains the sole current-window receipt, so this turn may improve only deterministic protected read models, documentation, tests, and state before the exact 06:00Z rollover
+  library_pattern: MemoryCore workflow/recommendation-tier-by-audience supports one execution-first admin action rather than an undifferentiated multi-item queue
+  measured_gap:
+    protected_overview_bytes: 9735
+    protected_review_bytes: 29085
+    visible_human_review_drafts: 4
+    current_window_drafts: 0
+    publication_approved_drafts: 0
+    problem: >-
+      The protected overview says only "Review 4 human-review drafts" and the
+      complete queue exposes chronological items plus a latest item. It never
+      identifies the one review to open first, so an admin must infer queue
+      policy from array order and can confuse newest evidence with the next
+      manual action.
+  decision: >-
+    Derive a compact protected nextReview from the oldest handoff visible at the
+    observation instant. Expose it in the overview marketingReview context,
+    protected evidence index, and complete review queue; name its headline in
+    startHere. The brief carries identity, canonical decision context, handoff
+    provenance, exact protected/public candidate links, and false authority,
+    but no draft body, receipt body, review completion, approval, or mutation.
+  next_review_contract:
+    selection: oldest-visible-human-review-handoff
+    observation_consistent: true
+    empty_queue_value: null
+    fields:
+      - selection
+      - queuePosition
+      - taskId
+      - candidate.id
+      - candidate.title
+      - candidate.evidenceState
+      - handoff.availableAt
+      - handoff.basis
+      - handoff.cycleId
+      - handoff.headline
+      - handoff.summary
+      - links.adminCandidate
+      - links.publicCandidate
+      - controls
+    full_draft_body_exposed: false
+    receipt_body_exposed: false
+    review_completion_invented: false
+    publication_approved: false
+    automatic_review: false
+    automatic_publication: false
+    automatic_posting: false
+    trading_approved: false
+  expected_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/research-intake-start-here.ts
+    - focused and affected deterministic tests
+  frozen_boundaries:
+    public_payload_or_openapi_changed: false
+    candidate_source_audit_replication_or_cost_state_changed: false
+    research_receipt_preregistration_return_or_artifact_changed: false
+    marketing_handoff_or_draft_content_changed: false
+    review_decision_or_approval_state_changed: false
+    route_method_auth_cache_query_or_navigation_changed: false
+    rendered_ui_changed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_strategy_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  verification_strategy: Observe focused failures for the absent next-review brief, empty/visibility boundary, protected projection parity, concise start action, public exclusion, and README handoff; then implement centrally and run affected deterministic receipts, source reconstruction, static checks, the full repository suite, and mandatory production build
+  intentional_red_verification: >-
+    PASS - the focused four-test contract failed 4/4 only on the frozen missing
+    surfaces: empty overview returned no nextReview field instead of null, the
+    visible protected projections had no TC-255 brief, startHere still named an
+    undifferentiated four-draft queue, and README omitted the handoff. Public
+    payload exclusion and all four CSV byte receipts already passed.
+  focused_green_verification: >-
+    PASS - the same four-test contract proves null before the first handoff,
+    exact TC-255 visibility at its canonical instant, oldest-versus-latest
+    distinction after all four handoffs, identical protected catalog/overview/
+    index/review briefs, one headline-specific manual start action, no draft or
+    receipt bodies, public exclusion, unchanged CSV bytes, and README guidance.
+  adjacent_verification: >-
+    PASS - all 33 research-intake and research-loop library suites pass with
+    166/166 tests, and all 24 affected public/protected route, authentication,
+    README-discovery, and publication-boundary suites pass with 89/89 tests.
+    Only the intended protected catalog, overview, evidence index/detail,
+    candidate detail, marketing-review, and start-action receipts moved. Public
+    JSON/OpenAPI, all four CSV byte receipts, query/navigation behavior, and
+    unrelated protected receipts remain unchanged.
+  measured_outcome_at_frozen_observation:
+    protected_default_catalog_bytes: 77280
+    protected_complete_catalog_bytes: 156400
+    protected_overview_bytes: 11084
+    protected_compact_index_bytes: 23850
+    protected_complete_evidence_bytes: 84766
+    protected_marketing_review_bytes: 30434
+    protected_candidate_detail_bytes: 13396
+    next_review_task: TC-255
+    next_review_queue_position: 1
+    next_review_headline: A high-turnover Bitcoin trend idea failed after realistic costs
+  static_verification: >-
+    PASS - source reconstruction validates the pinned awesome-systematic-trading
+    source and all 61 candidates, web typecheck passes, and lint reports zero
+    errors with the same 21 inherited warnings.
+  full_test_verification: >-
+    PASS - the complete repository suite reports 306 runnable suites with
+    2212/2212 tests and the snapshot passing; three suites and 26 tests remain
+    intentionally skipped. Expected fail-closed test logs are informational.
+  build_verification: >-
+    PASS - the mandatory production build compiled successfully and generated
+    all 331/331 pages. Existing middleware, traced-file, edge-runtime, and
+    url.parse deprecation warnings remain informational.
+  current_observation_outcome:
+    observed_at: 2026-08-30T04:42:30.943Z
+    current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+    current_cycle_status: complete
+    current_cycle_receipts:
+      - TC-264
+    next_rollover_at: 2026-08-30T06:00:00.000Z
+    integrity_status: historical-conflict
+    expected_legacy_duplicate_only: true
+    additional_duplicate_windows: 0
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_trading: false
+    protected_overview_bytes: 11292
+    protected_marketing_review_bytes: 30642
+    next_review_task: TC-255
+  final_audit: >-
+    PASS - STATE.yaml parses, git diff --check is clean, the isolated worktree
+    remains based on a65b8b7424bffa48920a558b6cd1a7bcb6c415ec, and exactly
+    15 intended documentation, state, protected read-model, and deterministic
+    test paths changed. No public payload/OpenAPI, CSV builder, source catalog,
+    candidate evidence, receipt, preregistration, result artifact, marketing
+    draft, rendered UI, route, Docker, dependency, database, billing, signal,
+    strategy, allocation, broadcast, broker, or execution path changed.
+  changed_paths:
+    - README.md
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/research-intake-start-here.ts
+    - apps/web/lib/__tests__/research-intake-admin-next-review.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-candidate.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-discovery-context.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-result-view.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-review-evidence-context.test.ts
+    - apps/web/lib/__tests__/research-intake-evidence-index.test.ts
+    - apps/web/lib/__tests__/research-intake-overview.test.ts
+    - apps/web/lib/__tests__/research-intake-public-discovery-context.test.ts
+    - apps/web/lib/__tests__/research-intake-start-here.test.ts
+  next_action: Create the local implementation commit, record its hash in STATE.yaml, create a state-only closure commit, save MemoryCore, and prove the isolated worktree clean.
+  safety: No candidate, receipt, return, preregistration, result artifact, marketing handoff or draft mutation, review decision, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_shared_decision_context_2026_08_30:
   at: 2026-08-30T12:20:30+08:00

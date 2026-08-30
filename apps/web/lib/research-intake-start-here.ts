@@ -47,6 +47,7 @@ export interface ResearchIntakeAdminStartHereInput {
   currentWindowReceiptCount: number;
   availableDrafts: number;
   publicationApprovedDrafts: number;
+  nextReviewHeadline: string | null;
   evidenceCount: number;
   resources: {
     catalog: string;
@@ -139,6 +140,9 @@ export function buildResearchIntakeAdminStartHere(
   }
 
   if (input.availableDrafts > 0) {
+    if (input.nextReviewHeadline === null) {
+      throw new Error('a visible marketing-review queue requires a next review headline');
+    }
     const draftNoun = countNoun(input.availableDrafts, 'draft', 'drafts');
     const approvalNoun = countNoun(
       input.publicationApprovedDrafts,
@@ -148,9 +152,9 @@ export function buildResearchIntakeAdminStartHere(
     return Object.freeze({
       audience: 'admin',
       kind: 'review-marketing-drafts',
-      label: `Review ${input.availableDrafts} human-review ${draftNoun}`,
+      label: `Review next draft: ${input.nextReviewHeadline}`,
       reason:
-        `The observation-consistent queue has ${input.availableDrafts} ${draftNoun} and ${input.publicationApprovedDrafts} ${approvalNoun}. Review remains manual.`,
+        `The oldest visible human-review handoff is first in an observation-consistent queue of ${input.availableDrafts} ${draftNoun} with ${input.publicationApprovedDrafts} ${approvalNoun}. Review remains manual and this guidance creates no approval.`,
       href: input.resources.marketingReview,
       targetResource: 'marketing-review',
       targetIsCurrentResource: input.currentResource === 'marketing-review',

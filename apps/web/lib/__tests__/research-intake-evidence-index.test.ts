@@ -190,8 +190,8 @@ describe('compact research intake evidence-index contract', () => {
       /"(?:receipts|latestReceipt|marketingHandoff|draft|tradeClawSourceAudit|tradeClawEvidence|meaning|evidencePath|artifactPath)"/,
     );
     expect(fingerprint(payload)).toEqual({
-      bytes: 22_293,
-      sha256: '4d5e8359d51ca310bbbd82b5102c4904d6bbdd1b79327528dd71aa8d105262e5',
+      bytes: 23_850,
+      sha256: 'aa1715af09094028419a0664193872dd91abf121d6eb83d5a335dd188ee0d5a8',
     });
   });
 

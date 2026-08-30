@@ -174,9 +174,9 @@ describe('research intake start-here guidance', () => {
     const expected = {
       audience: 'admin',
       kind: 'review-marketing-drafts',
-      label: 'Review 4 human-review drafts',
+      label: 'Review next draft: A high-turnover Bitcoin trend idea failed after realistic costs',
       reason:
-        'The observation-consistent queue has 4 drafts and 0 publication approvals. Review remains manual.',
+        'The oldest visible human-review handoff is first in an observation-consistent queue of 4 drafts with 0 publication approvals. Review remains manual and this guidance creates no approval.',
       href: '/api/admin/research-intake/review',
       targetResource: 'marketing-review',
       itemCount: 4,
@@ -200,6 +200,7 @@ describe('research intake start-here guidance', () => {
       currentWindowReceiptCount: 1,
       availableDrafts: 0,
       publicationApprovedDrafts: 0,
+      nextReviewHeadline: null,
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
@@ -231,6 +232,7 @@ describe('research intake start-here guidance', () => {
       currentWindowReceiptCount: 1,
       availableDrafts: 0,
       publicationApprovedDrafts: 0,
+      nextReviewHeadline: null,
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
