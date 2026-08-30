@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T13:32:41+08:00
+updated: 2026-08-30T13:33:36+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_markdown_review_packet_2026_08_30:
-  at: 2026-08-30T13:32:41+08:00
+  at: 2026-08-30T13:33:36+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_implementation_commit
+  status: done_protected_markdown_review_packet_verified_and_committed_local
   scope: Give a protected admin one exact human-readable Markdown packet for an observation-visible marketing review without creating review, approval, publication, or external-action state
   base_commit: e31d2e1052ba677ae3a93e5546ad3b34d98e4787
+  implementation_commit: 3ada3f92c33723b1e8b63955241eb0c300c4b5d7
+  implementation_committed_at: 2026-08-30T05:33:36Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-264
   current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
@@ -185,7 +187,7 @@ research_admin_markdown_review_packet_2026_08_30:
       exact_tc255_review: 7161/ff527d062f6a52baf26b5b06a0fd20b204ff43b827e7b6c66e3ec1482dba38d9
       tc255_markdown_packet: 3527/869f59b3ca4b332f34b2a0b60f39b56e8d67d0ec3503d663e687d2b381ee9ffb
     public_openapi_and_csv_boundaries_unchanged: true
-  next_action: Stage the exact 17-path scope, prove the staged diff clean, and create the local implementation commit; then record its hash in a state-only closure commit and save MemoryCore.
+  next_action: Create the state-only closure commit, save this completed slice to shared MemoryCore, and prove the isolated branch clean; keep the recurring goal active for the exact 2026-08-30T06:00:00.000Z research-window rollover.
   safety: No candidate, receipt, return, preregistration, research artifact, draft content, review decision, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_admin_exact_marketing_review_2026_08_30:
