@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T20:32:00+08:00
+updated: 2026-08-30T20:33:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_factor_timing_source_audit_2026_08_30:
-  at: 2026-08-30T20:32:00+08:00
+  at: 2026-08-30T20:33:00+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_ready_to_commit
+  status: done_verified_implementation_committed_local
   scope: Screen and source-audit exactly one untouched awesome-systematic-trading candidate in the new 12:00Z UTC window before any preregistration, return, result artifact, or marketing work
   branch: agent/research-intake-desk-20260829
   base_commit: 79d360f916c174cb7e6a5339f1e48700f927ae25
+  implementation_commit: 9182a051b9ba167095506fac24645b78c28dba57
   cycle_id: 2026-08-30T12:00:00.000Z/PT3H
   started_at: 2026-08-30T12:00:00.000Z
   ends_at: 2026-08-30T15:00:00.000Z
@@ -129,6 +130,7 @@ research_factor_timing_source_audit_2026_08_30:
   scope_audit: PASS - exactly 55 expected paths are changed (53 tracked and 2 new); only intake contracts, source-audit integration, README, loop documentation, and STATE are touched; runtime routes, UI, auth implementation, database, migrations, execution, billing, lockfiles, and Compose are unchanged
   compose_preservation: PASS - no Compose or Dockerfile diff exists; Docker CLI is unavailable locally, so no container runtime verification was possible in this cycle
   verification: PASS - focused source audit passed 4/4; adjacent intake and loop passed 54 suites and 340 tests; public/admin routes and auth passed 26 suites and 99 tests; pinned source reconstruction passed 61/61; review evidence passed 4/4 manifests and 12/12 files; repository Jest passed 328 suites and 2385 tests; typecheck and lint passed; primary PDF, audit hash, STATE, deterministic surfaces, scope, diff, gate, and required 331-page build checks passed
+  precommit_closure: PASS - after the full build and final STATE freeze, the four direct source-audit, receipt, loop, and no-marketing suites passed 22/22; STATE parsed, staged diff checks passed, and the implementation committed locally on the intended isolated branch
   integrated_surfaces:
     - typed research source-audit overlay
     - public and protected candidate and evidence projections
@@ -137,7 +139,7 @@ research_factor_timing_source_audit_2026_08_30:
     - README research status
     - three-hour loop plan
   external_actions: none
-  next_step: Commit the verified TC-267 implementation locally, bind its exact commit in STATE, rerun the closure gates, and save shared MemoryCore; do not push, deploy, publish, post, or trade.
+  next_step: Commit this state-only closure locally, verify a clean worktree and unchanged TC-267 gate, then save shared MemoryCore; do not push, deploy, publish, post, or trade.
 
 research_admin_publication_request_verifier_2026_08_30:
   at: 2026-08-30T19:49:55+08:00
@@ -8991,6 +8993,7 @@ research_intake_desk_2026_08_29:
     id: 2026-08-30T12:00:00.000Z/PT3H
     recorded_at: 2026-08-30T12:00:59.497Z
     task_id: TC-267
+    implementation_commit: 9182a051b9ba167095506fac24645b78c28dba57
     started_at: 2026-08-30T12:00:00.000Z
     ends_at: 2026-08-30T15:00:00.000Z
     candidate_id: when-factor-timing-makes-sense
