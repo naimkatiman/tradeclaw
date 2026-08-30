@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T09:36:17+08:00
+updated: 2026-08-30T09:37:17+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_start_here_target_context_2026_08_30:
-  at: 2026-08-30T09:36:17+08:00
+  at: 2026-08-30T09:37:17+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_implementation_commit
+  status: done_start_here_target_context_verified_and_committed_local
   scope: Make the new public/admin start-here action self-locating and give its item count one truthful workload meaning
   base_commit: 7535a5f74f52ca67e7d3239e51b6d6131866a776
+  implementation_commit: a95c59491f1333f877d3922bfecd0a6075a4e19f
+  implementation_committed_at: 2026-08-30T01:37:08Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-263
   current_cycle_id: 2026-08-30T00:00:00.000Z/PT3H
@@ -20,7 +22,7 @@ research_start_here_target_context_2026_08_30:
   current_cycle_receipt: TC-263
   new_research_receipt_created: false
   next_rollover_at: 2026-08-30T03:00:00.000Z
-  gate_observed_at: 2026-08-30T01:36:17.9752035Z
+  gate_observed_at: 2026-08-30T01:37:17.1725829Z
   gate_decision: The 03:00Z gate remains closed; correct only the derived navigation contract and create no candidate, receipt, return, preregistration, artifact, or marketing draft
   library_search: MemoryCore contains audience-tier guidance but no reusable self-locating research-resource or start-here target contract
   problem: >-
@@ -158,8 +160,13 @@ research_start_here_target_context_2026_08_30:
     flow is preserved by zero diff to every Compose, manifest, lockfile,
     database, and migration surface; no container was started or changed.
   state_yaml_verification: PASS - STATE.yaml parses successfully
-  current_step: Commit the fully verified implementation locally
-  next_action: Close STATE with the implementation hash in a separate local commit, save MemoryCore, and preserve the active 03:00Z gate
+  implementation_result: >-
+    Every start-here action now names its target resource and declares whether
+    the current projection already represents that target, so clients can render
+    a destination or an already-here state without URL or payload-shape inference.
+    Awaiting-window guidance now truthfully reports one candidate to screen.
+  current_step: Done - implementation committed locally after full verification
+  next_action: Do not open a new intake cycle before 2026-08-30T03:00:00.000Z; at or after that exact UTC boundary, re-audit the receipt ledger before any candidate, receipt, return, preregistration, artifact, or marketing draft
   publish_approved: false
   trading_approved: false
   external_actions: none
