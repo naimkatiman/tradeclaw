@@ -30,6 +30,8 @@
     "verify:research-review": "npx tsx scripts/research/verify-marketing-review-evidence.ts",
     "validate:research-review-handoff": "npx tsx scripts/research/validate-marketing-review-handoff.ts",
     "prepare:research-owner-decision-request": "npx tsx scripts/research/prepare-marketing-owner-decision-request.ts",
+    "prepare:research-owner-decision-template": "npx tsx scripts/research/prepare-marketing-owner-decision-template.ts",
+    "validate:research-owner-decision": "npx tsx scripts/research/validate-marketing-owner-decision.ts",
     "research:prepare-bitcoin-seasonality": "node scripts/research/prepare-bitcoin-seasonality-inputs.mjs",
     "research:prepare-trading-term-premium": "node scripts/research/prepare-trading-term-premium-input.mjs",
     "research:bitcoin-max-min": "npx tsx scripts/research/bitcoin-max-min-replication.ts",

@@ -1,11 +1,208 @@
 project: tradeclaw
-updated: 2026-08-30T18:40:53+08:00
+updated: 2026-08-30T19:03:11+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_owner_decision_form_2026_08_30:
+  at: 2026-08-30T18:47:02+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_implementation_commit_pending
+  scope: Give admins one canonical ready-only owner-decision YAML form and a strict read-only validator without persisting a decision or performing publication
+  base_commit: 2b18c3d972443f5e95cc58574b0ae2bd119cb657
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T09:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-266
+  current_cycle_ends_at: 2026-08-30T12:00:00.000Z
+  observed_at: 2026-08-30T10:46:59.024Z
+  receipt_neutral: true
+  new_research_receipt: false
+  gate_snapshot: >-
+    TC-266 is the sole current-window and latest receipt; the ledger has 11
+    receipts across 10 windows with only the expected historical 06:00Z
+    duplicate and no additional duplicate. Four marketing handoffs remain
+    review-ready, none belongs to the current window, zero drafts are approved,
+    and automatic candidate selection, publication, posting, and trading are
+    false.
+  audit_basis: >-
+    A fully valid ready handoff can now produce one canonical fingerprinted
+    owner-decision request, but the owner must still invent a response shape.
+    There is no blank decision form, fixed outcome vocabulary, explicit request
+    acknowledgement, or validator that rebinds a completed response to the same
+    reviewed handoff and current repository evidence. That manual ambiguity is
+    the highest-value remaining non-visual admin gap inside the closed receipt
+    window.
+  shared_library_search: no reusable owner-decision, approval-request, or decision-packet workflow found under MemoryCore library
+  selected_improvement:
+    prepare_command: npm run prepare:research-owner-decision-template -- --file <completed-handoff.yaml>
+    validate_command: npm run validate:research-owner-decision -- --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>
+    template_output: deterministic YAML on stdout only
+    validation_output: deterministic JSON on stdout with nonzero exit for invalid input
+    ready_handoff_required: true
+    binds:
+      - exact completed-handoff bytes and SHA-256
+      - current evidence-manifest SHA-256
+      - canonical owner-request bytes and SHA-256
+      - task, candidate, reviewer, reviewed instant, and protected review links
+    editable_owner_fields:
+      - owner
+      - decidedAt
+      - outcome
+      - notes
+    allowed_outcomes:
+      - decline-publication
+      - request-draft-revision
+      - approve-draft-for-separate-publication-action
+    owner_identity_authentication: structural metadata only; no identity or cryptographic-signature claim
+    writes_files: false
+    persists_owner_decision: false
+    performs_publication: false
+    automatic_publication: false
+    automatic_posting: false
+    grants_publication_authority: false
+    grants_trading_authority: false
+    external_actions: none
+  red_contract:
+    test: scripts/research/__tests__/research-marketing-owner-decision-form.test.ts
+    command: npm test -- --runInBand scripts/research/__tests__/research-marketing-owner-decision-form.test.ts
+    result: PASS - 20/21 tests failed only on the intentionally absent template and validator modules, two CLIs, two package commands, exact ready-only bindings, deterministic YAML, outcome routing, strict fail-closed validation, evidence-drift rejection, real CLI behavior, documentation, and source safety; the queue, receipt, public, and CSV exclusion boundary already passed
+  implementation:
+    template_module: scripts/research/research-marketing-owner-decision-template.ts
+    validator_module: scripts/research/research-marketing-owner-decision-validator.ts
+    prepare_cli: scripts/research/prepare-marketing-owner-decision-template.ts
+    validate_cli: scripts/research/validate-marketing-owner-decision.ts
+    prepare_command: npm run prepare:research-owner-decision-template -- --file <completed-handoff.yaml>
+    validate_command: npm run validate:research-owner-decision -- --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>
+    form_status: manual-owner-decision-not-recorded-by-tradeclaw
+    editable_fields:
+      - owner
+      - decidedAt
+      - outcome
+      - notes
+    immutable_revalidation:
+      - ready completed handoff
+      - current repository evidence
+      - request fingerprint and complete request
+      - outcome vocabulary and false authority fields
+    limits:
+      handoff_bytes: 65536
+      decision_form_bytes: 65536
+      yaml_documents: 1
+      owner_characters: 120
+      notes_characters: 2000
+    identity_authentication: not provided; owner is structural metadata and the form is not a cryptographic signature
+    writes_files: false
+    records_owner_decision: false
+    performs_publication: false
+    external_actions: none
+  focused_green:
+    command: npm test -- --runInBand scripts/research/__tests__/research-marketing-owner-decision-form.test.ts
+    result: PASS - 1 suite and 22 tests cover registration, exact ready bindings, deterministic YAML, reject/revision refusal, all three owner outcomes, strict immutable/owner/time/outcome/note checks, evidence drift, successful and fail-closed real CLI paths, documentation, source safety, and queue/receipt/public/CSV exclusion
+    refinement: The first GREEN run passed 20/21; the sole failure was a line-wrapped identity warning in the operating plan, which was rewritten as one explicit sentence before the complete contract passed.
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps.web.lib.__tests__.(research-intake|research-loop|research-marketing)|scripts.research.__tests__.research-marketing).*test.ts$"
+    result: PASS - 51 suites and 306 tests after adding real non-ready, tampered, and missing-argument CLI coverage
+  targeted_verification:
+    standalone_strict_typescript: PASS - template, validator, both CLIs, and focused contract compile under strict standalone TypeScript
+    pinned_source: PASS - all 61 discovery candidates reconstruct at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a
+    review_evidence: PASS - 4/4 manifests and 12/12 repository evidence files match exact normalized byte and SHA-256 bindings
+    web_typecheck: PASS - npm run typecheck:web
+    lint: PASS - zero errors and 21 inherited warnings; the initial parallel process exceeded its 30-second result window, so lint was rerun directly and its exit code captured
+    research_routes_and_auth: PASS - 26 suites and 99 tests
+  deterministic_replay:
+    completed_handoff:
+      bytes: 2873
+      sha256: ab5d5cde797d6d4fd9cea117f7ec4bb40aec4e2f4fdd3416426f7527a308f98e
+    blank_owner_decision_template:
+      bytes: 1893
+      sha256: 232009a7a252c554a5023f029827d188886347a119018aecb89d81ee7ca9647d
+      byte_identical_replay: true
+    canonical_request:
+      bytes: 1003
+      sha256: 9308cf507c715c6339383683ac0b5f5bc45a6fdc0b9cc754fe0ba5d86e27699a
+    decline_publication:
+      decision_bytes: 1969
+      decision_sha256: 2a1615f763f700eed6f24b9f67ec0d3392f484406805f9fb15197e92f5366c6e
+      report_bytes: 1566
+      report_sha256: 8792326cf9d5fab006654e378c8fc23489a9fa1096c1406915da5c3a715751e6
+      status: publication-declined
+      publication_approved_for_separate_action: false
+      performs_publication: false
+    request_draft_revision:
+      decision_bytes: 1995
+      decision_sha256: 530da30834b4c0c3e9341b910f41145798898ea8fc43df1bed4bbc9b351c03dd
+      report_bytes: 1610
+      report_sha256: 83d190fca47075e4eaaa32b6de470b29ddfbd18ed2c6392b5e8dc8537eb6c442
+      status: draft-revision-requested
+      publication_approved_for_separate_action: false
+      performs_publication: false
+    approve_for_separate_publication_action:
+      decision_bytes: 2030
+      decision_sha256: 7a6f50b58d770e77979cd957e2a7c25acccd9bbec2e232f0badd80bc3307bdbd
+      report_bytes: 1695
+      report_sha256: 7cb1e707d6cf94994bfbbb3b404af9195a9c13e2e3de5cac7f0d499685de2775
+      status: approved-for-separate-publication-action
+      publication_approved_for_separate_action: true
+      performs_publication: false
+    tampered_request:
+      ok: false
+      status: invalid-owner-decision
+      issue: immutable-field-mismatch
+      publication_approved_for_separate_action: false
+      performs_publication: false
+  deterministic_surfaces_unchanged:
+    exact_review_tc255: 17044 bytes / cdb912f2354947ac16f53f3ae1d5e4187d55497ecbf9b521b1d565f23287fd23
+    packet_tc255: 11286 bytes / b196b34b8bacb345d3f1ed17227e88ef16ec3a59982ebc593919f8ffd651bb08
+    blank_handoff_tc255: 2599 bytes / 02999fc3e7f0600e6ea114e756077649450c9af189ad0c4d9ad5ffb0051c1658
+    review_queue: 31246 bytes / 15f5f52438a2d4a71b3df43cec0a51b240b4f920a74694af7084f551ea8280fe
+    public_overview: 7637 bytes / 936a0c45f0fa25acbc315ed59edf6776971e882e454344e05355bd0d37184741
+    public_evidence_index: 18666 bytes / af8de9048e234af09552cdb7c5276905e5fb4d2bab54e5c600bccdb163d0b1c9
+    public_catalog_csv: 37314 bytes / 9a8673a9d7ff14c6ec05f4bf3da6e94e8af0eb51220400dbd2fba6dbca371e04
+    public_evidence_csv: 8557 bytes / be4d757a87c8d7903ef5c9f9ab34bbea6764f7d92fe4d3cd66db71b5faea08bf
+    protected_review_csv: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  full_repository_tests: PASS - 325 runnable suites, 2351 tests, and 1 snapshot; 3 suites and 26 tests skipped; inherited post-summary open handle force-exited
+  production_build: PASS - shared signals and trading-agents compiled, Next.js production build completed, and 331/331 pages generated with inherited middleware, three Turbopack trace, edge-runtime, and url.parse warnings
+  final_gate_observed_at: 2026-08-30T11:03:07.880Z
+  final_gate_snapshot: >-
+    Complete with TC-266 still the sole current-window and latest receipt, 11
+    total receipts across 10 windows, only the expected historical 06:00Z
+    duplicate, no additional duplicate, four unchanged handoffs, no current-
+    window handoff, zero approved drafts, and automatic selection, publication,
+    posting, and trading false.
+  implementation_file_integrity:
+    template_module: 4872 bytes / f9f3f6ef48f52a613b919d9d384f7c587873384f1c3e311d9a9983f9a6743995
+    validator_module: 15880 bytes / 89451841d52ad579b41fd5c4cb1e9e0bf04d1c5af1d0ea46ef44a387d2c71c66
+    prepare_cli: 2101 bytes / 068c36a45bf484dee4da870d197aa1537b3f4db2e58dd766abcc92793532425d
+    validate_cli: 2337 bytes / 97ec928b2b36ec721c67fd3d40d5c2512ab5525a59183e60715cdd3c49c6dfcf
+    focused_test: 25028 bytes / 94c37b6d405a547e7f816825bad6e91030251438d11fdd3852a114d7709044dc
+  final_verification:
+    focused: PASS - 1 suite and 22 tests
+    adjacent: PASS - 51 suites and 306 tests
+    strict_standalone_typescript: PASS
+    research_routes_and_auth: PASS - 26 suites and 99 tests
+    pinned_source: PASS - 61/61 candidates
+    review_evidence: PASS - 4/4 manifests and 12/12 files
+    web_typecheck: PASS
+    lint: PASS - 0 errors and 21 inherited warnings
+    deterministic_replay: PASS - blank form is byte-identical; decline, revision, and separate-publication approval route exactly; immutable tampering and evidence drift fail closed
+    protected_public_and_csv_surfaces: PASS - all frozen byte counts and SHA-256 values unchanged
+    full_repository_tests: PASS - 325 runnable suites and 2351 tests
+    production_build: PASS - 331/331 pages
+    state_and_package: PASS - YAML and JSON parse and both package commands match the recorded contract
+    scope_and_cleanup: PASS - exactly nine intended paths changed; no temporary completed-handoff, completed-owner-decision, tmp, or temp artifact remains
+    compose: PASS - no Compose, Dockerfile, lockfile, dependency, database, or migration path changed; Docker CLI remains unavailable for a runtime Compose check
+  safety: >-
+    Preparation and validation may read bounded local files and current
+    repository evidence only. They must not mutate review, receipt, queue,
+    approval, publication, signal, allocation, broadcast, broker, execution,
+    billing, or trading state. A validated approval outcome may only describe a
+    separately supplied manual owner response; this work provides no outbound
+    publication action or authority.
+  next_action: Commit the nine intended files locally, record the exact implementation hash, then close state in a second local commit without pushing, deploying, publishing, posting, recording an owner decision, or trading.
 
 research_admin_owner_request_artifact_2026_08_30:
   at: 2026-08-30T18:27:03+08:00
