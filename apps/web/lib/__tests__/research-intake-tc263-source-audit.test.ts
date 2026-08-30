@@ -127,14 +127,14 @@ describe('TC-263 cryptocurrency-as-money source audit', () => {
     const summary = summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE);
     expect(summary).toMatchObject({
       total: 61,
-      discovered: 51,
-      sourceAudited: 6,
+      discovered: 50,
+      sourceAudited: 7,
       replicated: 4,
       passed: 0,
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 6,
+      sourceNoGo: 7,
     });
   });
 

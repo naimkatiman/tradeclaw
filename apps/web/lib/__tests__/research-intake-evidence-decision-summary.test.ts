@@ -67,7 +67,7 @@ describe('compact evidence decision-summary contract', () => {
         .map((record) => [taskIdOf(record), record] as const),
     );
 
-    expect(payload.items).toHaveLength(10);
+    expect(payload.items).toHaveLength(11);
     for (const item of payload.items) {
       const record = recordsByTask.get(item.candidate.evidenceState.taskId);
       if (!record) throw new Error(`${item.candidate.evidenceState.taskId} is not in the catalog`);
@@ -101,7 +101,7 @@ describe('compact evidence decision-summary contract', () => {
         .map((record) => [taskIdOf(record), record] as const),
     );
 
-    expect(adminPayload.items).toHaveLength(10);
+    expect(adminPayload.items).toHaveLength(11);
     for (const item of adminPayload.items) {
       const taskId = item.candidate.evidenceState.taskId;
       const record = recordsByTask.get(taskId);

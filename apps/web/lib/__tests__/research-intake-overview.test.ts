@@ -95,7 +95,7 @@ describe('compact research intake overview contract', () => {
     );
     expect(fingerprint(overview)).toEqual({
       bytes: 7_637,
-      sha256: '2696bd48c4e94712d1616a7af86ddea799c34d389caba289a1aaad341938e821',
+      sha256: 'a5fe58400cd6b9991147157cecd3b7ac83e000174d331b6be3f6245f08e37bf1',
     });
   });
 
@@ -148,7 +148,7 @@ describe('compact research intake overview contract', () => {
     expect(overview).not.toHaveProperty('items');
     expect(fingerprint(overview)).toEqual({
       bytes: 11_275,
-      sha256: '10129efe3d335c5f45b6c7f7d95c5fa65ea874c0a9e3178798e928487f274f6d',
+      sha256: '50cdfac86dc448be6f84d75749105d7e6ade6dcafd8deee0e7dfc774d640f3fa',
     });
   });
 
@@ -275,7 +275,7 @@ describe('compact research intake overview contract', () => {
     );
     expect(fingerprint(spec)).toEqual({
       bytes: 39_955,
-      sha256: '3fcda938046038484cce62ae618afafc833de407bbf3fb60f571faa61b6aef63',
+      sha256: '071888cce3d5f248fef67b20bb2b41f364ae45768ae105433ec1760274f791a0',
     });
   });
 });

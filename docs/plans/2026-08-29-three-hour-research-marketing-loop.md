@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Task: TC-256 through TC-264
+Task: TC-256 through TC-265
 
 Status: active operating contract; local-only until separately authorized
 
@@ -287,10 +287,24 @@ current short SPX position. TC-264 therefore remains `not-tested`, with no
 preregistration, return, result artifact, or marketing draft. Its receipt is
 `docs/research/2026-08-30-rolling-vs-expanding-mean-reversion-source-audit.md`.
 
+TC-265 selected *Good Carry, Bad Carry* because its monthly G-10 rule and
+paper-level bid/ask treatment made source and cost feasibility auditable before
+returns. The paper ranks mid-quote one-month forward differentials and computes
+returns from forward and next-month spot quote sides, using Barclays Bank data
+through Datastream. Neither the authors nor the publisher supplies those
+immutable vendor bytes or a public replication package. The visible Papers With
+Backtest clone names only `Forex Daily Price`, spans `1990-2026`, and hides its
+implementation, so it cannot reconstruct the paper's signal or fills. The paper
+also acknowledges look-back bias in the fixed headline subsets chosen after the
+dynamic exclusion exercise. Exact replay therefore stopped before
+preregistration or returns. TC-265 remains `not-tested`, with no result artifact
+or marketing draft. Its receipt is
+`docs/research/2026-08-30-good-carry-bad-carry-source-audit.md`.
+
 Do not open another catalog receipt before the exact
-`2026-08-30T06:00:00.000Z` boundary. The TC-264 no-go does not authorize a proxy
-commodity backtest, marketing claim, publication, signal, allocation, broadcast,
-broker action, or execution change.
+`2026-08-30T09:00:00.000Z` boundary. The TC-265 no-go does not authorize a proxy
+currency-carry backtest, marketing claim, publication, signal, allocation,
+broadcast, broker action, or execution change.
 
 ## Marketing handoff
 

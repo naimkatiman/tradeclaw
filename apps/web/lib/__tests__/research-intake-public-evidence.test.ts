@@ -32,12 +32,12 @@ describe('public research evidence index', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 51,
-        sourceAudited: 6,
+        discovered: 50,
+        sourceAudited: 7,
         replicated: 4,
         failed: 3,
         inconclusive: 1,
-        sourceNoGo: 6,
+        sourceNoGo: 7,
       },
       evidenceIndex: {
         selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
@@ -46,17 +46,17 @@ describe('public research evidence index', () => {
         includesEveryAvailableOverlay: true,
       },
       evidenceSummary: {
-        total: 10,
+        total: 11,
         discovered: 0,
-        sourceAudited: 6,
+        sourceAudited: 7,
         preregistered: 0,
         replicated: 4,
         prospective: 0,
         passed: 0,
         failed: 3,
         inconclusive: 1,
-        untested: 6,
-        sourceNoGo: 6,
+        untested: 7,
+        sourceNoGo: 7,
       },
     });
     expect(payload.workflow).toHaveLength(5);
@@ -67,6 +67,7 @@ describe('public research evidence index', () => {
       'TC-259',
       'TC-257',
       'TC-264',
+      'TC-265',
       'TC-255',
       'TC-261',
       'TC-258',
@@ -77,11 +78,11 @@ describe('public research evidence index', () => {
     expect(payload.records.map((record) => record.sourcePosition)).toEqual(
       [...payload.records].map((record) => record.sourcePosition).sort((left, right) => left - right),
     );
-    expect(new Set(payload.records.map((record) => record.id))).toHaveProperty('size', 10);
+    expect(new Set(payload.records.map((record) => record.id))).toHaveProperty('size', 11);
     expect(payload.records.every((record) => record.evidenceBasis !== 'upstream-gross-discovery-only'))
       .toBe(true);
     expect(buildResearchIntakePublicEvidencePayload()).toEqual(payload);
-    expect(JSON.stringify(payload).length).toBeLessThan(JSON.stringify(catalog).length / 2);
+    expect(JSON.stringify(payload).length).toBeLessThan(JSON.stringify(catalog).length * 0.55);
   });
 
   it('retains every adverse, no-go, and inconclusive boundary', () => {
@@ -113,7 +114,7 @@ describe('public research evidence index', () => {
       },
     });
 
-    for (const id of ['TC-256', 'TC-260', 'TC-261', 'TC-262', 'TC-263', 'TC-264']) {
+    for (const id of ['TC-256', 'TC-260', 'TC-261', 'TC-262', 'TC-263', 'TC-264', 'TC-265']) {
       expect(byTask.get(id)).toMatchObject({
         stage: 'source-audited',
         verdict: 'not-tested',

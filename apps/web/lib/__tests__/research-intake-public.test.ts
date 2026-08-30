@@ -34,8 +34,8 @@ describe('public research intake projection', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 51,
-        sourceAudited: 6,
+        discovered: 50,
+        sourceAudited: 7,
         preregistered: 0,
         replicated: 4,
         prospective: 0,
@@ -43,7 +43,7 @@ describe('public research intake projection', () => {
         failed: 3,
         inconclusive: 1,
         untested: 57,
-        sourceNoGo: 6,
+        sourceNoGo: 7,
       },
     });
     expect(payload.workflow).toHaveLength(5);
@@ -65,8 +65,8 @@ describe('public research intake projection', () => {
     }, {});
 
     expect(basisCounts).toEqual({
-      'upstream-gross-discovery-only': 51,
-      'tradeclaw-source-audit-only': 6,
+      'upstream-gross-discovery-only': 50,
+      'tradeclaw-source-audit-only': 7,
       'tradeclaw-replication-record': 4,
     });
     for (const record of payload.records) {

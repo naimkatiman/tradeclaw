@@ -372,7 +372,7 @@ describe('systematic research intake', () => {
     const sourceAudited = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => record.tradeClawSourceAudit,
     );
-    expect(sourceAudited).toHaveLength(9);
+    expect(sourceAudited).toHaveLength(10);
     const noGo = sourceAudited.find(
       (record) => record.id === 'price-overreactions-in-the-cryptocurrency-market',
     );
@@ -393,7 +393,7 @@ describe('systematic research intake', () => {
     const untouched = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => !record.tradeClawEvidence && !record.tradeClawSourceAudit,
     );
-    expect(untouched).toHaveLength(51);
+    expect(untouched).toHaveLength(50);
     expect(untouched.every((record) => record.stage === 'discovered')).toBe(true);
     expect(untouched.every((record) => record.verdict === 'not-tested')).toBe(true);
     expect(untouched.every((record) => record.costStatus === 'unassessed')).toBe(true);
@@ -941,8 +941,8 @@ describe('systematic research intake', () => {
   it('summarizes and filters by next-action evidence state rather than upstream return', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 51,
-      sourceAudited: 6,
+      discovered: 50,
+      sourceAudited: 7,
       preregistered: 0,
       replicated: 4,
       prospective: 0,
@@ -950,7 +950,7 @@ describe('systematic research intake', () => {
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 6,
+      sourceNoGo: 7,
     });
     expect(
       filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
@@ -986,6 +986,7 @@ describe('systematic research intake', () => {
     ).toEqual([
       'properties-of-the-most-diversified-portfolio',
       'rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation',
+      'good-carry-bad-carry',
       'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
       'price-overreactions-in-the-cryptocurrency-market',
       'cryptocurrency-as-money-a-trading-strategy-solution',

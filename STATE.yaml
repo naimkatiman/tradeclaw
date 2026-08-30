@@ -1,11 +1,170 @@
 project: tradeclaw
-updated: 2026-08-30T13:38:42+08:00
+updated: 2026-08-30T14:38:15+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_good_carry_source_audit_2026_08_30:
+  at: 2026-08-30T14:38:15+08:00
+  agent: TradeClaw PM agent
+  status: ready_for_local_implementation_commit
+  scope: Screen and source-audit exactly one untouched awesome-systematic-trading candidate in the new 06:00Z UTC window before any preregistration, return, result artifact, or marketing work
+  base_commit: 18e896e3021af8e374b2a78c4862f34f719a679d
+  branch: agent/research-intake-desk-20260829
+  cycle_id: 2026-08-30T06:00:00.000Z/PT3H
+  started_at: 2026-08-30T06:00:30.321Z
+  ends_at: 2026-08-30T09:00:00.000Z
+  task_id: TC-265
+  candidate_id: good-carry-bad-carry
+  source_position: 27
+  one_based_catalog_row: 28
+  stage_before: discovered
+  receipt_reserved: true
+  receipt_created: true
+  preregistration_created: false
+  preregistration_frozen_before_returns: true
+  returns_opened: false
+  return_calculated: false
+  result_artifact_created: false
+  marketing_draft: none
+  external_actions: none
+  gate_observed_at: 2026-08-30T06:00:30.321Z
+  gate_state: awaiting-receipt with zero current-window receipts, TC-264 as the latest prior receipt, only the expected historical duplicate window, and all automatic-selection, publication, posting, and trading controls false
+  selection_basis: >-
+    Select the next untouched catalog record immediately after source-audited row
+    27, preserving source order. Its monthly G-10 spot/one-month-forward design,
+    paper-level bid/ask treatment, and public primary paper make cost and source
+    feasibility auditable before any return access. Upstream Sharpe, t-statistic,
+    volatility, years, and clone results were not used as a promotion score or
+    TradeClaw evidence.
+  source_audit_checkpoint_at: 2026-08-30T06:09:10.000Z
+  source_facts:
+    title: Good Carry, Bad Carry
+    authors: [Geert Bekaert, George Panayotov]
+    discovery_url: https://paperswithbacktest.com/strategies/good-carry-bad-carry
+    primary_document_url: https://business.columbia.edu/sites/default/files-efs/pubfiles/26212/good_carry.pdf
+    nber_record_url: https://www.nber.org/papers/w25420
+    nber_working_paper_doi: 10.3386/w25420
+    final_publisher_url: https://www.cambridge.org/core/journals/journal-of-financial-and-quantitative-analysis/article/abs/good-carry-bad-carry/3BD4883026CA735E1F206588E0B957C4
+    final_doi: 10.1017/S0022109019000887
+    final_publication: Journal of Financial and Quantitative Analysis 55(4), June 2020, pages 1063-1094; published online 2019-10-21
+    paper_sample: 1984-12/2014-06
+    paper_observations_monthly: 354
+    dynamic_implementation_start: 1994-12
+    dynamic_implementation_end: 2014-05
+    dynamic_implementation_months: 234
+    rebalance: monthly
+    universe: G-10 currencies including USD
+    paper_data: Barclays Bank spot and one-month forward bid/ask quotes via Datastream
+    paper_cost_treatment: observed bid/ask quotes included
+    immutable_public_source_bytes_supplied: false
+    exact_public_replay_feasibility: blocked
+  audited_source_bytes:
+    columbia_working_paper:
+      bytes: 380097
+      pages: 88
+      sha256: 24d54034c6b74944d4dd3bcfc20ddf2db85871f914d91be5833af0eba8435727
+      version_date: 2018-01-16
+      includes_online_appendix: true
+    nber_working_paper:
+      bytes: 344309
+      pages: 78
+      sha256: afb9d2a98720f87659c2ba8b6c675e1b616ef0403ef39bfd17b4a662dbd595a5
+      issue_date: 2019-01
+    paperswithbacktest_discovery_html:
+      bytes: 205367
+      sha256: 88888b8a6ab2dec7a4590c3f0f00927e0f318e8be13beee720c61c11026c6f3d
+      observed_dataset_label: Forex Daily Price
+      observed_backtest_period: 1990-2026
+      code_flag: true
+      code_publicly_visible_without_subscription: false
+    publisher_access_check:
+      final_pdf_publicly_retrieved: false
+      supplementary_material_type: online appendix, not a data or code package
+  published_rule_audit:
+    monthly_signal: Rank G-10 currencies by mid-quote one-month forward differential F/S - 1 at each month end
+    standard_trade: Equal absolute weights, high five long and low five short, total gross absolute investment one, rebalanced monthly and liquidated at the next month end
+    subset_rule: For even N split equally; for odd N drop the median-ranked currency before splitting equally
+    long_return: forward bid divided by next-month spot ask minus one
+    short_return: one minus forward ask divided by next-month spot bid
+    dynamic_rule: From 1994-12 through 2014-05, use only returns available from 1984-12 through t-1; sequentially exclude one through seven currencies when the best expanding-history Sharpe exceeds the standard carry benchmark, otherwise fall back to standard carry
+    dynamic_protocol_character: causal expanding-history selection over 234 monthly trading dates, but without a later public-data holdout
+    fixed_good_bad_subsets: Chosen after inspecting the dynamic exclusion history and evaluated over the full 1984-12/2014-06 sample
+    author_disclosed_bias: The paper explicitly says the fixed good trades suffer from look-back bias and that full correction would require a much longer ex-ante sample
+  source_and_cost_blockers:
+    - The exact inputs are Barclays Bank G-10 spot and one-month forward bid/ask quotes distributed through Datastream; the paper and official records provide neither immutable raw bytes nor a public replication package.
+    - Current official Datastream access is a commercial Workspace, bulk-feed, or API product; no authorized dataset is present in this repository.
+    - The Papers With Backtest clone names only Forex Daily Price and does not expose the one-month forward or bid/ask series needed for the paper's ranking, fills, and embedded costs.
+    - The clone implementation is hidden behind subscription access, so its 1990-2026 output cannot serve as an inspectable paper specification or evidence artifact.
+    - Replacing forwards with spot momentum, rate proxies, synthetic forwards, midpoint fills, or assumed spreads would materially change the signal, fills, and cost treatment.
+    - The headline fixed subsets are ex-post selections with author-disclosed look-back bias; treating them as preregistered would misstate the evidence.
+  source_audit_disposition:
+    disposition: no-go
+    verdict: not-tested
+    performance_result: none
+    cost_status: blocked-before-return
+    reason: Exact paper replay requires unavailable proprietary forward and bid/ask source bytes, while the visible spot-only clone is materially non-equivalent and the fixed headline subsets are ex-post selections.
+    classification: source-audit-only no-go, not a TradeClaw performance failure
+    later_path: A separately preregistered public-data carry hypothesis must define its own immutable forward or rate-derived dataset, causal execution, complete costs, chronological folds, post-publication holdout, and external falsification before any return is opened.
+  canonical_source_audit:
+    path: docs/research/2026-08-30-good-carry-bad-carry-source-audit.md
+    bytes: 11722
+    sha256: d3d737ec675d7b522f38e144f20b96f21b3fae64de799d463ccf286d1d73c820
+    created_at: 2026-08-30T06:11:23.000Z
+    performance_observations: 0
+    repository_vendor_data_added: false
+  red_contract:
+    path: apps/web/lib/__tests__/research-intake-tc265-source-audit.test.ts
+    run_at: 2026-08-30T06:13:59.000Z
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-tc265-source-audit.test.ts
+    result: PASS - all four focused tests failed only at the intended absent TC-265 catalog overlay, 50/7 summary transition, public and protected projection, and sole 06:00Z receipt boundaries
+    failed_tests: 4
+    unexpected_failures: 0
+  receipt_contract:
+    cycle_id: 2026-08-30T06:00:00.000Z/PT3H
+    recorded_at: 2026-08-30T06:12:30.000Z
+    sole_current_window_receipt: true
+  implementation_checkpoint:
+    catalog_stage_after: source-audited
+    catalog_verdict: not-tested
+    catalog_cost_status: unassessed
+    catalog_marketing_disposition: none
+    typed_overlay_added: true
+    protected_and_public_projection_added: true
+    receipt_ledger_added: true
+    performance_evidence_added: false
+    authority_changed: false
+  focused_green_verification: PASS - 1 suite and 4 tests prove the exact TC-265 typed overlay, 50/7 catalog transition, protected/public evidence projection, and sole current-window receipt with no return or marketing authority
+  adjacent_research_desk_verification: PASS - 64 suites and 289 tests cover the research intake, three-hour receipt loop, public and protected routes/auth boundaries, deterministic JSON/CSV fingerprints, OpenAPI parity, and README discoverability
+  source_reconstruction_verification: PASS - the pinned upstream commit d9c98521c76662d5eae03ab97a4fc721d010dde3 reconstructs 61 candidates with frozen category counts, gross-of-cost discovery metadata, and discovery-only TradeClaw treatment
+  static_verification: PASS - web TypeScript is clean and ESLint exits zero with the same 21 inherited warnings and no errors
+  marketing_safety_compile_boundary: PASS - TypeScript forced TC-265 through the explicit no-draft receipt branch; focused marketing and TC-265 tests pass 2 suites and 8 tests with no TC-265 handoff
+  full_test_verification: PASS assertions - 313 suites and 2241 tests passed, 3 suites and 26 tests skipped, and 1 snapshot passed in 80.97 seconds; Jest then reproduced the inherited open-handle condition and was interrupted after the complete summary rather than misreported as a clean process exit
+  production_build_verification: PASS - npm run build compiled signals, trading-agents, and the Next.js production app, then generated all 331 static pages with exit code zero; only inherited middleware, NFT tracing, edge-runtime, and url.parse warnings appeared
+  final_gate_observed_at: 2026-08-30T06:38:15.558Z
+  final_gate_snapshot: complete with TC-265 as the sole 06:00Z receipt and latest receipt, 10 receipts across 9 windows, only the expected 2026-08-29T06:00:00.000Z legacy duplicate, no additional duplicate, and all automatic candidate-selection, publication, and trading controls false
+  source_and_state_audit: PASS - canonical source audit remains 11722 LF bytes with SHA-256 d3d737ec675d7b522f38e144f20b96f21b3fae64de799d463ccf286d1d73c820; STATE.yaml parses and identifies TC-265 in the 06:00Z cycle; git diff --check is clean apart from Windows line-ending notices
+  docker_compose_verification: Docker CLI is unavailable; zero Docker Compose, manifest, lockfile, or migration path changed from base 18e896e3021af8e374b2a78c4862f34f719a679d, so the supported Compose flow remains untouched
+  temporary_source_cleanup: PASS - verified the exact 12-item directory C:/Users/User/AppData/Local/Temp/tradeclaw-tc265-20260830-0601 beneath the system temp root, then removed its six downloaded/extracted sources, five rendered PDF pages, render directory, and audit directory; none was vendored
+  scope_audit: PASS - 53 intended paths only: README and operating plan/state, one canonical source audit, one typed source-audit/receipt/marketing safety implementation, one focused contract, and deterministic research desk/API fixture updates; no rendered UI, Docker, dependency, migration, database, billing, signal, allocation, broadcast, broker, or execution path changed
+  library_search: MemoryCore has no reusable cost-first currency-carry source-audit or preregistration architecture; reuse the proven TradeClaw receipt, typed source-audit overlay, canonical document, and deterministic verification pattern
+  frozen_boundaries:
+    one_candidate_only: true
+    primary_source_before_clone: true
+    upstream_metrics_are_discovery_only: true
+    source_and_cost_feasibility_before_preregistration: true
+    proprietary_data_will_not_be_invented_or_substituted: true
+    no_return_access_before_explicit_preregistration: true
+    no_post_result_rule_cost_universe_or_gate_changes: true
+    no_marketing_draft_without_a_tradeclaw_result: true
+    rendered_ui_changed: false
+    publication_or_external_action: none
+    billing_signal_allocation_broadcast_broker_execution_or_trading_changed: false
+  next_action: Create the local implementation commit, record its exact hash in STATE, save shared MemoryCore, and create the state-closure commit without opening another receipt before the exact 09:00Z boundary.
+  safety: No return, preregistration, result artifact, marketing draft, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_admin_packet_first_start_here_2026_08_30:
   at: 2026-08-30T13:54:31+08:00
@@ -6722,6 +6881,33 @@ research_intake_desk_2026_08_29:
     trading_approved: false
     external_actions: none
     next_action: Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns
+  cycle_10:
+    id: 2026-08-30T06:00:00.000Z/PT3H
+    recorded_at: 2026-08-30T06:12:30.000Z
+    task_id: TC-265
+    started_at: 2026-08-30T06:00:30.321Z
+    ends_at: 2026-08-30T09:00:00.000Z
+    candidate_id: good-carry-bad-carry
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    source_audit_sha256: d3d737ec675d7b522f38e144f20b96f21b3fae64de799d463ccf286d1d73c820
+    columbia_source_pdf_sha256: 24d54034c6b74944d4dd3bcfc20ddf2db85871f914d91be5833af0eba8435727
+    nber_source_pdf_sha256: afb9d2a98720f87659c2ba8b6c675e1b616ef0403ef39bfd17b4a662dbd595a5
+    evidence_paths:
+      - docs/research/2026-08-30-good-carry-bad-carry-source-audit.md
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    next_action: Archive the exact-source no-go; any new public-data currency-carry hypothesis must freeze immutable inputs, causal fills, complete costs, chronological folds, a post-publication holdout, and external falsification before returns
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00

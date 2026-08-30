@@ -632,6 +632,87 @@ export interface TradeClawRollingVsExpandingSourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawGoodCarrySourceAuditEvidence {
+  taskId: 'TC-265';
+  auditDate: '2026-08-30';
+  researchPath: 'docs/research/2026-08-30-good-carry-bad-carry-source-audit.md';
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  primarySource: {
+    title: 'Good Carry, Bad Carry';
+    authors: readonly ['Geert Bekaert', 'George Panayotov'];
+    discoveryUrl: 'https://paperswithbacktest.com/strategies/good-carry-bad-carry';
+    discoveryHtmlSha256: string;
+    discoveryHtmlBytes: 205367;
+    columbiaDocumentUrl: 'https://business.columbia.edu/sites/default/files-efs/pubfiles/26212/good_carry.pdf';
+    columbiaDocumentSha256: string;
+    columbiaDocumentBytes: 380097;
+    columbiaDocumentPages: 88;
+    columbiaVersionDate: '2018-01-16';
+    nberUrl: 'https://www.nber.org/papers/w25420';
+    nberDoi: 'https://doi.org/10.3386/w25420';
+    nberDocumentSha256: string;
+    nberDocumentBytes: 344309;
+    nberDocumentPages: 78;
+    finalDoi: 'https://doi.org/10.1017/S0022109019000887';
+    finalPublishedOnline: '2019-10-21';
+    finalPublication: 'Journal of Financial and Quantitative Analysis 55(4), 2020, 1063-1094';
+    publicReplicationPackageSupplied: false;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    cadence: 'monthly';
+    paperSample: '1984-12/2014-06';
+    monthlyObservations: 354;
+    universe: readonly ['NZD', 'AUD', 'GBP', 'NOK', 'SEK', 'CAD', 'USD', 'EUR-or-DEM', 'CHF', 'JPY'];
+    rankSignal: 'mid-quote-one-month-forward-differential-F-over-S-minus-one';
+    totalGrossAbsoluteWeight: 1;
+    rebalance: 'month-end-to-next-month-end';
+    oddSubsetTreatment: 'drop-median-ranked-currency';
+    longReturn: 'forward-bid-over-next-spot-ask-minus-one';
+    shortReturn: 'one-minus-forward-ask-over-next-spot-bid';
+  };
+  selectionAndValidation: {
+    dynamicStart: '1994-12';
+    dynamicEnd: '2014-05';
+    dynamicMonths: 234;
+    expandingHistoryStarts: '1984-12';
+    maximumSequentialExclusions: 7;
+    causalNextMonthApplication: true;
+    fixedSubsetsChosenAfterDynamicHistory: true;
+    fixedSubsetsEvaluatedOnFullSample: true;
+    authorAcknowledgesLookBackBias: true;
+    postPublicationHoldoutFrozen: false;
+  };
+  sourceCloneMismatch: {
+    paperDataset: 'Barclays-Bank-spot-and-one-month-forward-bid-ask-via-Datastream';
+    cloneDataset: 'Forex Daily Price';
+    paperSample: '1984-12/2014-06';
+    cloneSample: '1990-2026';
+    cloneCodeFlag: true;
+    cloneCodePubliclyInspectable: false;
+  };
+  inputProvenance: {
+    exactSourceBytesSupplied: false;
+    barclaysBankIdentified: true;
+    datastreamIdentified: true;
+    vendorIdentifiersPinned: false;
+    sourceVintagePinned: false;
+    demEuroSplicePinned: false;
+    authorizedDatasetPresent: false;
+  };
+  publishedCostTreatment: {
+    observedBidAskUsed: true;
+    flatCostProxy: false;
+    quoteSideHistorySupplied: false;
+    deterministicTradeLedgerSupplied: false;
+    completeCurrentFrictionModelSupplied: false;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -755,6 +836,7 @@ export type TradeClawResearchSourceAuditEvidence =
   | TradeClawMostDiversifiedPortfolioSourceAuditEvidence
   | TradeClawCryptocurrencyAsMoneySourceAuditEvidence
   | TradeClawRollingVsExpandingSourceAuditEvidence
+  | TradeClawGoodCarrySourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -840,6 +922,7 @@ const MOST_DIVERSIFIED_PORTFOLIO_ID = 'properties-of-the-most-diversified-portfo
 const CRYPTOCURRENCY_AS_MONEY_ID = 'cryptocurrency-as-money-a-trading-strategy-solution';
 const ROLLING_VS_EXPANDING_MEAN_REVERSION_ID =
   'rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation';
+const GOOD_CARRY_BAD_CARRY_ID = 'good-carry-bad-carry';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -1262,6 +1345,101 @@ const TC264_ROLLING_VS_EXPANDING_SOURCE_AUDIT: TradeClawRollingVsExpandingSource
   ],
   reason:
     'The high-level low-frequency ratio rule is understandable, but exact replay would require invented vendor series, futures rolls, tradable vehicles, causal fills, overlap accounting, complete costs, and an untouched evaluation protocol; a public-data implementation would be a materially new hypothesis.',
+};
+
+const TC265_GOOD_CARRY_SOURCE_AUDIT: TradeClawGoodCarrySourceAuditEvidence = {
+  taskId: 'TC-265',
+  auditDate: '2026-08-30',
+  researchPath: 'docs/research/2026-08-30-good-carry-bad-carry-source-audit.md',
+  researchSha256: 'd3d737ec675d7b522f38e144f20b96f21b3fae64de799d463ccf286d1d73c820',
+  disposition: 'no-go',
+  tradeClawBacktestRun: false,
+  primarySource: {
+    title: 'Good Carry, Bad Carry',
+    authors: ['Geert Bekaert', 'George Panayotov'],
+    discoveryUrl: 'https://paperswithbacktest.com/strategies/good-carry-bad-carry',
+    discoveryHtmlSha256:
+      '88888b8a6ab2dec7a4590c3f0f00927e0f318e8be13beee720c61c11026c6f3d',
+    discoveryHtmlBytes: 205367,
+    columbiaDocumentUrl:
+      'https://business.columbia.edu/sites/default/files-efs/pubfiles/26212/good_carry.pdf',
+    columbiaDocumentSha256:
+      '24d54034c6b74944d4dd3bcfc20ddf2db85871f914d91be5833af0eba8435727',
+    columbiaDocumentBytes: 380097,
+    columbiaDocumentPages: 88,
+    columbiaVersionDate: '2018-01-16',
+    nberUrl: 'https://www.nber.org/papers/w25420',
+    nberDoi: 'https://doi.org/10.3386/w25420',
+    nberDocumentSha256:
+      'afb9d2a98720f87659c2ba8b6c675e1b616ef0403ef39bfd17b4a662dbd595a5',
+    nberDocumentBytes: 344309,
+    nberDocumentPages: 78,
+    finalDoi: 'https://doi.org/10.1017/S0022109019000887',
+    finalPublishedOnline: '2019-10-21',
+    finalPublication: 'Journal of Financial and Quantitative Analysis 55(4), 2020, 1063-1094',
+    publicReplicationPackageSupplied: false,
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    cadence: 'monthly',
+    paperSample: '1984-12/2014-06',
+    monthlyObservations: 354,
+    universe: ['NZD', 'AUD', 'GBP', 'NOK', 'SEK', 'CAD', 'USD', 'EUR-or-DEM', 'CHF', 'JPY'],
+    rankSignal: 'mid-quote-one-month-forward-differential-F-over-S-minus-one',
+    totalGrossAbsoluteWeight: 1,
+    rebalance: 'month-end-to-next-month-end',
+    oddSubsetTreatment: 'drop-median-ranked-currency',
+    longReturn: 'forward-bid-over-next-spot-ask-minus-one',
+    shortReturn: 'one-minus-forward-ask-over-next-spot-bid',
+  },
+  selectionAndValidation: {
+    dynamicStart: '1994-12',
+    dynamicEnd: '2014-05',
+    dynamicMonths: 234,
+    expandingHistoryStarts: '1984-12',
+    maximumSequentialExclusions: 7,
+    causalNextMonthApplication: true,
+    fixedSubsetsChosenAfterDynamicHistory: true,
+    fixedSubsetsEvaluatedOnFullSample: true,
+    authorAcknowledgesLookBackBias: true,
+    postPublicationHoldoutFrozen: false,
+  },
+  sourceCloneMismatch: {
+    paperDataset: 'Barclays-Bank-spot-and-one-month-forward-bid-ask-via-Datastream',
+    cloneDataset: 'Forex Daily Price',
+    paperSample: '1984-12/2014-06',
+    cloneSample: '1990-2026',
+    cloneCodeFlag: true,
+    cloneCodePubliclyInspectable: false,
+  },
+  inputProvenance: {
+    exactSourceBytesSupplied: false,
+    barclaysBankIdentified: true,
+    datastreamIdentified: true,
+    vendorIdentifiersPinned: false,
+    sourceVintagePinned: false,
+    demEuroSplicePinned: false,
+    authorizedDatasetPresent: false,
+  },
+  publishedCostTreatment: {
+    observedBidAskUsed: true,
+    flatCostProxy: false,
+    quoteSideHistorySupplied: false,
+    deterministicTradeLedgerSupplied: false,
+    completeCurrentFrictionModelSupplied: false,
+  },
+  blockers: [
+    'The exact Barclays Bank spot and one-month forward bid/ask bytes are not publicly supplied or present under an authorized TradeClaw license.',
+    'Exact vendor identifiers, source vintage, timestamp and calendar conventions, missing or stale quote handling, and the DEM/EUR splice are not frozen.',
+    'The ranking signal and quote-side returns cannot be reconstructed from the discovery page\'s visible Forex Daily Price dataset.',
+    'The clone code is not publicly inspectable, so its 1990-2026 output cannot be audited as an implementation of the paper.',
+    'Spot momentum, public rate proxies, covered-interest-parity forwards, midpoint fills, and assumed spreads are materially different hypotheses.',
+    'The dynamic selection exercise lacks an immutable public input package and a post-publication holdout frozen before this audit.',
+    'The fixed good and bad subsets use the dynamic exclusion history and full research sample, and the authors explicitly acknowledge look-back bias.',
+    'The historical bid/ask convention does not provide a current executable friction schedule or deterministic trade ledger for a new implementation.',
+  ],
+  reason:
+    'Exact replay requires unavailable proprietary forward and bid/ask source bytes; the visible spot-only clone is materially non-equivalent, while the fixed headline subsets are ex-post selections with author-disclosed look-back bias. A public-data implementation would be a materially new hypothesis.',
 };
 
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
@@ -1844,7 +2022,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
                       ? TC263_CRYPTOCURRENCY_AS_MONEY_SOURCE_AUDIT
                       : candidate.id === ROLLING_VS_EXPANDING_MEAN_REVERSION_ID
                         ? TC264_ROLLING_VS_EXPANDING_SOURCE_AUDIT
-                        : null;
+                        : candidate.id === GOOD_CARRY_BAD_CARRY_ID
+                          ? TC265_GOOD_CARRY_SOURCE_AUDIT
+                          : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {
@@ -1888,9 +2068,11 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         stage: 'source-audited' as const,
         verdict: 'not-tested' as const,
         costStatus: 'unassessed' as const,
-        nextAction: tradeClawSourceAudit.taskId === 'TC-264'
-          ? 'Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns.'
-          : tradeClawSourceAudit.taskId === 'TC-263'
+        nextAction: tradeClawSourceAudit.taskId === 'TC-265'
+          ? 'Archive the exact-source no-go; any new public-data currency-carry hypothesis must freeze immutable inputs, causal fills, complete costs, chronological folds, a post-publication holdout, and external falsification before returns.'
+          : tradeClawSourceAudit.taskId === 'TC-264'
+            ? 'Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns.'
+            : tradeClawSourceAudit.taskId === 'TC-263'
             ? 'Archive the exact-source no-go; any new venue-specific cryptocurrency grid hypothesis must freeze rules, event data, costs, controls, and holdout in a later UTC window before returns.'
             : tradeClawSourceAudit.taskId === 'TC-262'
               ? 'Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns.'

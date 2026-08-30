@@ -21,7 +21,7 @@ describe('GET /api/research/intake/overview', () => {
       grantsTradingAuthority: false,
     });
     expect(body.catalogSummary.total).toBe(61);
-    expect(body.evidenceSummary.total).toBe(10);
+    expect(body.evidenceSummary.total).toBe(11);
     expect(body.startHere).toMatchObject({
       audience: 'public',
       kind: 'browse-evidence-index',

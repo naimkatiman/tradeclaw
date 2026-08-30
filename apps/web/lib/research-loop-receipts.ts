@@ -14,7 +14,8 @@ export type ResearchLoopReceiptTaskId =
   | 'TC-261'
   | 'TC-262'
   | 'TC-263'
-  | 'TC-264';
+  | 'TC-264'
+  | 'TC-265';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -261,6 +262,26 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns',
+  },
+  {
+    cycleId: '2026-08-30T06:00:00.000Z/PT3H',
+    recordedAt: '2026-08-30T06:12:30.000Z',
+    taskId: 'TC-265',
+    candidateId: 'good-carry-bad-carry',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-30-good-carry-bad-carry-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-source no-go; any new public-data currency-carry hypothesis must freeze immutable inputs, causal fills, complete costs, chronological folds, a post-publication holdout, and external falsification before returns',
   },
 ] as const;
 

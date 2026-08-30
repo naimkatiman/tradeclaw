@@ -20,7 +20,7 @@ import {
 const OBSERVED_AT = '2026-08-29T15:59:59.999Z';
 const CANDIDATE_ID = 'a-risk-based-approach-to-tactical-asset-allocation';
 const EXPECTED_PLAIN_LANGUAGE_SUMMARY =
-  '61 candidates: 51 not tested by TradeClaw, 6 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.';
+  '61 candidates: 50 not tested by TradeClaw, 7 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.';
 
 interface EvidenceSummaryView {
   totalCandidates: number;
@@ -52,7 +52,7 @@ function catalogContext(payload: unknown): EvidenceSummaryView | undefined {
 function expectCompleteCatalog(summary: EvidenceSummaryView | undefined): void {
   expect(summary).toMatchObject({
     totalCandidates: 61,
-    withTradeClawRecord: 10,
+    withTradeClawRecord: 11,
     performanceGatesEvaluated: 3,
     performanceGatesNotEvaluated: 58,
     plainLanguageSummary: EXPECTED_PLAIN_LANGUAGE_SUMMARY,
@@ -63,8 +63,8 @@ function expectCompleteCatalog(summary: EvidenceSummaryView | undefined): void {
     performanceEvidenceStatus,
     count,
   }))).toEqual([
-    { performanceEvidenceStatus: 'not-tested', count: 51 },
-    { performanceEvidenceStatus: 'source-audit-only-no-local-backtest', count: 6 },
+    { performanceEvidenceStatus: 'not-tested', count: 50 },
+    { performanceEvidenceStatus: 'source-audit-only-no-local-backtest', count: 7 },
     { performanceEvidenceStatus: 'qa-only-no-performance-result', count: 1 },
     { performanceEvidenceStatus: 'modeled-historical-pass', count: 0 },
     { performanceEvidenceStatus: 'modeled-historical-fail', count: 3 },
@@ -98,9 +98,9 @@ describe('protected research discovery context parity', () => {
     expectCompleteCatalog(catalogContext(evidence));
     expect(catalogContext(evidence)).toEqual(catalog.catalogEvidenceStateSummary);
     expect(evidence.evidenceStateSummary).toMatchObject({
-      totalCandidates: 10,
+      totalCandidates: 11,
       performanceGatesEvaluated: 3,
-      performanceGatesNotEvaluated: 7,
+      performanceGatesNotEvaluated: 8,
     });
     expect(evidence.evidenceStateSummary).not.toEqual(catalogContext(evidence));
   });
@@ -154,31 +154,31 @@ describe('protected research discovery context parity', () => {
     }).toEqual({
       protectedCatalog: {
         bytes: 77_471,
-        sha256: '231f16354bf56106fbc0033955d3a72c887976c83a5131c72df1c0a7d9c5bcaa',
+        sha256: 'ab2bf59ce46ff8357f8282f8b2e95c66f5eed4c6c96221e65f49b476d0e15952',
       },
       publicCatalog: {
-        bytes: 113_858,
-        sha256: 'd1472f9063673568c37df87293eecac0f049ebb03ead1678c5856fd63993cbc1',
+        bytes: 118_533,
+        sha256: 'b227e2795a1084f84e260c846e9754db0130f00d07e15a98b52cfbbc31976c24',
       },
       publicCandidate: {
         bytes: 9_832,
-        sha256: '9fd74f0dc12286f42de3b78cd723c50d39b1f57ff5f852ef6cfb089d4d9e4965',
+        sha256: '157b1f8e1d40e2eea4f604113f7a7fec349243bd34387be76c8be0cc525e6d12',
       },
       publicEvidence: {
-        bytes: 56_318,
-        sha256: '21f0cbebf89d0c0e8edb016bafd834b71b5ba0d25bc90575c5e8151b0ddede54',
+        bytes: 61_989,
+        sha256: 'd2dc61fb5abd224475ad52571aaedcd8025d2eea84e084565e798fae0ffbefc2',
       },
       publicCatalogCsv: {
-        bytes: 37_128,
-        sha256: 'afd082b0dc564675bb0c781898fd2d15c624c3ea5dc0e8cdcb69b02bf453edef',
+        bytes: 37_222,
+        sha256: '2a9b607cf4fd0adcc5efb4486ff7d2d28c4575a46e35fa64e1dc8df152ff571e',
       },
       publicEvidenceCsv: {
-        bytes: 7_415,
-        sha256: '704187190f0eb96753066495bac241c76e1770b9cc0562798f08b0322d93102f',
+        bytes: 7_958,
+        sha256: '14fd4f3c2b6e87acadebe77076791436b2e01239507ebe8931a39c736a0b48b4',
       },
       protectedEvidenceCsv: {
-        bytes: 17_543,
-        sha256: '43518ae9b99cd4fd7ffea64f744d49c4e628a32b1f8beb8c3c004e86b877d4c6',
+        bytes: 18_299,
+        sha256: 'e4bfbec42a10c29b013aa8816f29fc925bfa5623d4e1084cfac496af04f67015',
       },
       protectedReviewCsv: {
         bytes: 7_094,

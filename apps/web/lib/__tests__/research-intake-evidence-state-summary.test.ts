@@ -5,12 +5,12 @@ import { buildOpenApiSpec } from '../openapi';
 const AUDIT_AT = '2026-08-29T21:09:39.110Z';
 
 const EXPECTED_EVIDENCE_STATE_SUMMARY = {
-  totalCandidates: 10,
-  withTradeClawRecord: 10,
+  totalCandidates: 11,
+  withTradeClawRecord: 11,
   performanceGatesEvaluated: 3,
-  performanceGatesNotEvaluated: 7,
+  performanceGatesNotEvaluated: 8,
   plainLanguageSummary:
-    '10 candidates: 6 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 7 candidates.',
+    '11 candidates: 7 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 8 candidates.',
   statuses: [
     {
       performanceEvidenceStatus: 'not-tested',
@@ -25,7 +25,7 @@ const EXPECTED_EVIDENCE_STATE_SUMMARY = {
       label: 'Source audit only',
       meaning:
         'Only a TradeClaw source audit is available; no local backtest ran, so there is no performance conclusion.',
-      count: 6,
+      count: 7,
       performanceGatesEvaluated: false,
     },
     {
