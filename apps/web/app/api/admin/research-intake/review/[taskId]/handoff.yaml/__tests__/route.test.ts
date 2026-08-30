@@ -104,7 +104,7 @@ describe('GET /api/admin/research-intake/review/[taskId]/handoff.yaml', () => {
     expect(response.headers.get('vary')).toBe('Cookie, Authorization');
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
     expect(parsed).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       templateStatus: 'blank-template-not-recorded',
       completionRecorded: false,
       mutationSupported: false,
@@ -117,6 +117,15 @@ describe('GET /api/admin/research-intake/review/[taskId]/handoff.yaml', () => {
       reviewedAt: null,
       outcome: null,
       notes: null,
+      validation: {
+        status: 'not-run-by-read-only-api',
+        command:
+          'npm run validate:research-review-handoff -- --file <completed-handoff.yaml>',
+        recordsReviewCompletion: false,
+        recordsOwnerDecision: false,
+        grantsPublicationAuthority: false,
+        grantsTradingAuthority: false,
+      },
     });
     expect(parsed.evidenceIntegrity).toMatchObject({
       schemaVersion: 2,

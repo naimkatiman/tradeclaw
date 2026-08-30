@@ -91,6 +91,16 @@ download of the same visible handoff set. Both routes authenticate before
 observing the clock, ignore filters, stay private/no-store, and expose no
 mutation or outbound action.
 
+After an admin fills the exact review's downloaded `handoff.yaml`, the local
+repository command
+`npm run validate:research-review-handoff -- --file <completed-handoff.yaml>`
+fails closed on a stale or altered template, malformed reviewer metadata,
+missing or duplicate check and claim IDs, an invented outcome, changed authority
+fields, or repository evidence drift. Its machine-readable success proves only
+that the completed file matches the current observation-bound handoff contract
+and pinned evidence bytes. It does not record review completion, make an owner
+decision, approve publication, post externally, or authorize trading.
+
 The retained history contains one known contract violation: TC-256 and TC-257
 both use `2026-08-29T06:00:00.000Z/PT3H`. Neither receipt may be deleted,
 renamed, or silently selected as canonical after the fact. The ledger labels

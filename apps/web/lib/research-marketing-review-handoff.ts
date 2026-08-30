@@ -43,6 +43,21 @@ function yamlEvidenceIntegrity(
   ];
 }
 
+function yamlValidation(
+  validation: ResearchIntakeAdminReviewHandoffTemplate['validation'],
+): string[] {
+  return [
+    'validation:',
+    `  status: ${yamlString(validation.status)}`,
+    `  command: ${yamlString(validation.command)}`,
+    `  successMeaning: ${yamlString(validation.successMeaning)}`,
+    `  recordsReviewCompletion: ${validation.recordsReviewCompletion}`,
+    `  recordsOwnerDecision: ${validation.recordsOwnerDecision}`,
+    `  grantsPublicationAuthority: ${validation.grantsPublicationAuthority}`,
+    `  grantsTradingAuthority: ${validation.grantsTradingAuthority}`,
+  ];
+}
+
 /**
  * Serialize the editable blank record from the exact-review template. All
  * strings are quoted so the attachment remains deterministic and cannot gain
@@ -53,7 +68,7 @@ export function formatResearchMarketingReviewHandoff(
 ): string {
   const { blankRecord } = template;
   return [
-    'schemaVersion: 1',
+    `schemaVersion: ${template.schemaVersion}`,
     `templateStatus: ${yamlString(template.status)}`,
     `completionTracking: ${yamlString(template.completionTracking)}`,
     'completionRecorded: false',
@@ -71,6 +86,7 @@ export function formatResearchMarketingReviewHandoff(
     ...yamlStringList('requiredCheckIds:', template.requiredCheckIds),
     ...yamlStringList('claimIds:', template.claimIds),
     ...yamlStringList('allowedOutcomes:', template.allowedOutcomes),
+    ...yamlValidation(template.validation),
     'reviewer: null',
     'reviewedAt: null',
     'completedCheckIds: []',

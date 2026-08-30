@@ -53,7 +53,7 @@ describe('protected manual-review YAML handoff', () => {
     expect(first.endsWith('\n')).toBe(true);
     expect(createHash('sha256').update(first).digest('hex')).toMatch(/^[a-f0-9]{64}$/);
     expect(parse(first)).toEqual({
-      schemaVersion: 1,
+      schemaVersion: 2,
       templateStatus: 'blank-template-not-recorded',
       completionTracking: 'not-recorded-by-this-read-only-api',
       completionRecorded: false,
@@ -73,6 +73,17 @@ describe('protected manual-review YAML handoff', () => {
         'needs-revision',
         'ready-for-separate-owner-decision',
       ],
+      validation: {
+        status: 'not-run-by-read-only-api',
+        command:
+          'npm run validate:research-review-handoff -- --file <completed-handoff.yaml>',
+        successMeaning:
+          'completed-handoff-and-current-repository-evidence-match-review-contract',
+        recordsReviewCompletion: false,
+        recordsOwnerDecision: false,
+        grantsPublicationAuthority: false,
+        grantsTradingAuthority: false,
+      },
       reviewer: null,
       reviewedAt: null,
       completedCheckIds: [],

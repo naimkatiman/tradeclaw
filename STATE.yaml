@@ -1,11 +1,148 @@
 project: tradeclaw
-updated: 2026-08-30T17:34:33+08:00
+updated: 2026-08-30T18:01:37+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_completed_handoff_validator_2026_08_30:
+  at: 2026-08-30T17:41:37+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_implementation_commit_pending
+  scope: Give admins one deterministic fail-closed command to validate a completed manual-review handoff against its exact observation-bound template and current repository evidence
+  base_commit: de6962091a16131533d4f063f2aca79942a06907
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T09:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-266
+  current_cycle_ends_at: 2026-08-30T12:00:00.000Z
+  observed_at: 2026-08-30T09:41:37.193Z
+  receipt_neutral: true
+  new_research_receipt: false
+  audit_basis: >-
+    The exact review already supplies a protocol, numeric claim map, pinned
+    evidence manifest, blank YAML download, and repository-byte verifier. An
+    admin can fill the YAML but currently has no canonical check for stale or
+    altered immutable fields, missing checks or claims, malformed reviewer
+    metadata, an invalid outcome, evidence drift, or authority fields changed
+    to true. This leaves the final manual handoff unnecessarily error-prone.
+  selected_improvement:
+    command: npm run validate:research-review-handoff -- --file <completed-handoff.yaml>
+    input: one completed copy of the protected exact-review handoff.yaml
+    output: machine-readable fail-closed validation report with stable issue paths and false authority controls
+    validates:
+      - one bounded YAML document with the exact current schema and no unknown fields
+      - exact task, candidate, observation, protocol, claim, outcome, evidence-integrity, and authority bindings
+      - nonempty bounded reviewer metadata and an explicit valid reviewedAt instant
+      - complete nonduplicated required-check and numeric-claim ID sets
+      - a permitted non-approving review outcome and actionable notes when rejecting or requesting revision
+      - current repository evidence bytes through the existing exact manifest verifier
+    records_review_completion: false
+    records_owner_decision: false
+    grants_publication_authority: false
+    grants_trading_authority: false
+  red_contract:
+    test: scripts/research/__tests__/research-marketing-review-handoff-validator.test.ts
+    expected_failure: Missing validator module, CLI, package command, template metadata, and packet guidance
+    command: npm test -- --runInBand scripts/research/__tests__/research-marketing-review-handoff-validator.test.ts
+    result: PASS - 12/13 tests failed only on the intentionally absent command, module, CLI, schema-v2 validation metadata, packet guidance, valid-completion path, unsafe/incomplete rejection paths, and argument parser; the exclusion boundary already passed
+  implementation:
+    module: scripts/research/research-marketing-review-handoff-validator.ts
+    cli: scripts/research/validate-marketing-review-handoff.ts
+    package_command: npm run validate:research-review-handoff -- --file <completed-handoff.yaml>
+    handoff_schema_version: 2
+    protected_discovery:
+      - exact review JSON carries deeply frozen validation metadata
+      - Markdown packet names the completed-file command and narrow success meaning
+      - downloaded YAML carries the same immutable non-authorizing metadata
+    validation_contract:
+      maximum_input_bytes: 65536
+      yaml_documents: exactly_one
+      unknown_top_level_fields: rejected
+      immutable_fields: exact_observation_bound_template_match
+      editable_fields: reviewer_reviewedAt_check_ids_claim_ids_outcome_notes
+      evidence_verification: existing_repository_manifest_verifier_reused
+      machine_readable_issues: true
+      writes_or_external_actions: none
+  focused_green:
+    command: npm test -- --runInBand scripts/research/__tests__/research-marketing-review-handoff-validator.test.ts
+    result: PASS - 1 suite and 17 tests cover valid completion, all unsafe or incomplete paths, actual injected evidence drift, multiple and oversized YAML, CLI parsing, exclusion boundaries, and read-only source inspection
+  adjacent_green:
+    libraries_and_scripts: PASS - 48 suites and 267 tests
+    routes_and_auth: PASS - 26 suites and 99 tests
+    exact_review_slice: PASS - 8 suites and 58 tests
+    web_typecheck: PASS - npm run typecheck:web
+  real_cli_replay:
+    valid_completed_fixture: PASS - ok true, 3020 bytes, SHA-256 6b636542bca49ca2ca2adc7da6c61e6277f920a2d30dcaa1da5e58637600e4d1, 4/4 checks, 5/5 claims, 3/3 evidence files
+    missing_file_argument: PASS - exited 1 with machine-readable false controls and no side effect
+    temporary_fixture_removed: true
+  deterministic_packet:
+    tc255_bytes: 11286
+    tc255_sha256: b196b34b8bacb345d3f1ed17227e88ef16ec3a59982ebc593919f8ffd651bb08
+    queue_public_csv_receipts_changed: false
+  deterministic_surfaces:
+    exact_review_tc255:
+      bytes: 17044
+      sha256: cdb912f2354947ac16f53f3ae1d5e4187d55497ecbf9b521b1d565f23287fd23
+    blank_handoff_tc255:
+      bytes: 2599
+      sha256: 02999fc3e7f0600e6ea114e756077649450c9af189ad0c4d9ad5ffb0051c1658
+    review_queue_unchanged:
+      bytes: 31246
+      sha256: 15f5f52438a2d4a71b3df43cec0a51b240b4f920a74694af7084f551ea8280fe
+    public_overview_unchanged:
+      bytes: 7637
+      sha256: 936a0c45f0fa25acbc315ed59edf6776971e882e454344e05355bd0d37184741
+    public_evidence_index_unchanged:
+      bytes: 18666
+      sha256: af8de9048e234af09552cdb7c5276905e5fb4d2bab54e5c600bccdb163d0b1c9
+    public_catalog_csv_unchanged:
+      bytes: 37314
+      sha256: 9a8673a9d7ff14c6ec05f4bf3da6e94e8af0eb51220400dbd2fba6dbca371e04
+    public_evidence_csv_unchanged:
+      bytes: 8557
+      sha256: be4d757a87c8d7903ef5c9f9ab34bbea6764f7d92fe4d3cd66db71b5faea08bf
+    protected_review_csv_unchanged:
+      bytes: 7094
+      sha256: c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  final_verification:
+    focused: PASS - 1 suite and 17 tests
+    adjacent_libraries_and_scripts: PASS - 48 suites and 267 tests
+    research_routes_and_auth: PASS - 26 suites and 99 tests
+    pinned_source: PASS - 61/61 candidates reconstructed at the exact source commit and README hash
+    review_manifests: PASS - 4/4 tasks and 12/12 repository evidence files
+    web_typecheck: PASS - npm run typecheck:web
+    lint: PASS - zero errors and 21 inherited warnings
+    full_repository_tests: PASS - 322 runnable suites and 2312 tests; 3 suites and 26 tests skipped; 1 snapshot passed; inherited open handle force-exited after results
+    production_build: PASS - shared packages compiled and Next.js generated 331/331 pages with inherited middleware, Turbopack trace, edge-runtime, and url.parse warnings
+    install_contract: PASS - yaml 2.8.3 is a direct root development dependency and offline npm ci dry-run passed
+    state_and_diff: PASS - STATE parses, git diff check has no whitespace errors apart from Windows line-ending notices, and the temporary CLI fixture is absent
+    compose: PASS - no Docker Compose path changed; Docker CLI remains unavailable for an additional local runtime check
+  implementation_file_integrity:
+    validator:
+      bytes: 17209
+      sha256: b436df92c0568c5e2d39beba6193c87fdc4e3f19da907f3b1038fc4247242309
+    cli:
+      bytes: 1610
+      sha256: 6eb7854d8e4051a55143309d426ab91c381ef9c263326a73d53e6f062ea8dad5
+    focused_test:
+      bytes: 14526
+      sha256: da08b0047582a8a5e516dfec55fa3bd56b3e4d3acb51c8cf19dc758a262fe802
+  final_gate_observed_at: 2026-08-30T09:58:46.393Z
+  final_gate_snapshot: >-
+    Complete with TC-266 still the sole current-window and latest receipt, 11
+    total receipts across 10 windows, only the expected 06:00Z legacy duplicate,
+    no additional duplicate, four unchanged marketing handoffs, no TC-266
+    handoff, and automatic candidate selection, publication, and trading false.
+  implementation_commit: pending_local_commit
+  safety: >-
+    Validation is local and read-only. It must not write review state, approve an
+    outcome, publish or post a draft, alter the sole TC-266 receipt, expose the
+    protected workflow publicly, or authorize signals, brokers, execution, or
+    trading.
+  next_action: Create the local implementation commit, record its exact hash in STATE.yaml, then commit the state closure and save shared MemoryCore; do not push, deploy, publish, post, or trade.
 
 research_risk_factor_parity_source_audit_2026_08_30:
   at: 2026-08-30T17:09:08+08:00

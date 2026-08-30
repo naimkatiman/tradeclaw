@@ -113,7 +113,7 @@ describe('GET /api/admin/research-intake/review/[taskId] real admin-cookie bound
     });
     expect(body.claimVerification.evidenceIntegrity.files).toHaveLength(3);
     expect(body.reviewHandoffTemplate).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       status: 'blank-template-not-recorded',
       purpose: 'copy-to-separate-manual-review-workflow',
       completionRecorded: false,
@@ -127,6 +127,15 @@ describe('GET /api/admin/research-intake/review/[taskId] real admin-cookie bound
         'needs-revision',
         'ready-for-separate-owner-decision',
       ],
+      validation: {
+        status: 'not-run-by-read-only-api',
+        command:
+          'npm run validate:research-review-handoff -- --file <completed-handoff.yaml>',
+        recordsReviewCompletion: false,
+        recordsOwnerDecision: false,
+        grantsPublicationAuthority: false,
+        grantsTradingAuthority: false,
+      },
       blankRecord: {
         taskId: 'TC-255',
         outcome: null,

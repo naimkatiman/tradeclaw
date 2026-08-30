@@ -24,7 +24,7 @@ const REVIEW_OUTCOMES = [
 ] as const;
 
 interface ReviewHandoffTemplate {
-  schemaVersion: 1;
+  schemaVersion: 2;
   status: 'blank-template-not-recorded';
   purpose: 'copy-to-separate-manual-review-workflow';
   completionTracking: 'not-recorded-by-this-read-only-api';
@@ -39,6 +39,15 @@ interface ReviewHandoffTemplate {
   requiredCheckIds: readonly string[];
   claimIds: readonly string[];
   allowedOutcomes: readonly (typeof REVIEW_OUTCOMES)[number][];
+  validation: {
+    status: 'not-run-by-read-only-api';
+    command: string;
+    successMeaning: string;
+    recordsReviewCompletion: false;
+    recordsOwnerDecision: false;
+    grantsPublicationAuthority: false;
+    grantsTradingAuthority: false;
+  };
   blankRecord: {
     taskId: string;
     candidateId: string;
@@ -67,7 +76,7 @@ describe('protected exact-review blank manual handoff template', () => {
     if (!exact || !template) throw new Error('TC-255 handoff template is missing');
 
     expect(template).toEqual({
-      schemaVersion: 1,
+      schemaVersion: 2,
       status: 'blank-template-not-recorded',
       purpose: 'copy-to-separate-manual-review-workflow',
       completionTracking: 'not-recorded-by-this-read-only-api',
@@ -82,6 +91,17 @@ describe('protected exact-review blank manual handoff template', () => {
       requiredCheckIds: exact.reviewProtocol.checks.map((check) => check.id),
       claimIds: exact.claimVerification.claims.map((claim) => claim.id),
       allowedOutcomes: REVIEW_OUTCOMES,
+      validation: {
+        status: 'not-run-by-read-only-api',
+        command:
+          'npm run validate:research-review-handoff -- --file <completed-handoff.yaml>',
+        successMeaning:
+          'completed-handoff-and-current-repository-evidence-match-review-contract',
+        recordsReviewCompletion: false,
+        recordsOwnerDecision: false,
+        grantsPublicationAuthority: false,
+        grantsTradingAuthority: false,
+      },
       blankRecord: {
         taskId: 'TC-255',
         candidateId: exact.reviewItem.candidate.id,
@@ -98,6 +118,7 @@ describe('protected exact-review blank manual handoff template', () => {
     expect(Object.isFrozen(template.requiredCheckIds)).toBe(true);
     expect(Object.isFrozen(template.claimIds)).toBe(true);
     expect(Object.isFrozen(template.allowedOutcomes)).toBe(true);
+    expect(Object.isFrozen(template.validation)).toBe(true);
     expect(Object.isFrozen(template.blankRecord)).toBe(true);
     expect(Object.isFrozen(template.blankRecord.completedCheckIds)).toBe(true);
     expect(Object.isFrozen(template.blankRecord.verifiedClaimIds)).toBe(true);

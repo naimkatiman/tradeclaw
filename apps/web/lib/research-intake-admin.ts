@@ -685,7 +685,7 @@ export interface ResearchIntakeAdminClaimVerification {
 }
 
 export interface ResearchIntakeAdminReviewHandoffTemplate {
-  schemaVersion: 1;
+  schemaVersion: 2;
   status: 'blank-template-not-recorded';
   purpose: 'copy-to-separate-manual-review-workflow';
   completionTracking: 'not-recorded-by-this-read-only-api';
@@ -700,6 +700,16 @@ export interface ResearchIntakeAdminReviewHandoffTemplate {
   requiredCheckIds: readonly ResearchIntakeAdminReviewCheckId[];
   claimIds: readonly string[];
   allowedOutcomes: typeof RESEARCH_INTAKE_ADMIN_REVIEW_OUTCOMES;
+  validation: {
+    status: 'not-run-by-read-only-api';
+    command: 'npm run validate:research-review-handoff -- --file <completed-handoff.yaml>';
+    successMeaning:
+      'completed-handoff-and-current-repository-evidence-match-review-contract';
+    recordsReviewCompletion: false;
+    recordsOwnerDecision: false;
+    grantsPublicationAuthority: false;
+    grantsTradingAuthority: false;
+  };
   blankRecord: {
     taskId: ResearchLoopMarketingHandoff['taskId'];
     candidateId: string;
@@ -2016,6 +2026,18 @@ function buildResearchIntakeAdminClaimVerification(
 
 const EMPTY_REVIEW_HANDOFF_IDS = Object.freeze([]) as readonly [];
 
+const RESEARCH_INTAKE_ADMIN_REVIEW_HANDOFF_VALIDATION = Object.freeze({
+  status: 'not-run-by-read-only-api',
+  command:
+    'npm run validate:research-review-handoff -- --file <completed-handoff.yaml>',
+  successMeaning:
+    'completed-handoff-and-current-repository-evidence-match-review-contract',
+  recordsReviewCompletion: false,
+  recordsOwnerDecision: false,
+  grantsPublicationAuthority: false,
+  grantsTradingAuthority: false,
+} as const);
+
 function buildResearchIntakeAdminReviewHandoffTemplate(
   reviewItem: ResearchIntakeAdminReviewItem,
   observedAt: string,
@@ -2023,7 +2045,7 @@ function buildResearchIntakeAdminReviewHandoffTemplate(
   claimVerification: ResearchIntakeAdminClaimVerification,
 ): ResearchIntakeAdminReviewHandoffTemplate {
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     status: 'blank-template-not-recorded',
     purpose: 'copy-to-separate-manual-review-workflow',
     completionTracking: 'not-recorded-by-this-read-only-api',
@@ -2044,6 +2066,7 @@ function buildResearchIntakeAdminReviewHandoffTemplate(
       claimVerification.claims.map((claim) => claim.id),
     ),
     allowedOutcomes: RESEARCH_INTAKE_ADMIN_REVIEW_OUTCOMES,
+    validation: RESEARCH_INTAKE_ADMIN_REVIEW_HANDOFF_VALIDATION,
     blankRecord: Object.freeze({
       taskId: reviewItem.handoff.taskId,
       candidateId: reviewItem.candidate.id,
