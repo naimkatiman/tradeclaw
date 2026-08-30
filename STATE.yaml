@@ -1,11 +1,128 @@
 project: tradeclaw
-updated: 2026-08-30T20:33:00+08:00
+updated: 2026-08-30T20:57:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_receipt_gate_2026_08_30:
+  at: 2026-08-30T20:57:00+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_implementation_ready_to_commit
+  scope: Add one explicit observation-safe receipt-slot gate to protected research projections so admins can distinguish an open slot, a completed-window wait, and a receipt conflict without inferring authority from prose
+  branch: agent/research-intake-desk-20260829
+  base_commit: d8777a160409fc7f0479e94445e9a3c85874f36e
+  cycle_id: 2026-08-30T12:00:00.000Z/PT3H
+  receipt_neutral: true
+  new_research_receipt: false
+  observed_at: 2026-08-30T12:55:46.627Z
+  gate_snapshot: >-
+    TC-267 is the sole current-window and latest receipt; the ledger has 12
+    receipts across 11 windows with only the expected historical duplicate and
+    no additional duplicate. Four marketing handoffs remain review-ready, none
+    belongs to the current window, zero are approved, and automatic candidate
+    selection, publication, posting, and trading remain false.
+  audit_basis: >-
+    Protected research payloads expose the current window, its receipt status,
+    and next rollover, but they do not expose one typed receipt-slot decision.
+    After a completed receipt, the receipt's domain next action can be mistaken
+    for permission to open another receipt before rollover. Admin clients must
+    currently reimplement the one-receipt rule and conflict semantics.
+  shared_library_search: No reusable receipt-window, cadence-gate, rollover, or one-receipt workflow pattern was found under the shared MemoryCore library
+  intended_contract:
+    states:
+      - open-for-one-receipt
+      - wait-for-next-window
+      - blocked-by-conflict
+    receipt_limit_per_window: 1
+    open_state_requires_zero_current_receipts: true
+    complete_state_points_to_next_utc_window: true
+    conflict_state_promises_no_future_slot: true
+    manual_screening_required: true
+    automatic_candidate_selection: false
+    automatic_receipt_creation: false
+    grants_publication_authority: false
+    grants_trading_authority: false
+  boundary_audit: >-
+    This is protected read-model guidance only. It must create no receipt,
+    candidate selection, research result, marketing handoff, review decision,
+    publication request, external action, or trading authority. Public payloads,
+    every CSV, runtime routes, rendered UI, auth, database, Compose, billing,
+    signals, broker, and execution behavior remain frozen.
+  red_contract:
+    file: apps/web/lib/__tests__/research-intake-admin-receipt-gate.test.ts
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-receipt-gate.test.ts --silent
+    result: PASS - the focused suite failed as intended with 5/5 tests red
+    proves: >-
+      Open, wait, and conflict receipt-slot decisions are absent; protected
+      projections expose no shared gate; and README/loop documentation does not
+      define the three states. Frozen public catalog/evidence JSON and all four
+      public/protected CSV fingerprints still matched before the documentation
+      assertion.
+  implementation:
+    source: apps/web/lib/research-loop-receipts.ts
+    contract: researchLoop.receiptGate
+    states:
+      open_for_one_receipt: current window has zero receipts; exposes that same UTC window as the only available manual slot
+      wait_for_next_window: current window has exactly one receipt; exposes the next UTC-aligned window and its exact start
+      blocked_by_conflict: current window has at least two receipts; exposes no future slot until reconciliation
+    projection_reuse: all protected overview, catalog, candidate, evidence index, evidence, and marketing-review payloads through the shared observation snapshot
+    public_payload_change: false
+    csv_change: false
+    runtime_route_change: false
+    rendered_ui_change: false
+    mutation_supported: false
+  focused_green:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-receipt-gate.test.ts --silent
+    result: PASS - 1 suite and 5 tests cover all three states, exact 15:00Z wait behavior, protected projection parity, false authority, frozen public/CSV bytes, and README/loop documentation
+  focused_closure:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-admin-receipt-gate.test.ts apps/web/lib/__tests__/research-loop-receipts.test.ts apps/web/lib/__tests__/research-intake-start-here.test.ts apps/web/app/api/admin/research-intake/__tests__/route.test.ts --silent
+    result: PASS - 4 suites and 37 tests cover gate states, receipt timing, start-here guidance, protected route serialization, and auth boundaries
+  first_adjacent_run: EXPECTED_FINGERPRINT_DRIFT - 45/55 suites and 335/345 tests passed; the ten failures were only stale deterministic protected-JSON fingerprints, each moving with the same 689-byte receiptGate while public JSON, all CSVs, packets, behavior, and non-fingerprint assertions remained green
+  adjacent_green:
+    command: npm test -- --runInBand --testPathPattern="(apps.web.lib.__tests__.(research-intake|research-loop|research-marketing)|scripts.research.__tests__.research-marketing).*test.ts$" --silent
+    result: PASS - 55 suites and 345 tests across receipt timing, intake, protected/public evidence, start-here, deterministic payloads, review workflow, marketing, owner decision, and publication-request safety
+  first_route_run: EXPECTED_EXACT_OBJECT_DRIFT - 25/26 suites and 98/99 tests passed; the only failure was the protected catalog route's exact researchLoop object correctly gaining receiptGate
+  route_and_auth_green:
+    command: npm test -- --runInBand apps/web/app/api/research/intake apps/web/app/api/admin/research-intake --silent
+    result: PASS - 26 suites and 99 tests cover public and protected catalog, candidate, overview, evidence, evidence index, CSV, review, packet, handoff, private caching, exact gate serialization, and auth-first boundaries
+  targeted_verification:
+    pinned_source: PASS - all 61 candidates reconstruct at commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with frozen asset-class counts and gross discovery-only treatment
+    review_evidence: PASS - 4/4 review manifests and 12/12 preregistration, result, and artifact files match exact normalized bytes and SHA-256 bindings
+    web_typecheck: PASS
+    lint: PASS - 0 errors and 21 inherited warnings; no warning points to this increment
+    deterministic_projection_parity: PASS - six protected overview, catalog, evidence-index, evidence, exact-candidate, and review builders expose the same wait-for-next-window gate at 2026-08-30T12:51:37.897Z, with the next manual slot at exact 2026-08-30T15:00:00.000Z
+    state_and_diff: PASS - STATE.yaml parses and git diff --check reports no whitespace errors
+  full_repository_tests: PASS - 329 runnable suites, 2390 tests, and 1 snapshot; 3 suites and 26 tests skipped; the inherited post-summary open handle was manually terminated only after Jest printed the complete passing totals
+  production_build: PASS - signals and trading-agents packages built, Next.js compiled, and 331/331 static pages generated; only inherited middleware, Turbopack trace, url.parse, and edge-runtime warnings remained
+  deterministic_fingerprints:
+    protected_overview: c30d4b510f2f1a321dcdacd17f2944b71ecd71fe2a1404eba0cd430d29523069
+    protected_catalog: c353f07b4c9fbf226eff6cfa5155a8e3aa282d2d2d8ffea22607cbda173e5733
+    protected_evidence_index: dc9b01ca697608423a1d2b96cbc6250a56cad3558e16df0493aeee57924098dd
+    protected_evidence: 39d1a3f8d58b2f876fe890dd73ec3df06e8a7769a1a76e932fd7b729895af3d9
+    protected_candidate: acef08100bfd14bb241f4ba045cccca6161531fc169bda110a82e3d68e85910c
+    protected_review: b25e64834f1a8dcfefa3d8080be19873068ae979456fc36b44c380337bd706b1
+    public_catalog_unchanged: f61ce7db203f1a214b928a3f300931f625a2ab7520c9a218866bb104bbce52b7
+    public_evidence_unchanged: d42a955706e8a60e95d514153a3a645683b61768e87fef1f39d265ed6986ed37
+    public_catalog_csv_unchanged: 2b990e994ec88fbea657170a673702daa3cf208de01b0ca61e0a555d9dc0288f
+    public_evidence_csv_unchanged: e6cfe5fdaee58678f734ffbd8ea05e719d585eb4ae0477c054420f4dff53b941
+    protected_evidence_csv_unchanged: e641315a42b9f66768b3420619e77072474c6dc94392fb6bc9fd37af5aeac35f
+    protected_review_csv_unchanged: c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  final_gate_audit: >-
+    At 2026-08-30T12:55:46.627Z, TC-267 remains the sole current-window
+    receipt; 12 receipts occupy 11 windows with only the expected historical
+    duplicate. The protected gate is wait-for-next-window and identifies exact
+    2026-08-30T15:00:00.000Z as the next manual slot. Four handoffs remain
+    unapproved and automatic selection, receipt creation, publication, posting,
+    and trading remain false.
+  final_scope_audit: PASS - exactly 16 intended paths are changed (15 tracked and one new focused test); public and protected CSV bytes remain frozen, and Compose, Dockerfiles, lockfiles, migrations, rendered admin UI, runtime routes, auth, billing, signals, broker, and execution behavior are untouched
+  closure_audit: PASS - STATE.yaml parses, git diff --check has no whitespace errors, and an exact allowlist comparison confirms all and only the 16 intended paths
+  staged_audit: PASS - all and only the 16 audited paths are staged; the staged diff has 506 insertions and 34 deletions with no whitespace errors
+  docker_compose_preservation: PASS by scope and diff; Docker CLI is not installed in this environment, so no Compose runtime command was available
+  external_actions: none
+  next_step: Commit the staged implementation locally, then bind its full commit hash in a state-only closure commit.
 
 research_factor_timing_source_audit_2026_08_30:
   at: 2026-08-30T20:33:00+08:00

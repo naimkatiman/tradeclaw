@@ -69,6 +69,15 @@ controls. Future-dated receipts are never exposed by an earlier observation.
 Receipt data is filter-independent so pagination cannot hide the operator's
 workflow state.
 
+Protected projections derive one explicit `researchLoop.receiptGate` from that
+same observation. `open-for-one-receipt` exposes the current window's single
+empty manual slot; `wait-for-next-window` closes a completed window and names
+the exact next UTC window; `blocked-by-conflict` returns no promised future slot
+until the current ledger conflict is reconciled. The gate does not create or
+authorize a receipt, select a candidate, publish, post, or trade. Manual
+screening remains required, the per-window limit remains one, and automatic
+receipt creation remains false.
+
 The sibling `marketingReview` projection is also independent of candidate
 filters and pagination. It lists every server-authored draft whose evidence was
 available at the observation instant, plus the latest handoff and any handoff in

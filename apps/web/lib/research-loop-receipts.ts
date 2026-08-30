@@ -1,5 +1,5 @@
 import type { ResearchIntakeStage, ResearchVerdict } from './research-intake';
-import { getResearchLoopWindow } from './research-loop';
+import { getResearchLoopWindow, type ResearchLoopWindow } from './research-loop';
 
 export const EXPECTED_LEGACY_DUPLICATE_WINDOW_IDS = [
   '2026-08-29T06:00:00.000Z/PT3H',
@@ -61,11 +61,34 @@ export interface ResearchLoopReceiptAudit {
   additionalDuplicateWindowIds: readonly string[];
 }
 
+export type ResearchLoopReceiptGateStatus =
+  | 'open-for-one-receipt'
+  | 'wait-for-next-window'
+  | 'blocked-by-conflict';
+
+export interface ResearchLoopReceiptGate {
+  status: ResearchLoopReceiptGateStatus;
+  receiptLimitPerWindow: 1;
+  currentWindowReceiptCount: number;
+  receiptSlotAvailableNow: boolean;
+  nextAvailableAt: string | null;
+  nextAvailableWindow: ResearchLoopWindow | null;
+  instruction: string;
+  controls: {
+    manualScreeningRequired: true;
+    automaticCandidateSelection: false;
+    automaticReceiptCreation: false;
+    grantsPublicationAuthority: false;
+    grantsTradingAuthority: false;
+  };
+}
+
 export interface ResearchLoopReceiptSnapshot {
   currentWindowStatus: 'awaiting-receipt' | 'complete' | 'conflict';
   latestReceipt: ResearchLoopReceipt | null;
   currentWindowReceipts: readonly ResearchLoopReceipt[];
   integrity: ResearchLoopReceiptAudit;
+  receiptGate: ResearchLoopReceiptGate;
   nextAction: string;
   controls: {
     automaticCandidateSelection: false;
@@ -413,6 +436,70 @@ const NO_RECEIPT_NEXT_ACTION =
 const CONFLICT_NEXT_ACTION =
   'Reconcile the duplicate historical receipts before relying on this window; do not create, publish, or activate another receipt from the conflicted state.';
 
+const RECEIPT_GATE_CONTROLS = Object.freeze({
+  manualScreeningRequired: true as const,
+  automaticCandidateSelection: false as const,
+  automaticReceiptCreation: false as const,
+  grantsPublicationAuthority: false as const,
+  grantsTradingAuthority: false as const,
+});
+
+function buildResearchLoopReceiptGate(
+  currentWindow: ResearchLoopWindow,
+  currentWindowStatus: ResearchLoopReceiptSnapshot['currentWindowStatus'],
+  currentWindowReceiptCount: number,
+): ResearchLoopReceiptGate {
+  if (currentWindowStatus === 'conflict') {
+    if (currentWindowReceiptCount < 2) {
+      throw new Error('a conflicted research window must contain at least two receipts');
+    }
+    return Object.freeze({
+      status: 'blocked-by-conflict',
+      receiptLimitPerWindow: 1,
+      currentWindowReceiptCount,
+      receiptSlotAvailableNow: false,
+      nextAvailableAt: null,
+      nextAvailableWindow: null,
+      instruction:
+        'The current UTC window has conflicting receipts. Reconcile the receipt ledger; this projection promises no future receipt slot.',
+      controls: RECEIPT_GATE_CONTROLS,
+    });
+  }
+
+  if (currentWindowStatus === 'awaiting-receipt') {
+    if (currentWindowReceiptCount !== 0) {
+      throw new Error('an awaiting research window cannot contain a receipt');
+    }
+    return Object.freeze({
+      status: 'open-for-one-receipt',
+      receiptLimitPerWindow: 1,
+      currentWindowReceiptCount,
+      receiptSlotAvailableNow: true,
+      nextAvailableAt: currentWindow.startAt,
+      nextAvailableWindow: currentWindow,
+      instruction:
+        'One receipt slot is open in the current UTC window. Screen one candidate manually under the frozen cost-first policy; this projection does not create or select anything.',
+      controls: RECEIPT_GATE_CONTROLS,
+    });
+  }
+
+  if (currentWindowReceiptCount !== 1) {
+    throw new Error('a complete research window must contain exactly one receipt');
+  }
+  const nextAvailableWindow = getResearchLoopWindow(currentWindow.endsAt);
+  return Object.freeze({
+    status: 'wait-for-next-window',
+    receiptLimitPerWindow: 1,
+    currentWindowReceiptCount,
+    receiptSlotAvailableNow: false,
+    nextAvailableAt: nextAvailableWindow.startAt,
+    nextAvailableWindow,
+    instruction:
+      `The current UTC window already has its one receipt. Do not open another before ${nextAvailableWindow.startAt}; the next slot belongs to ${nextAvailableWindow.id}.`,
+    controls: RECEIPT_GATE_CONTROLS,
+  });
+}
+
 export function getResearchLoopReceiptSnapshot(
   at: Date | string | number,
 ): ResearchLoopReceiptSnapshot {
@@ -437,6 +524,11 @@ export function getResearchLoopReceiptSnapshot(
     latestReceipt,
     currentWindowReceipts,
     integrity: auditResearchLoopReceipts(visibleReceipts),
+    receiptGate: buildResearchLoopReceiptGate(
+      currentWindow,
+      currentWindowStatus,
+      currentWindowReceipts.length,
+    ),
     nextAction:
       currentWindowStatus === 'conflict'
         ? CONFLICT_NEXT_ACTION

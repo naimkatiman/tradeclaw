@@ -347,6 +347,28 @@ describe('GET /api/admin/research-intake', () => {
         expectedLegacyDuplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
         additionalDuplicateWindowIds: [],
       },
+      receiptGate: {
+        status: 'wait-for-next-window',
+        receiptLimitPerWindow: 1,
+        currentWindowReceiptCount: 1,
+        receiptSlotAvailableNow: false,
+        nextAvailableAt: '2026-08-29T12:00:00.000Z',
+        nextAvailableWindow: {
+          id: '2026-08-29T12:00:00.000Z/PT3H',
+          startAt: '2026-08-29T12:00:00.000Z',
+          endsAt: '2026-08-29T15:00:00.000Z',
+          durationHours: 3,
+        },
+        instruction:
+          'The current UTC window already has its one receipt. Do not open another before 2026-08-29T12:00:00.000Z; the next slot belongs to 2026-08-29T12:00:00.000Z/PT3H.',
+        controls: {
+          manualScreeningRequired: true,
+          automaticCandidateSelection: false,
+          automaticReceiptCreation: false,
+          grantsPublicationAuthority: false,
+          grantsTradingAuthority: false,
+        },
+      },
       nextAction:
         'Screen the next lower-transition catalog candidate for primary-rule reconstructibility, immutable data, and full-cost headroom; do not select TC-258 controls post result',
       controls: {
