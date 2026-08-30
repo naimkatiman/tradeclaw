@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T08:55:58+08:00
+updated: 2026-08-30T08:56:55+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,11 @@ description: >
 research_openapi_catalog_parity_2026_08_30:
   at: 2026-08-30T08:44:29+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_commit
+  status: done_openapi_catalog_parity_verified_and_committed_local
   scope: Keep the public systematic-research OpenAPI contract aligned with the compiled pinned catalog and complete adverse-inclusive evidence subset after every intake overlay
   base_commit: 87735fb50bcc6af4e3be06b8035968784e6143d9
+  implementation_commit: d085d412cd835ea7e0fae4c4801f51a1877df346
+  implementation_committed_at: 2026-08-30T00:56:39Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-263
   current_cycle_id: 2026-08-30T00:00:00.000Z/PT3H
@@ -145,8 +147,18 @@ research_openapi_catalog_parity_2026_08_30:
     tests with all nine passing. STATE parses, `git diff --check` remains clean
     apart from line-ending notices, Docker has no diff, and the exact four-path
     manifest remains intact.
-  current_step: Commit the verified documentation-only parity repair locally
-  next_action: Record the implementation commit, close STATE in a local-only commit, save shared MemoryCore, and keep the recurring goal active for the exact 03:00Z gate
+  local_commit_verification: >-
+    PASS - local implementation commit
+    d085d412cd835ea7e0fae4c4801f51a1877df346 contains exactly the frozen four
+    paths, and the worktree was clean immediately afterward. Nothing was pushed,
+    merged, deployed, published, posted, activated, or connected to execution.
+  closure_state: >-
+    The public OpenAPI contract now accepts and accurately describes the real
+    61-candidate catalog and complete nine-record evidence desk without changing
+    either payload. The recurring goal stays active, TC-263 remains the sole
+    00:00Z receipt, and no new research work may open before exact 03:00Z.
+  current_step: Closed the documentation-only OpenAPI parity repair with a green repository and local implementation commit
+  next_action: Keep the recurring goal active; at or after exact 2026-08-30T03:00:00.000Z reconcile the new window and screen at most one untouched candidate cost-first before any return or marketing work
   publish_approved: false
   trading_approved: false
   external_actions: none
