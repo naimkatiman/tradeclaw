@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-31T00:12:06+08:00
+updated: 2026-08-31T00:12:49+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_candidate_brief_2026_08_30:
-  at: 2026-08-31T00:12:06+08:00
+  at: 2026-08-31T00:12:49+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_commit_pending
+  status: done_verified_implementation_committed_local
   scope: Add a protected human-readable exact-candidate brief so an admin can move from the compact evidence desk to the full decision record without decoding raw JSON
   branch: agent/research-intake-desk-20260829
   base_commit: 81ae6124b21cdedf245fc11e3b450a8cdd9a8b6d
+  implementation_commit: 213542dbca905b7a722ecfbb52dbfc0d6a8729c4
   receipt_neutral: true
   cycle_id: 2026-08-30T15:00:00.000Z/PT3H
   new_research_receipt: false
@@ -70,10 +71,11 @@ research_admin_candidate_brief_2026_08_30:
     receipt_or_marketing_state_changed: false
     gate_observed_at: 2026-08-30T16:11:46.866Z
     gate: PASS - TC-268 remains the sole current-window receipt, the current window is complete, another receipt is denied until exact 2026-08-30T18:00:00.000Z, only the expected historical duplicate exists, four drafts remain human-review-only, zero are approved, and the current window has no marketing handoff
+    implementation_commit_audit: PASS - the exact verified 23-path increment committed locally as 213542dbca905b7a722ecfbb52dbfc0d6a8729c4 on the intended isolated branch with no residual source changes
   verification: PASS - focused brief/auth tests pass 13/13; affected protected contracts pass 90/90; all 342 runnable repository suites and 2444 tests pass; typecheck, lint, pinned-source reconstruction, review-evidence integrity, public-byte parity, STATE, scope, diff, gate, and the required 333-page production build pass
   shared_library_search: No reusable protected exact-candidate Markdown brief or admin human-record pattern was found under the shared MemoryCore library.
   safety_boundary: No candidate, source audit, return, receipt, research verdict, evidence artifact, marketing decision, publication, posting, billing, signal, allocation, broker, execution, or trading state will change.
-  next_step: Commit the verified 23-path implementation locally, record its exact commit in a STATE-only closure, save shared MemoryCore, and wait for the exact 2026-08-30T18:00:00.000Z intake boundary.
+  next_step: Commit this STATE-only closure locally, save shared MemoryCore, and wait for the exact 2026-08-30T18:00:00.000Z intake boundary.
 
 research_readme_evidence_count_guard_2026_08_30:
   at: 2026-08-30T23:48:56+08:00
