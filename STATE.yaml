@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T22:51:46+08:00
+updated: 2026-08-30T22:53:24+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,10 +10,12 @@ description: >
 research_public_candidate_brief_2026_08_30:
   at: 2026-08-30T22:30:58+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_commit
+  status: done_verified_implementation_committed_local
   scope: Complete the public human journey with one deterministic exact-candidate Markdown record instead of sending a reader from the human evidence index into raw JSON
   branch: agent/research-intake-desk-20260829
   base_commit: ce0d84e2db44ac04771ab10561738927805984c3
+  implementation_commit: 47dcbde17be68130d8d881a120e0aa87695c300f
+  implementation_committed_at: 2026-08-30T22:53:24+08:00
   cycle_id: 2026-08-30T12:00:00.000Z/PT3H
   receipt_neutral: true
   new_research_receipt: false
@@ -150,6 +152,8 @@ research_public_candidate_brief_2026_08_30:
     diff_check: PASS
     changed_path_scope: PASS - only the candidate brief implementation, route, exact related contracts, public documentation, operating plan, and STATE are changed
     docker_compose_unchanged: true
+    staged_audit: PASS - exactly the verified 22 paths were staged with zero unstaged or untracked paths and no staged whitespace error
+    implementation_commit_audit: PASS - the verified 22-path increment committed locally as 47dcbde17be68130d8d881a120e0aa87695c300f on the intended isolated branch, leaving only this STATE closure update
   final_gate_recheck:
     observed_at: 2026-08-30T14:51:46.804Z
     current_window: 2026-08-30T12:00:00.000Z/PT3H
@@ -166,7 +170,7 @@ research_public_candidate_brief_2026_08_30:
     - README public human journey, self-describing link map, and exact curl example
     - three-hour operating plan exact human-record and non-authorizing boundary
   external_actions: none
-  next_step: Stage only this verified receipt-neutral increment and create a local implementation commit; do not push, deploy, publish, post, activate execution, or create a research receipt.
+  next_step: Preserve the one-receipt-per-window gate; at or after exact 2026-08-30T15:00:00.000Z, begin a fresh observation for 2026-08-30T15:00:00.000Z/PT3H and manually screen at most one candidate, while TC-255 remains the next manual marketing-review packet.
 
 research_public_evidence_index_brief_2026_08_30:
   at: 2026-08-30T22:25:02+08:00
