@@ -143,11 +143,15 @@ describe('systematic research intake public boundary', () => {
       '#/components/schemas/ResearchIntakePublicRecordLinks',
     );
     expect(publicResourcesSchema.required).toEqual([
+      'overview',
       'catalog',
       'catalogCsv',
       'evidence',
       'evidenceCsv',
     ]);
+    expect(publicResourcesSchema.properties?.overview?.const).toBe(
+      '/api/research/intake/overview',
+    );
     expect(publicResourcesSchema.properties?.catalog?.const).toBe('/api/research/intake');
     expect(candidateResponseSchema.required).toContain('navigation');
     expect(candidateResponseSchema.properties?.navigation?.$ref).toBe(
@@ -233,10 +237,19 @@ describe('systematic research intake public boundary', () => {
   });
 
   it('keeps the complete admin evidence desk authenticated and outside public OpenAPI', () => {
+    const overviewRoute = source('api/admin/research-intake/overview/route.ts');
     const route = source('api/admin/research-intake/evidence/route.ts');
     const csvRoute = source('api/admin/research-intake/evidence.csv/route.ts');
     const spec = buildOpenApiSpec() as { paths: Record<string, unknown> };
 
+    expect(overviewRoute).toContain('assertAdminApi');
+    expect(overviewRoute.indexOf('assertAdminApi')).toBeLessThan(
+      overviewRoute.indexOf('buildResearchIntakeAdminOverviewPayload'),
+    );
+    expect(overviewRoute).toContain("private, no-store, max-age=0");
+    expect(overviewRoute).toContain("Vary', 'Cookie, Authorization");
+    expect(overviewRoute).not.toMatch(/Access-Control-Allow-Origin/i);
+    expect(overviewRoute).not.toMatch(/export async function (POST|PUT|PATCH|DELETE)/);
     expect(route).toContain('assertAdminApi');
     expect(route.indexOf('assertAdminApi')).toBeLessThan(
       route.indexOf('buildResearchIntakeAdminEvidencePayload'),
@@ -254,6 +267,7 @@ describe('systematic research intake public boundary', () => {
     expect(csvRoute).toContain("X-Content-Type-Options': 'nosniff");
     expect(csvRoute).not.toMatch(/Access-Control-Allow-Origin/i);
     expect(csvRoute).not.toMatch(/export async function (POST|PUT|PATCH|DELETE)/);
+    expect(spec.paths).not.toHaveProperty('/api/admin/research-intake/overview');
     expect(spec.paths).not.toHaveProperty('/api/admin/research-intake/evidence');
     expect(spec.paths).not.toHaveProperty('/api/admin/research-intake/evidence.csv');
   });

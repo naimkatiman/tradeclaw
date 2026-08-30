@@ -249,8 +249,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
           type: "object",
           description:
             "Canonical sibling resources for the public systematic-research intake. Every path is read-only and requires no API key.",
-          required: ["catalog", "catalogCsv", "evidence", "evidenceCsv"],
+          required: ["overview", "catalog", "catalogCsv", "evidence", "evidenceCsv"],
           properties: {
+            overview: { type: "string", const: "/api/research/intake/overview" },
             catalog: { type: "string", const: "/api/research/intake" },
             catalogCsv: { type: "string", const: "/api/research/intake.csv" },
             evidence: { type: "string", const: "/api/research/intake/evidence" },
@@ -648,6 +649,63 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
           },
         },
+        ResearchIntakeOverviewResponse: {
+          type: "object",
+          description:
+            `Compact, record-free orientation for the ${OPENAPI_RESEARCH_CATALOG_COUNT}-candidate catalog and complete ${OPENAPI_RESEARCH_EVIDENCE_COUNT}-record evidence subset. It retains the evidence interpretation, claim boundaries, and safe next resource without transferring candidate bodies.`,
+          required: [
+            "schemaVersion",
+            "access",
+            "resources",
+            "startHere",
+            "source",
+            "selectionPolicy",
+            "workflow",
+            "claimBoundary",
+            "catalogSummary",
+            "catalogEvidenceStateSummary",
+            "evidenceSummary",
+            "evidenceStateSummary",
+          ],
+          properties: {
+            schemaVersion: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/schemaVersion",
+            },
+            access: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/access" },
+            resources: {
+              $ref: "#/components/schemas/ResearchIntakePublicResources",
+            },
+            startHere: {
+              $ref: "#/components/schemas/ResearchIntakeStartHere",
+            },
+            source: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/source" },
+            selectionPolicy: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/selectionPolicy",
+            },
+            workflow: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/workflow",
+            },
+            claimBoundary: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/claimBoundary",
+            },
+            catalogSummary: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
+            },
+            catalogEvidenceStateSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
+              description:
+                `Whole ${OPENAPI_RESEARCH_CATALOG_COUNT}-candidate evidence interpretation.`,
+            },
+            evidenceSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceResponse/properties/evidenceSummary",
+            },
+            evidenceStateSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
+              description:
+                `Interpretation of the complete ${OPENAPI_RESEARCH_EVIDENCE_COUNT}-record evidence subset only.`,
+            },
+          },
+        },
         ResearchIntakeEvidenceResponse: {
           type: "object",
           description:
@@ -904,6 +962,27 @@ export function buildOpenApiSpec(): OpenApiSpec {
     // Most endpoints are public. Security is applied explicitly only on the
     // ones that require a key, so no top-level `security` array here.
     paths: {
+      "/api/research/intake/overview": {
+        get: {
+          tags: ["Research"],
+          operationId: "getResearchIntakeOverview",
+          summary: "Orient from the compact systematic-research evidence state",
+          description:
+            `Returns record-free summaries for all ${OPENAPI_RESEARCH_CATALOG_COUNT} pinned candidates and the complete ${OPENAPI_RESEARCH_EVIDENCE_COUNT}-record TradeClaw evidence subset, plus claim boundaries and one safe next resource. ` +
+            "No API key is required. The response is filter-free, includes no candidate bodies, and grants no publication, strategy-selection, broadcast, or trading authority.",
+          security: [],
+          responses: {
+            "200": {
+              description: "Compact public research evidence orientation",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ResearchIntakeOverviewResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
       "/api/research/intake": {
         get: {
           tags: ["Research"],

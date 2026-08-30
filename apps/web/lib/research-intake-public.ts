@@ -28,6 +28,7 @@ export type ResearchIntakePublicEvidenceBasis =
   | 'tradeclaw-replication-record';
 
 export const RESEARCH_INTAKE_PUBLIC_RESOURCES = Object.freeze({
+  overview: '/api/research/intake/overview',
   catalog: '/api/research/intake',
   catalogCsv: '/api/research/intake.csv',
   evidence: '/api/research/intake/evidence',
@@ -99,6 +100,14 @@ export type ResearchIntakePublicEvidencePayload = Omit<
   records: readonly ResearchIntakePublicRecord[];
 };
 
+export type ResearchIntakePublicOverviewPayload = Omit<
+  ResearchIntakePublicPayload,
+  'records'
+> & Pick<
+  ResearchIntakePublicEvidencePayload,
+  'evidenceSummary' | 'evidenceStateSummary'
+>;
+
 function evidenceBasisFor(record: ResearchIntakeRecord): ResearchIntakePublicEvidenceBasis {
   if (record.tradeClawEvidence) return 'tradeclaw-replication-record';
   if (record.tradeClawSourceAudit) return 'tradeclaw-source-audit-only';
@@ -166,6 +175,21 @@ function buildResearchIntakePublicContext(
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
     catalogEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(
       SYSTEMATIC_RESEARCH_INTAKE,
+    ),
+  };
+}
+
+/**
+ * Compact, record-free orientation projection. It preserves the complete
+ * evidence interpretation and claim boundaries without transferring candidate
+ * bodies merely to render a first screen.
+ */
+export function buildResearchIntakePublicOverviewPayload(): ResearchIntakePublicOverviewPayload {
+  return {
+    ...buildResearchIntakePublicContext('overview'),
+    evidenceSummary: summarizeResearchIntake(RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS),
+    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      RESEARCH_INTAKE_PUBLIC_EVIDENCE_RECORDS,
     ),
   };
 }

@@ -153,20 +153,20 @@ describe('protected research discovery context parity', () => {
       )),
     }).toEqual({
       protectedCatalog: {
-        bytes: 73_693,
-        sha256: 'fb6474f7b4aae8be4d46f26ac06ee5bb5a68e2b8ba848d76136bbe34aa5274c5',
+        bytes: 73_742,
+        sha256: 'aff25e683d4af3c7858c1f2a9a390e506841ee7acbfea51a227fed58c2ffc17c',
       },
       publicCatalog: {
-        bytes: 103_595,
-        sha256: 'f54c1311a63b77eeb3355fa89cf2804096d3d15182d1efc86d0ac49987c26e8a',
+        bytes: 103_638,
+        sha256: '4c699409e133e65e5677245239e52eb0697331b3fc4f382bc0a5e06c64e2b5fb',
       },
       publicCandidate: {
-        bytes: 9_467,
-        sha256: 'c902a6d3ddb166e2976610083de0eec08e652ee20dc0d489c502e07eb63b4974',
+        bytes: 9_510,
+        sha256: 'a6cd7cbb768d846613cdef3cf3d5e383cb213c6fad5d3db6172d7a33d76d5dea',
       },
       publicEvidence: {
-        bytes: 47_222,
-        sha256: '0a8f7a7433893449077c2659b6a5b0d69fdea6ce22d678463b13685942524398',
+        bytes: 47_265,
+        sha256: '738d0d1a9ddb7385c4f358f2eb7c8ec7f9e2d9d1e0a464edb38b881f98787cd2',
       },
       publicCatalogCsv: {
         bytes: 37_019,

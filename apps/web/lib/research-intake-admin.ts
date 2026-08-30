@@ -65,6 +65,7 @@ export const RESEARCH_INTAKE_ADMIN_QUERY_KEYS = Object.freeze([
 ] as const);
 
 export const RESEARCH_INTAKE_ADMIN_RESOURCES = Object.freeze({
+  overview: '/api/admin/research-intake/overview',
   catalog: '/api/admin/research-intake',
   evidence: '/api/admin/research-intake/evidence',
   evidenceCsv: '/api/admin/research-intake/evidence.csv',
@@ -398,6 +399,24 @@ export interface ResearchIntakeAdminPayload {
   };
   resultView: ResearchIntakeAdminResultView;
   records: readonly ResearchIntakeAdminCatalogRecord[];
+}
+
+export interface ResearchIntakeAdminOverviewPayload {
+  schemaVersion: 1;
+  access: ResearchIntakeAdminPayload['access'];
+  resources: ResearchIntakeAdminResources;
+  startHere: ResearchIntakeAdminStartHere;
+  source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
+  selectionPolicy: string;
+  workflow: typeof RESEARCH_INTAKE_WORKFLOW;
+  researchLoop: ResearchIntakeAdminPayload['researchLoop'];
+  marketingReview: Pick<ResearchLoopMarketingReview, 'status' | 'summary' | 'controls'> & {
+    currentWindowDraftCount: number;
+  };
+  catalogSummary: ReturnType<typeof summarizeResearchIntake>;
+  catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
+  evidenceSummary: ReturnType<typeof summarizeResearchIntake>;
+  evidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
 }
 
 export interface ResearchIntakeAdminCandidatePayload {
@@ -1114,6 +1133,46 @@ function buildResearchIntakeAdminCandidateWorkflow(
       automaticTrading: false,
       externalActions: 'none',
     },
+  };
+}
+
+/**
+ * Protected, record-free orientation projection. Receipt and review state is
+ * observed once at `at`; candidate records, review handoffs, and draft bodies
+ * remain on their dedicated protected resources.
+ */
+export function buildResearchIntakeAdminOverviewPayload(
+  at: Date | string | number = new Date(),
+): ResearchIntakeAdminOverviewPayload {
+  const observation = buildResearchIntakeAdminObservation(at);
+
+  return {
+    schemaVersion: 1,
+    access: {
+      mode: 'admin-read-only',
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    },
+    resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    startHere: buildResearchIntakeAdminProjectionStartHere(observation, 'overview'),
+    source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
+    selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
+    workflow: RESEARCH_INTAKE_WORKFLOW,
+    researchLoop: observation.researchLoop,
+    marketingReview: {
+      status: observation.marketingReview.status,
+      summary: observation.marketingReview.summary,
+      currentWindowDraftCount: observation.marketingReview.currentWindowHandoffs.length,
+      controls: observation.marketingReview.controls,
+    },
+    catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+    catalogEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      SYSTEMATIC_RESEARCH_INTAKE,
+    ),
+    evidenceSummary: summarizeResearchIntake(RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS),
+    evidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS,
+    ),
   };
 }
 

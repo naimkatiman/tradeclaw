@@ -5,15 +5,16 @@ export type ResearchIntakeStartHereKind =
   | 'review-marketing-drafts';
 
 export type ResearchIntakeCurrentResource =
+  | 'overview'
   | 'catalog'
   | 'candidate'
   | 'evidence'
   | 'marketing-review';
 
-export type ResearchIntakeStartHereTargetResource = Exclude<
-  ResearchIntakeCurrentResource,
-  'candidate'
->;
+export type ResearchIntakeStartHereTargetResource =
+  | 'catalog'
+  | 'evidence'
+  | 'marketing-review';
 
 interface ResearchIntakeStartHereBase {
   label: string;

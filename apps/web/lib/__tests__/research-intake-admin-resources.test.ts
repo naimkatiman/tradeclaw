@@ -4,6 +4,7 @@ import {
   RESEARCH_INTAKE_ADMIN_RESOURCES,
   buildResearchIntakeAdminCandidatePayload,
   buildResearchIntakeAdminEvidencePayload,
+  buildResearchIntakeAdminOverviewPayload,
   buildResearchIntakeAdminPayload,
   buildResearchIntakeAdminReviewPayload,
 } from '../research-intake-admin';
@@ -23,6 +24,7 @@ describe('protected research intake resource discovery', () => {
     if (!candidate) throw new Error('TC-261 admin candidate fixture is missing');
 
     const payloads = [
+      buildResearchIntakeAdminOverviewPayload(OBSERVED_AT),
       buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT),
       candidate,
       buildResearchIntakeAdminEvidencePayload(OBSERVED_AT),
@@ -30,6 +32,7 @@ describe('protected research intake resource discovery', () => {
     ];
 
     expect(RESEARCH_INTAKE_ADMIN_RESOURCES).toEqual({
+      overview: '/api/admin/research-intake/overview',
       catalog: '/api/admin/research-intake',
       evidence: '/api/admin/research-intake/evidence',
       evidenceCsv: '/api/admin/research-intake/evidence.csv',
@@ -58,6 +61,7 @@ describe('protected research intake resource discovery', () => {
 
     expect(publicPayload.resources).toBe(RESEARCH_INTAKE_PUBLIC_RESOURCES);
     expect(publicPayload.resources).toEqual({
+      overview: '/api/research/intake/overview',
       catalog: '/api/research/intake',
       catalogCsv: '/api/research/intake.csv',
       evidence: '/api/research/intake/evidence',

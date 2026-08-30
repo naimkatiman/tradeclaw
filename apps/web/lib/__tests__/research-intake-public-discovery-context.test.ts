@@ -7,6 +7,7 @@ import {
 import {
   buildResearchIntakePublicCandidatePayload,
   buildResearchIntakePublicEvidencePayload,
+  buildResearchIntakePublicOverviewPayload,
   buildResearchIntakePublicPayload,
 } from '../research-intake-public';
 
@@ -18,6 +19,7 @@ const EVIDENCE_PLAIN_LANGUAGE_SUMMARY =
   '9 candidates: 5 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 6 candidates.';
 
 const EXPECTED_RESOURCES = {
+  overview: '/api/research/intake/overview',
   catalog: '/api/research/intake',
   catalogCsv: '/api/research/intake.csv',
   evidence: '/api/research/intake/evidence',
@@ -59,6 +61,7 @@ function fingerprint(value: unknown): { bytes: number; sha256: string } {
 
 describe('public research-intake discovery context', () => {
   it('shares one frozen public resource map across every public JSON projection', () => {
+    const overview = buildResearchIntakePublicOverviewPayload();
     const catalog = buildResearchIntakePublicPayload();
     const evidence = buildResearchIntakePublicEvidencePayload();
     const candidate = buildResearchIntakePublicCandidatePayload(CANDIDATE_ID);
@@ -66,6 +69,7 @@ describe('public research-intake discovery context', () => {
 
     expect(context(catalog).resources).toEqual(EXPECTED_RESOURCES);
     expect(Object.isFrozen(context(catalog).resources)).toBe(true);
+    expect(context(overview).resources).toBe(context(catalog).resources);
     expect(context(evidence).resources).toBe(context(catalog).resources);
     expect(context(candidate).resources).toBe(context(catalog).resources);
     expect(JSON.stringify(catalog)).not.toContain('/api/admin/research-intake');
@@ -196,8 +200,8 @@ describe('public research-intake discovery context', () => {
       evidence: fingerprint(evidence),
     }).toEqual({
       resources: {
-        bytes: 167,
-        sha256: 'eb851f022c0a21e501831ceab58481e0462227234aeaef7821104cb37cd238a2',
+        bytes: 210,
+        sha256: '80aa7a1abac88e30ab7aeb714a5085f92eca5ab7b79a8b11f47591b573acdb10',
       },
       catalogEvidenceStateSummary: {
         bytes: 2_000,
@@ -208,12 +212,12 @@ describe('public research-intake discovery context', () => {
         sha256: '6b4721b769db3cb6bd033c6b8d9d01c850db1f387ebdf33446fd14dccca0a06c',
       },
       catalog: {
-        bytes: 103_595,
-        sha256: 'f54c1311a63b77eeb3355fa89cf2804096d3d15182d1efc86d0ac49987c26e8a',
+        bytes: 103_638,
+        sha256: '4c699409e133e65e5677245239e52eb0697331b3fc4f382bc0a5e06c64e2b5fb',
       },
       evidence: {
-        bytes: 47_222,
-        sha256: '0a8f7a7433893449077c2659b6a5b0d69fdea6ce22d678463b13685942524398',
+        bytes: 47_265,
+        sha256: '738d0d1a9ddb7385c4f358f2eb7c8ec7f9e2d9d1e0a464edb38b881f98787cd2',
       },
     });
   });
@@ -223,16 +227,16 @@ describe('public research-intake discovery context', () => {
       new URLSearchParams(),
       DETERMINISTIC_AT,
     ))).toEqual({
-      bytes: 73_693,
-      sha256: 'fb6474f7b4aae8be4d46f26ac06ee5bb5a68e2b8ba848d76136bbe34aa5274c5',
+      bytes: 73_742,
+      sha256: 'aff25e683d4af3c7858c1f2a9a390e506841ee7acbfea51a227fed58c2ffc17c',
     });
     const protectedEvidence = buildResearchIntakeAdminEvidencePayload(DETERMINISTIC_AT);
     expect(protectedEvidence.catalogEvidenceStateSummary).toEqual(
       context(buildResearchIntakePublicPayload()).catalogEvidenceStateSummary,
     );
     expect(fingerprint(protectedEvidence)).toEqual({
-      bytes: 74_786,
-      sha256: 'cf9daeab17d309a1628dac0e9fda91d2d4ca838f833ca3e1e6b5dc36c233b407',
+      bytes: 74_835,
+      sha256: '846c5813971dfe3a8698387d3963e8ff5a846a5aa5ceecfcb5d4169f04de0e44',
     });
   });
 });
