@@ -5,6 +5,7 @@ import {
   buildResearchIntakeAdminEvidenceIndexPayload,
   buildResearchIntakeAdminEvidencePayload,
   buildResearchIntakeAdminPayload,
+  buildResearchIntakeAdminReviewItemPayload,
   buildResearchIntakeAdminReviewPayload,
 } from '../research-intake-admin';
 import { buildOpenApiSpec } from '../openapi';
@@ -29,7 +30,12 @@ interface StartHere {
   label: string;
   reason: string;
   href: string;
-  targetResource: 'catalog' | 'evidence-index' | 'evidence' | 'marketing-review';
+  targetResource:
+    | 'catalog'
+    | 'evidence-index'
+    | 'evidence'
+    | 'marketing-review'
+    | 'marketing-review-item';
   targetIsCurrentResource: boolean;
   itemCount: number;
   automaticAction: false;
@@ -94,13 +100,16 @@ describe('research intake start-here guidance', () => {
   it('makes a current-window receipt conflict the protected priority', () => {
     const at = '2026-08-29T08:29:58.000Z';
     const candidate = buildResearchIntakeAdminCandidatePayload(TC260, at);
+    const reviewItem = buildResearchIntakeAdminReviewItemPayload('TC-255', at);
     if (!candidate) throw new Error('TC-260 admin candidate fixture is missing');
+    if (!reviewItem) throw new Error('TC-255 review-item fixture is missing');
     const payloads = [
       buildResearchIntakeAdminPayload(new URLSearchParams(), at),
       candidate,
       buildResearchIntakeAdminEvidenceIndexPayload(at),
       buildResearchIntakeAdminEvidencePayload(at),
       buildResearchIntakeAdminReviewPayload(at),
+      reviewItem,
     ];
     const expected = {
       audience: 'admin',
@@ -163,13 +172,16 @@ describe('research intake start-here guidance', () => {
   it('authors one identical review action across all protected projections after closure', () => {
     const at = '2026-08-29T18:00:40.000Z';
     const candidate = buildResearchIntakeAdminCandidatePayload(TC260, at);
+    const reviewItem = buildResearchIntakeAdminReviewItemPayload('TC-255', at);
     if (!candidate) throw new Error('TC-260 admin candidate fixture is missing');
+    if (!reviewItem) throw new Error('TC-255 review-item fixture is missing');
     const payloads = [
       buildResearchIntakeAdminPayload(new URLSearchParams(), at),
       candidate,
       buildResearchIntakeAdminEvidenceIndexPayload(at),
       buildResearchIntakeAdminEvidencePayload(at),
       buildResearchIntakeAdminReviewPayload(at),
+      reviewItem,
     ];
     const expected = {
       audience: 'admin',
@@ -177,8 +189,8 @@ describe('research intake start-here guidance', () => {
       label: 'Review next draft: A high-turnover Bitcoin trend idea failed after realistic costs',
       reason:
         'The oldest visible human-review handoff is first in an observation-consistent queue of 4 drafts with 0 publication approvals. Review remains manual and this guidance creates no approval.',
-      href: '/api/admin/research-intake/review',
-      targetResource: 'marketing-review',
+      href: '/api/admin/research-intake/review/TC-255',
+      targetResource: 'marketing-review-item',
       itemCount: 4,
       automaticAction: false,
       grantsPublicationAuthority: false,
@@ -188,7 +200,7 @@ describe('research intake start-here guidance', () => {
     payloads.forEach((payload, index) => {
       expect(startHere(payload)).toEqual({
         ...expected,
-        targetIsCurrentResource: index === 4,
+        targetIsCurrentResource: index === 5,
       });
     });
   });
@@ -201,6 +213,7 @@ describe('research intake start-here guidance', () => {
       availableDrafts: 0,
       publicationApprovedDrafts: 0,
       nextReviewHeadline: null,
+      nextReviewHref: null,
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
@@ -209,6 +222,7 @@ describe('research intake start-here guidance', () => {
         marketingReview: '/api/admin/research-intake/review',
       },
       currentResource: 'evidence',
+      currentResourceHref: null,
     })).toEqual({
       audience: 'admin',
       kind: 'inspect-complete-evidence',
@@ -233,6 +247,7 @@ describe('research intake start-here guidance', () => {
       availableDrafts: 0,
       publicationApprovedDrafts: 0,
       nextReviewHeadline: null,
+      nextReviewHref: null,
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
@@ -241,6 +256,7 @@ describe('research intake start-here guidance', () => {
         marketingReview: '/api/admin/research-intake/review',
       },
       currentResource: 'evidence-index',
+      currentResourceHref: null,
     })).toEqual({
       audience: 'admin',
       kind: 'browse-evidence-index',

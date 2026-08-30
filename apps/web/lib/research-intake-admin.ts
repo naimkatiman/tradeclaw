@@ -289,6 +289,10 @@ export interface ResearchIntakeCandidateLinks {
   publicCandidate: string;
 }
 
+export interface ResearchIntakeAdminReviewLinks extends ResearchIntakeCandidateLinks {
+  reviewItem: string;
+}
+
 export interface ResearchIntakeAdminCatalogRecord extends ResearchIntakeAdminRecord {
   links: ResearchIntakeCandidateLinks;
 }
@@ -548,7 +552,7 @@ export interface ResearchIntakeAdminNextReview {
     headline: string;
     summary: string;
   };
-  links: ResearchIntakeCandidateLinks;
+  links: ResearchIntakeAdminReviewLinks;
   controls: ResearchIntakeAdminReviewControls;
 }
 
@@ -569,7 +573,7 @@ export interface ResearchIntakeAdminReviewItem {
   };
   handoff: ResearchLoopMarketingHandoff;
   receipt: ResearchLoopReceipt | null;
-  links: ResearchIntakeCandidateLinks;
+  links: ResearchIntakeAdminReviewLinks;
   controls: ResearchIntakeAdminReviewControls;
 }
 
@@ -593,6 +597,31 @@ export interface ResearchIntakeAdminReviewPayload {
     items: readonly ResearchIntakeAdminReviewItem[];
     controls: ResearchIntakeAdminReviewControls;
   };
+}
+
+export interface ResearchIntakeAdminReviewNavigationItem {
+  taskId: ResearchLoopMarketingHandoff['taskId'];
+  queuePosition: number;
+  headline: string;
+  href: string;
+}
+
+export interface ResearchIntakeAdminReviewItemPayload {
+  schemaVersion: 1;
+  access: ResearchIntakeAdminPayload['access'];
+  resources: ResearchIntakeAdminResources;
+  startHere: ResearchIntakeAdminStartHere;
+  researchLoop: ResearchIntakeAdminPayload['researchLoop'];
+  navigation: {
+    order: 'oldest-visible-human-review-handoff';
+    currentPosition: number;
+    totalVisibleItems: number;
+    queueHref: string;
+    selfHref: string;
+    previous: ResearchIntakeAdminReviewNavigationItem | null;
+    next: ResearchIntakeAdminReviewNavigationItem | null;
+  };
+  reviewItem: ResearchIntakeAdminReviewItem;
 }
 
 export class ResearchIntakeAdminQueryError extends Error {
@@ -1127,7 +1156,9 @@ function buildResearchIntakeAdminObservation(at: Date | string | number) {
 function buildResearchIntakeAdminProjectionStartHere(
   observation: ReturnType<typeof buildResearchIntakeAdminObservation>,
   currentResource: ResearchIntakeCurrentResource,
+  currentResourceHref: string | null = null,
 ): ResearchIntakeAdminStartHere {
+  const nextReviewHandoff = observation.marketingReview.handoffs[0] ?? null;
   return buildResearchIntakeAdminStartHere({
     currentWindowStatus: observation.researchLoop.currentWindowStatus,
     currentWindowId: observation.researchLoop.currentWindow.id,
@@ -1135,11 +1166,14 @@ function buildResearchIntakeAdminProjectionStartHere(
     availableDrafts: observation.marketingReview.summary.availableDrafts,
     publicationApprovedDrafts:
       observation.marketingReview.summary.publicationApprovedDrafts,
-    nextReviewHeadline:
-      observation.marketingReview.handoffs[0]?.draft.title ?? null,
+    nextReviewHeadline: nextReviewHandoff?.draft.title ?? null,
+    nextReviewHref: nextReviewHandoff
+      ? buildResearchIntakeAdminReviewItemHref(nextReviewHandoff.taskId)
+      : null,
     evidenceCount: RESEARCH_INTAKE_ADMIN_EVIDENCE_RECORDS.length,
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
     currentResource,
+    currentResourceHref,
   });
 }
 
@@ -1160,6 +1194,22 @@ function buildResearchIntakeCandidateLinks(candidateId: string): ResearchIntakeC
   return {
     adminCandidate: buildResearchIntakeCandidateHref(candidateId, 'admin'),
     publicCandidate: buildResearchIntakeCandidateHref(candidateId, 'public'),
+  };
+}
+
+function buildResearchIntakeAdminReviewItemHref(
+  taskId: ResearchLoopMarketingHandoff['taskId'],
+): string {
+  return `${RESEARCH_INTAKE_ADMIN_RESOURCES.marketingReview}/${encodeURIComponent(taskId)}`;
+}
+
+function buildResearchIntakeAdminReviewLinks(
+  candidateId: string,
+  taskId: ResearchLoopMarketingHandoff['taskId'],
+): ResearchIntakeAdminReviewLinks {
+  return {
+    ...buildResearchIntakeCandidateLinks(candidateId),
+    reviewItem: buildResearchIntakeAdminReviewItemHref(taskId),
   };
 }
 
@@ -1415,7 +1465,7 @@ function toAdminReviewItem(
     },
     handoff,
     receipt,
-    links: buildResearchIntakeCandidateLinks(candidate.id),
+    links: buildResearchIntakeAdminReviewLinks(candidate.id, handoff.taskId),
     controls: ADMIN_REVIEW_CONTROLS,
   };
 }
@@ -1448,8 +1498,36 @@ function buildResearchIntakeAdminNextReview(
       headline: handoff.draft.title,
       summary: handoff.draft.summary,
     },
-    links: buildResearchIntakeCandidateLinks(candidate.id),
+    links: buildResearchIntakeAdminReviewLinks(candidate.id, handoff.taskId),
     controls: ADMIN_REVIEW_CONTROLS,
+  };
+}
+
+function buildResearchIntakeAdminReviewItems(
+  observation: ReturnType<typeof buildResearchIntakeAdminObservation>,
+): readonly ResearchIntakeAdminReviewItem[] {
+  const reviewRecords = observation.marketingReview.handoffs.map(
+    recordForAdminReviewHandoff,
+  );
+
+  return observation.marketingReview.handoffs.map((handoff, index) => (
+    toAdminReviewItem(
+      handoff,
+      reviewRecords[index],
+      index + 1,
+      observation.observedAtMs,
+    )
+  ));
+}
+
+function buildResearchIntakeAdminReviewNavigationItem(
+  item: ResearchIntakeAdminReviewItem,
+): ResearchIntakeAdminReviewNavigationItem {
+  return {
+    taskId: item.handoff.taskId,
+    queuePosition: item.queuePosition,
+    headline: item.handoff.draft.title,
+    href: buildResearchIntakeAdminReviewItemHref(item.handoff.taskId),
   };
 }
 
@@ -1638,17 +1716,10 @@ export function buildResearchIntakeAdminReviewPayload(
   at: Date | string | number = new Date(),
 ): ResearchIntakeAdminReviewPayload {
   const observation = buildResearchIntakeAdminObservation(at);
+  const items = buildResearchIntakeAdminReviewItems(observation);
   const reviewRecords = observation.marketingReview.handoffs.map(
     recordForAdminReviewHandoff,
   );
-  const items = observation.marketingReview.handoffs.map((handoff, index) => (
-    toAdminReviewItem(
-      handoff,
-      reviewRecords[index],
-      index + 1,
-      observation.observedAtMs,
-    )
-  ));
 
   return {
     schemaVersion: 1,
@@ -1681,5 +1752,53 @@ export function buildResearchIntakeAdminReviewPayload(
       items,
       controls: ADMIN_REVIEW_CONTROLS,
     },
+  };
+}
+
+/**
+ * Protected exact-task projection for one observation-visible marketing review.
+ * Unknown, non-canonical, and not-yet-visible task IDs share the same null result.
+ */
+export function buildResearchIntakeAdminReviewItemPayload(
+  taskId: string,
+  at: Date | string | number = new Date(),
+): ResearchIntakeAdminReviewItemPayload | null {
+  const observation = buildResearchIntakeAdminObservation(at);
+  const items = buildResearchIntakeAdminReviewItems(observation);
+  const currentIndex = items.findIndex((item) => item.handoff.taskId === taskId);
+  if (currentIndex < 0) return null;
+
+  const reviewItem = items[currentIndex];
+  const previousItem = items[currentIndex - 1] ?? null;
+  const nextItem = items[currentIndex + 1] ?? null;
+
+  return {
+    schemaVersion: 1,
+    access: {
+      mode: 'admin-read-only',
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    },
+    resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    startHere: buildResearchIntakeAdminProjectionStartHere(
+      observation,
+      'marketing-review-item',
+      buildResearchIntakeAdminReviewItemHref(reviewItem.handoff.taskId),
+    ),
+    researchLoop: observation.researchLoop,
+    navigation: {
+      order: 'oldest-visible-human-review-handoff',
+      currentPosition: reviewItem.queuePosition,
+      totalVisibleItems: items.length,
+      queueHref: RESEARCH_INTAKE_ADMIN_RESOURCES.marketingReview,
+      selfHref: buildResearchIntakeAdminReviewItemHref(reviewItem.handoff.taskId),
+      previous: previousItem
+        ? buildResearchIntakeAdminReviewNavigationItem(previousItem)
+        : null,
+      next: nextItem
+        ? buildResearchIntakeAdminReviewNavigationItem(nextItem)
+        : null,
+    },
+    reviewItem,
   };
 }

@@ -63,7 +63,7 @@ describe('GET /api/admin/research-intake/overview real admin-cookie boundary', (
     });
     expect(body.startHere).toMatchObject({
       kind: 'review-marketing-drafts',
-      targetResource: 'marketing-review',
+      targetResource: 'marketing-review-item',
       targetIsCurrentResource: false,
       itemCount: 4,
       automaticAction: false,

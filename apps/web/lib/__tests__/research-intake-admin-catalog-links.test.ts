@@ -130,9 +130,10 @@ describe('protected research catalog record links', () => {
     expect(evidence.items[0].record).not.toHaveProperty('links');
     expect(evidence.items[0].links).toEqual(expectedLinks(evidence.items[0].record.id));
     expect(review.queue.items[0].candidate).not.toHaveProperty('links');
-    expect(review.queue.items[0].links).toEqual(
-      expectedLinks(review.queue.items[0].candidate.id),
-    );
+    expect(review.queue.items[0].links).toEqual({
+      ...expectedLinks(review.queue.items[0].candidate.id),
+      reviewItem: '/api/admin/research-intake/review/TC-255',
+    });
     expect(publicCatalog.records.every((record) => (
       JSON.stringify(record.links) === JSON.stringify({
         candidate: `/api/research/intake/${encodeURIComponent(record.id)}`,

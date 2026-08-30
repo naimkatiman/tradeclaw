@@ -1,11 +1,193 @@
 project: tradeclaw
-updated: 2026-08-30T12:43:49+08:00
+updated: 2026-08-30T13:09:13+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_exact_marketing_review_2026_08_30:
+  at: 2026-08-30T13:09:13+08:00
+  agent: TradeClaw PM agent
+  status: done_pending_local_implementation_commit
+  scope: Let a protected admin open the exact oldest-visible marketing-review item directly, with observation-safe queue navigation, without downloading or searching the complete queue and without creating review or publication state
+  base_commit: ce6827cdc634c74fdfdd699da962dea755bb970c
+  implementation_commit: pending-local-implementation-commit
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-264
+  current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-264
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T06:00:00.000Z
+  gate_observed_at: 2026-08-30T04:47:28.600Z
+  gate_decision: TC-264 remains the sole current-window receipt and the expected legacy duplicate is the only historical conflict, so this turn may add only a deterministic protected read model, documentation, tests, and state before the exact 06:00Z rollover
+  library_search: MemoryCore contains the execution-first recommendation pattern but no reusable exact-review-detail or observation-visible queue-navigation architecture; keep the route contract project-specific until it is verified
+  measured_gap:
+    protected_complete_review_bytes_at_frozen_observation: 30434
+    first_review_item_bytes: 3245
+    visible_review_items: 4
+    next_review_task: TC-255
+    exact_review_link_present: false
+    exact_review_route_present: false
+    problem: >-
+      Protected nextReview identifies TC-255, but startHere links only to the
+      complete four-item queue and the brief links only to candidate detail. An
+      admin must download 30,434 bytes, search the items array, and distinguish
+      the oldest action from latestItem before reading the 3,245-byte draft.
+  decision: >-
+    Add protected GET /api/admin/research-intake/review/[taskId]. Authenticate
+    before reading path parameters or the clock, return one complete visible
+    review item plus visible-only previous/next navigation, and return the same
+    generic 404 for unknown, non-canonical, or not-yet-visible task IDs. Add an
+    exact reviewItem link to nextReview and queue items, and make protected
+    startHere target that exact item instead of the complete queue.
+  exact_review_contract:
+    route: /api/admin/research-intake/review/[taskId]
+    method: GET-only
+    access: admin-read-only
+    cache: private-no-store
+    cors: none
+    authentication_before_params_and_clock: true
+    existing_receipt_priority_preserved: true
+    selection: exact-canonical-visible-task-id
+    queue_order: oldest-visible-human-review-handoff
+    not_found: generic-non-reflective-404
+    not_yet_visible_is_not_found: true
+    navigation_reveals_future_handoffs: false
+    response_fields:
+      - schemaVersion
+      - access
+      - resources
+      - startHere
+      - researchLoop
+      - navigation
+      - reviewItem
+    navigation_fields:
+      - order
+      - currentPosition
+      - totalVisibleItems
+      - queueHref
+      - selfHref
+      - previous
+      - next
+    direct_link_fields:
+      - nextReview.links.reviewItem
+      - queue.items[].links.reviewItem
+    review_decision_invented: false
+    review_completion_invented: false
+    publication_approved: false
+    automatic_review: false
+    automatic_publication: false
+    automatic_posting: false
+    trading_approved: false
+    external_actions: none
+  expected_changed_files:
+    - STATE.yaml
+    - README.md
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/research-intake-start-here.ts
+    - apps/web/app/api/admin/research-intake/review/[taskId]/route.ts
+    - focused and affected deterministic tests
+  frozen_boundaries:
+    public_payload_or_openapi_changed: false
+    csv_payload_changed: false
+    candidate_source_audit_replication_or_cost_state_changed: false
+    research_receipt_preregistration_return_or_artifact_changed: false
+    marketing_handoff_or_draft_content_changed: false
+    review_decision_completion_or_approval_state_changed: false
+    rendered_ui_changed: false
+    docker_dependency_database_migration_or_billing_changed: false
+    signal_strategy_allocation_broadcast_broker_or_execution_changed: false
+    publication_or_external_action: none
+  verification_strategy: Observe focused failures for the absent builder, direct links, exact start target, visibility boundary, visible-only navigation, route/auth/read-only contract, public/CSV exclusion, and README handoff; then implement centrally and run affected deterministic receipts, source reconstruction, static checks, the full repository suite, and mandatory production build
+  intentional_red_verification: >-
+    PASS - the focused four-test suite failed 4/4 only because nextReview and
+    queue items lacked reviewItem links, the exact-item builder was absent, the
+    protected dynamic route did not exist, and README omitted the handoff.
+    Public overview/index exclusion and all four public/protected CSV byte
+    receipts already passed inside the same run.
+  focused_green_verification: >-
+    PASS - the same four-test contract proves exact links on nextReview and all
+    queue items, generic null for unknown/non-canonical/not-yet-visible tasks,
+    exact canonical visibility boundaries, visible-only previous/next links,
+    correct current-item semantics, receipt-before-review start priority, the
+    protected route source contract, public exclusion, unchanged CSV bytes,
+    and README guidance.
+  measured_outcome_at_frozen_observation:
+    protected_exact_tc255_bytes: 7093
+    protected_exact_tc255_sha256: 2c299972449c0fa533cd1fa9228b162f5c7d0a6f246b2ed1b59f1d1726cb705e
+    protected_complete_review_bytes: 30783
+    protected_complete_review_sha256: 5d59e98b213e4bac0d3b58fc32d31c01a8c90af2c5c8a81b2a685f1244f2d3e3
+    payload_reduction_percent: 76.96
+  route_auth_verification: >-
+    PASS - two route suites with 9/9 tests prove authentication before path
+    parameters and clock, signed-cookie 200, query independence, generic 404
+    parity for unknown and not-yet-visible tasks, future-handoff exclusion,
+    private no-store headers, no CORS, and GET-only behavior. Together with the
+    four focused builder tests, the new contract passes 13/13 tests.
+  adjacent_verification: >-
+    PASS - all 34 research-intake and research-loop library suites pass with
+    170/170 tests, and all 26 public/protected route, signed-cookie boundary,
+    README-discovery, and publication-boundary suites pass with 98/98 tests.
+    Only the intended protected exact link, start target, review-item route, and
+    dependent JSON fingerprints moved. Public JSON/OpenAPI, all four CSV byte
+    receipts, filters, pagination, navigation, and unrelated route contracts
+    remain unchanged.
+  deterministic_protected_receipts_at_frozen_observation:
+    default_catalog_bytes: 77348
+    complete_catalog_bytes: 156468
+    overview_bytes: 11152
+    evidence_index_bytes: 23918
+    complete_evidence_bytes: 84778
+    candidate_detail_bytes: 13408
+    complete_review_bytes: 30783
+    exact_tc255_review_bytes: 7093
+  static_verification: >-
+    PASS - source reconstruction validates the pinned awesome-systematic-trading
+    source and all 61 candidates, web typecheck passes, and lint reports zero
+    errors with the same 21 inherited warnings.
+  full_test_verification: >-
+    PASS - the complete repository suite reports 309 runnable suites with
+    2225/2225 tests and the snapshot passing; three suites and 26 tests remain
+    intentionally skipped. Expected fail-closed test logs are informational.
+  build_verification: >-
+    PASS - the mandatory production build compiled successfully, registered the
+    dynamic protected /api/admin/research-intake/review/[taskId] route, and
+    generated all 331/331 static pages. Existing middleware, traced-file,
+    edge-runtime, and url.parse warnings remain informational.
+  final_audit:
+    observed_at: 2026-08-30T05:09:13.274Z
+    branch: agent/research-intake-desk-20260829
+    head_before_implementation_commit: ce6827cdc634c74fdfdd699da962dea755bb970c
+    changed_files: 21
+    changed_path_scope: README, STATE, protected research-intake libraries and route, and deterministic tests only
+    yaml_parse: pass
+    diff_check: pass
+    current_window_status: complete
+    current_window_receipts:
+      - TC-264
+    receipt_integrity: historical-conflict-only
+    expected_legacy_duplicate_windows:
+      - 2026-08-29T06:00:00.000Z/PT3H
+    additional_duplicate_windows: []
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_trading: false
+    public_receipts:
+      catalog: 113858/d1472f9063673568c37df87293eecac0f049ebb03ead1678c5856fd63993cbc1
+      overview: 7637/2696bd48c4e94712d1616a7af86ddea799c34d389caba289a1aaad341938e821
+      evidence_index: 16892/31d3e5fde66eddc73bdcee156baebe90fccc0a45e928bc432067db9ca068a811
+      evidence: 56318/21f0cbebf89d0c0e8edb016bafd834b71b5ba0d25bc90575c5e8151b0ddede54
+      tc260_candidate: 9832/9fd74f0dc12286f42de3b78cd723c50d39b1f57ff5f852ef6cfb089d4d9e4965
+      openapi: 39955/3fcda938046038484cce62ae618afafc833de407bbf3fb60f571faa61b6aef63
+    public_and_csv_boundaries_unchanged: true
+    current_observation_protected_receipts:
+      complete_review: 30991/094e862e5252ee77110728b7edb2a93ceae63c625cae9df4c20f3b4a37113a90
+      exact_tc255_review: 7301/358e922cfe56d3d2ae3b0de5a86168c7c4ef07f9353c453bc1e15e55ab160d29
+  next_action: Create the local implementation commit, record its immutable hash in a state-only closure commit, save the completed slice to shared MemoryCore, and leave the isolated branch clean without external action.
+  safety: No candidate, receipt, return, preregistration, result artifact, marketing handoff or draft mutation, review decision, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_admin_next_marketing_review_2026_08_30:
   at: 2026-08-30T12:43:49+08:00

@@ -50,6 +50,7 @@ interface NextReviewView {
   links: {
     adminCandidate: string;
     publicCandidate: string;
+    reviewItem: string;
   };
   controls: {
     humanReviewRequired: true;
@@ -113,6 +114,7 @@ describe('protected next marketing review', () => {
       links: {
         adminCandidate: `/api/admin/research-intake/${TC255}`,
         publicCandidate: `/api/research/intake/${TC255}`,
+        reviewItem: '/api/admin/research-intake/review/TC-255',
       },
       controls: {
         humanReviewRequired: true,
@@ -203,6 +205,7 @@ describe('protected next marketing review', () => {
     const readme = readFileSync(resolve(REPO_ROOT, 'README.md'), 'utf8');
     const api = readme.slice(readme.indexOf('## API'), readme.indexOf('## Notifications'));
     expect(api).toMatch(/oldest visible human-review.*nextReview/i);
-    expect(api).toMatch(/no draft body.*no approval/i);
+    expect(api).toMatch(/visible-only.*grants no approval/i);
+    expect(api).toMatch(/no draft body/i);
   });
 });
