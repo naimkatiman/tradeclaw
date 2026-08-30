@@ -201,14 +201,14 @@ describe('TC-265 Good Carry, Bad Carry source audit', () => {
   it('moves exactly one more row into adverse source-audit evidence', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 50,
-      sourceAudited: 7,
+      discovered: 49,
+      sourceAudited: 8,
       replicated: 4,
       passed: 0,
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 7,
+      sourceNoGo: 8,
     });
   });
 
@@ -235,8 +235,8 @@ describe('TC-265 Good Carry, Bad Carry source audit', () => {
     const adminEvidence = buildResearchIntakeAdminEvidencePayload(recordedAt);
     expect(publicEvidence.records.map(taskId)).toContain('TC-265');
     expect(adminEvidence.items.map((item) => taskId(item.record))).toContain('TC-265');
-    expect(publicEvidence.evidenceSummary).toMatchObject({ total: 11, sourceAudited: 7, sourceNoGo: 7 });
-    expect(adminEvidence.evidenceSummary).toMatchObject({ total: 11, sourceAudited: 7, sourceNoGo: 7 });
+    expect(publicEvidence.evidenceSummary).toMatchObject({ total: 12, sourceAudited: 8, sourceNoGo: 8 });
+    expect(adminEvidence.evidenceSummary).toMatchObject({ total: 12, sourceAudited: 8, sourceNoGo: 8 });
 
     expect(adminCandidate.record.marketingReviewDraft).toBeNull();
     expect(adminCandidate.candidateWorkflow).toMatchObject({
@@ -254,7 +254,7 @@ describe('TC-265 Good Carry, Bad Carry source audit', () => {
   });
 
   it('records the sole 06:00Z receipt and no marketing handoff', () => {
-    expect(RESEARCH_LOOP_RECEIPTS.at(-1)).toEqual({
+    expect(RESEARCH_LOOP_RECEIPTS.find((receipt) => receipt.taskId === 'TC-265')).toEqual({
       cycleId: '2026-08-30T06:00:00.000Z/PT3H',
       recordedAt,
       taskId: 'TC-265',

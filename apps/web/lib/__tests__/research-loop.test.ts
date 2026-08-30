@@ -148,6 +148,7 @@ describe('three-hour research and marketing loop', () => {
       'TC-261',
       'TC-256',
       'TC-263',
+      'TC-266',
       'TC-260',
     ]);
     for (const sourceNoGo of sourceNoGos) {

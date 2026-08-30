@@ -45,14 +45,14 @@ describe('shared plain-language evidence summary', () => {
       .evidenceStateSummary as SummaryView;
 
     expect(catalog.plainLanguageSummary).toBe(
-      '61 candidates: 50 not tested by TradeClaw, 7 source-audit-only records, '
+      '61 candidates: 49 not tested by TradeClaw, 8 source-audit-only records, '
       + '1 QA-only record with no performance result, and 3 modeled historical failures. '
       + 'Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
     expect(evidence.plainLanguageSummary).toBe(
-      '11 candidates: 7 source-audit-only records, 1 QA-only record with no performance '
+      '12 candidates: 8 source-audit-only records, 1 QA-only record with no performance '
       + 'result, and 3 modeled historical failures. Performance gates were evaluated for '
-      + '3 candidates and not evaluated for 8 candidates.',
+      + '3 candidates and not evaluated for 9 candidates.',
     );
   });
 
@@ -101,7 +101,7 @@ describe('shared plain-language evidence summary', () => {
     ).catalogEvidenceStateSummary as SummaryView;
 
     expect(protectedCatalog.plainLanguageSummary).toBe(
-      '61 candidates: 50 not tested by TradeClaw, 7 source-audit-only records, '
+      '61 candidates: 49 not tested by TradeClaw, 8 source-audit-only records, '
       + '1 QA-only record with no performance result, and 3 modeled historical failures. '
       + 'Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
@@ -109,7 +109,7 @@ describe('shared plain-language evidence summary', () => {
     expect(protectedCatalog.statuses).toEqual(publicCatalog.statuses);
     expect(protectedCatalog).toMatchObject({
       totalCandidates: 61,
-      withTradeClawRecord: 11,
+      withTradeClawRecord: 12,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 58,
       grantsPublicationAuthority: false,
@@ -157,16 +157,16 @@ describe('shared plain-language evidence summary', () => {
       )),
     }).toEqual({
       publicCatalog: {
-        bytes: 37_222,
-        sha256: '2a9b607cf4fd0adcc5efb4486ff7d2d28c4575a46e35fa64e1dc8df152ff571e',
+        bytes: 37_314,
+        sha256: '9a8673a9d7ff14c6ec05f4bf3da6e94e8af0eb51220400dbd2fba6dbca371e04',
       },
       publicEvidence: {
-        bytes: 7_958,
-        sha256: '14fd4f3c2b6e87acadebe77076791436b2e01239507ebe8931a39c736a0b48b4',
+        bytes: 8_557,
+        sha256: 'be4d757a87c8d7903ef5c9f9ab34bbea6764f7d92fe4d3cd66db71b5faea08bf',
       },
       protectedEvidence: {
-        bytes: 18_299,
-        sha256: 'e4bfbec42a10c29b013aa8816f29fc925bfa5623d4e1084cfac496af04f67015',
+        bytes: 19_151,
+        sha256: 'fbcc568d8ee534895cd4773a333dc61eac0c5e0189622f1cd80836d878ef465f',
       },
       protectedReview: {
         bytes: 7_094,

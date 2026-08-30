@@ -24,7 +24,7 @@ describe('README systematic-research intake discoverability', () => {
       /upstream figures[\s\S]*gross discovery metadata[\s\S]*not TradeClaw performance/i,
     );
     expect(research).toMatch(
-      /50 untouched discoveries[\s\S]*7 source-audit no-go records[\s\S]*1 QA-only INCONCLUSIVE replication[\s\S]*3 cost- or stability-failed replications/i,
+      /49 untouched discoveries[\s\S]*8 source-audit no-go records[\s\S]*1 QA-only INCONCLUSIVE replication[\s\S]*3 cost- or stability-failed replications/i,
     );
     expect(research).toMatch(/source-audit no-go records[\s\S]*not local performance failures/i);
     expect(research).toMatch(/grants neither publication nor trading authority/i);

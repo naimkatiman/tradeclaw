@@ -92,12 +92,12 @@ describe('protected marketing-review evidence context', () => {
     ]);
     expect(payload.catalogEvidenceStateSummary).toMatchObject({
       totalCandidates: 61,
-      withTradeClawRecord: 11,
+      withTradeClawRecord: 12,
       performanceGatesEvaluated: 3,
       performanceGatesNotEvaluated: 58,
     });
     expect(payload.catalogEvidenceStateSummary?.statuses.map((status) => status.count)).toEqual([
-      50, 7, 1, 0, 3, 0,
+      49, 8, 1, 0, 3, 0,
     ]);
     expect(emptyQueue.evidenceStateSummary).toMatchObject({
       totalCandidates: 0,
@@ -188,31 +188,31 @@ describe('protected marketing-review evidence context', () => {
     }).toEqual({
       protectedCatalog: {
         bytes: 77_471,
-        sha256: 'ab2bf59ce46ff8357f8282f8b2e95c66f5eed4c6c96221e65f49b476d0e15952',
+        sha256: 'b70b0fb3a586ba678b1df9c4b5f7f2a3984e3ca74823841bf3b151ed5fa4afdf',
       },
       protectedCandidate: {
         bytes: 13_463,
-        sha256: '3fee8e10d65366e4bf60f86a77cdd04b3bced69e784345cbeb468122232e4ddd',
+        sha256: '47b62b46fe2e0dd88cd4a54eb91b41ab42b254556d180c7da6655d8bee24a42b',
       },
       protectedEvidence: {
-        bytes: 91_162,
-        sha256: '2f06a848c5ab858cb948da4fb69ccd75592818c560fd482998046a9815750e3b',
+        bytes: 98_113,
+        sha256: 'd8b99009501796897ac62d49ba6a6ca809b2adbc08e632922913f0424c2bdbe5',
       },
       protectedReview: {
         bytes: 31_246,
-        sha256: 'e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea',
+        sha256: '15f5f52438a2d4a71b3df43cec0a51b240b4f920a74694af7084f551ea8280fe',
       },
       publicCatalog: {
-        bytes: 118_533,
-        sha256: 'b227e2795a1084f84e260c846e9754db0130f00d07e15a98b52cfbbc31976c24',
+        bytes: 123_757,
+        sha256: '08ad2eb46168deee158160be622e2d95edd916afa9e5979bd4b8b35bec135f06',
       },
       publicEvidence: {
-        bytes: 61_989,
-        sha256: 'd2dc61fb5abd224475ad52571aaedcd8025d2eea84e084565e798fae0ffbefc2',
+        bytes: 68_289,
+        sha256: 'ba1023f37081389e7e90cd7b9568496748045c45eb40822d5ac605d78fcff39b',
       },
       publicCandidate: {
         bytes: 9_832,
-        sha256: '157b1f8e1d40e2eea4f604113f7a7fec349243bd34387be76c8be0cc525e6d12',
+        sha256: 'ccedc16206b6f1f9fe0bb467b75acffa17152b8ab577f71654eed426626c7eb6',
       },
     });
   });

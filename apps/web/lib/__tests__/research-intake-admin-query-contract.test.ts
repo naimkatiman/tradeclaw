@@ -122,7 +122,7 @@ describe('protected research catalog query and navigation contract', () => {
     const payload = buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT);
     expect(payload.queryContract).toBe(RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT);
     expect(payload.catalogEvidenceStateSummary.plainLanguageSummary).toBe(
-      '61 candidates: 50 not tested by TradeClaw, 7 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+      '61 candidates: 49 not tested by TradeClaw, 8 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
     );
   });
 
@@ -253,11 +253,11 @@ describe('protected research catalog query and navigation contract', () => {
     );
     expect(Buffer.byteLength(defaultCatalog, 'utf8')).toBe(77_471);
     expect(createHash('sha256').update(defaultCatalog).digest('hex')).toBe(
-      'ab2bf59ce46ff8357f8282f8b2e95c66f5eed4c6c96221e65f49b476d0e15952',
+      'b70b0fb3a586ba678b1df9c4b5f7f2a3984e3ca74823841bf3b151ed5fa4afdf',
     );
-    expect(Buffer.byteLength(completeCatalog, 'utf8')).toBe(161_401);
+    expect(Buffer.byteLength(completeCatalog, 'utf8')).toBe(166_733);
     expect(createHash('sha256').update(completeCatalog).digest('hex')).toBe(
-      'b8f318c17a7109cc12a213b5a4f539ff1e2c820e6ba0685b7abd5e4c808b9e51',
+      '6a348d47d6ef9341b9da937434b7fcc06624b6296f9f0e885acbe1ab42d1a591',
     );
   });
 });

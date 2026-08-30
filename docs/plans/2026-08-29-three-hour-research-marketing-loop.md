@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Task: TC-256 through TC-265
+Task: TC-256 through TC-266
 
 Status: active operating contract; local-only until separately authorized
 
@@ -301,9 +301,23 @@ preregistration or returns. TC-265 remains `not-tested`, with no result artifact
 or marketing draft. Its receipt is
 `docs/research/2026-08-30-good-carry-bad-carry-source-audit.md`.
 
+TC-266 selected *Risk Parity Portfolios with Risk Factors* through a
+receipt-neutral, cost-first feasibility screen. The primary source is a
+methodology illustrated by three different applications: six proprietary MSCI
+USA style indexes, a Dow Jones Credit Suisse hedge-fund-index PCA allocation,
+and a Datastream macro strategic-allocation example. It does not specify one
+executable 27-stock strategy. The optimizer may be non-unique, a matching
+long-only solution is not guaranteed, and the paper supplies neither the
+proprietary input bytes nor a complete friction ledger, chronological folds, or
+untouched holdout. The Papers With Backtest clone instead spans `1990-2026`,
+shows 27 long US stocks, and hides its pseudocode. Exact replay therefore
+stopped before preregistration or returns. TC-266 remains `not-tested`, with no
+result artifact or marketing draft. Its receipt is
+`docs/research/2026-08-30-risk-factor-parity-source-audit.md`.
+
 Do not open another catalog receipt before the exact
-`2026-08-30T09:00:00.000Z` boundary. The TC-265 no-go does not authorize a proxy
-currency-carry backtest, marketing claim, publication, signal, allocation,
+`2026-08-30T12:00:00.000Z` boundary. The TC-266 no-go does not authorize a
+public-data proxy backtest, marketing claim, publication, signal, allocation,
 broadcast, broker action, or execution change.
 
 ## Marketing handoff

@@ -59,12 +59,12 @@ describe('research intake start-here guidance', () => {
     const compactExpected = {
       audience: 'public',
       kind: 'browse-evidence-index',
-      label: 'Browse 11 examined candidates',
+      label: 'Browse 12 examined candidates',
       reason:
         'This lightweight index includes every TradeClaw source audit and replication in pinned source order, with exact candidate-detail links and no performance ranking.',
       href: '/api/research/intake/evidence/index',
       targetResource: 'evidence-index',
-      itemCount: 11,
+      itemCount: 12,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
@@ -85,13 +85,13 @@ describe('research intake start-here guidance', () => {
     expect(startHere(evidence)).toEqual({
       audience: 'public',
       kind: 'inspect-complete-evidence',
-      label: 'Inspect 11 examined candidates',
+      label: 'Inspect 12 examined candidates',
       reason:
         'This complete evidence desk includes every TradeClaw source audit and replication in pinned source order, including adverse and no-performance-result records. It is not performance-ranked.',
       href: '/api/research/intake/evidence',
       targetResource: 'evidence',
       targetIsCurrentResource: true,
-      itemCount: 11,
+      itemCount: 12,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,

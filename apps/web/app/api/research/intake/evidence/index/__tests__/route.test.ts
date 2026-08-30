@@ -27,7 +27,8 @@ describe('GET /api/research/intake/evidence/index', () => {
       [8, 'TC-258'],
       [9, 'TC-256'],
       [10, 'TC-263'],
-      [11, 'TC-260'],
+      [11, 'TC-266'],
+      [12, 'TC-260'],
     ]);
     expect(body.startHere).toMatchObject({
       kind: 'browse-evidence-index',

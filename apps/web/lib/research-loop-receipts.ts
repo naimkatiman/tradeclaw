@@ -15,7 +15,8 @@ export type ResearchLoopReceiptTaskId =
   | 'TC-262'
   | 'TC-263'
   | 'TC-264'
-  | 'TC-265';
+  | 'TC-265'
+  | 'TC-266';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -282,6 +283,26 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Archive the exact-source no-go; any new public-data currency-carry hypothesis must freeze immutable inputs, causal fills, complete costs, chronological folds, a post-publication holdout, and external falsification before returns',
+  },
+  {
+    cycleId: '2026-08-30T09:00:00.000Z/PT3H',
+    recordedAt: '2026-08-30T09:07:36.506Z',
+    taskId: 'TC-266',
+    candidateId: 'risk-parity-portfolios-with-risk-factors',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-30-risk-factor-parity-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-source no-go; any public risk-factor-parity implementation must begin as a separately hashed hypothesis with frozen universe, data, estimator, costs, folds, and holdout before returns',
   },
 ] as const;
 

@@ -713,6 +713,107 @@ export interface TradeClawGoodCarrySourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawRiskFactorParitySourceAuditEvidence {
+  taskId: 'TC-266';
+  auditDate: '2026-08-30';
+  researchPath: 'docs/research/2026-08-30-risk-factor-parity-source-audit.md';
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  primarySource: {
+    title: 'Risk Parity Portfolios with Risk Factors';
+    authors: readonly ['Thierry Roncalli', 'Guillaume Weisang'];
+    discoveryUrl: 'https://paperswithbacktest.com/strategies/risk-parity-portfolios-with-risk-factors';
+    mpraRecordUrl: 'https://mpra.ub.uni-muenchen.de/44017/';
+    mpraDocumentUrl: 'https://mpra.ub.uni-muenchen.de/44017/1/risk-factor-parity.pdf';
+    mpraItemId: 44017;
+    documentPages: 33;
+    documentSha256: null;
+    localByteAcquisition: 'blocked-before-hash';
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2155159';
+    ssrnDoi: 'https://doi.org/10.2139/ssrn.2155159';
+    journalDoi: 'https://doi.org/10.1080/14697688.2015.1046907';
+    publicReplicationPackageSupplied: false;
+    redistributionRightsEstablished: false;
+  };
+  paperScope: {
+    sourceType: 'methodology-with-three-distinct-applications';
+    applications: readonly [
+      'equity-factor-risk-budgeting',
+      'hedge-fund-pca-factor-parity',
+      'strategic-asset-allocation',
+    ];
+    singleExecutableStrategySpecified: false;
+    optimizationMayHaveMultipleSolutions: true;
+    longOnlyMatchingGuaranteed: false;
+  };
+  equityApplication: {
+    universe: readonly [
+      'MSCI-USA-Large-Growth',
+      'MSCI-USA-Large-Value',
+      'MSCI-USA-Mid-Growth',
+      'MSCI-USA-Mid-Value',
+      'MSCI-USA-Small-Growth',
+      'MSCI-USA-Small-Value',
+    ];
+    factorModel: 'Fama-French-Carhart-market-SMB-HML-MOM';
+    estimator: 'maximum-likelihood';
+    rollingWindowMonths: 12;
+    snapshots: readonly ['2011-06', '2012-06'];
+    studyDateSensitivityAcknowledged: true;
+  };
+  hedgeFundApplication: {
+    universe: 'Dow-Jones-Credit-Suisse-AllHedge-plus-10-subindexes';
+    returnCadence: 'monthly';
+    covarianceWindowMonths: 24;
+    factors: 'first-four-PCA-factors';
+    factorRiskBudgetEachPct: 25;
+    rebalance: 'month-end';
+    simulationWindow: '2009-09/2012-08';
+    holdingsNoLongerPublic: true;
+    holdingsAssumedConstant: true;
+    higherTurnoverAcknowledged: true;
+  };
+  strategicApplication: {
+    source: 'Datastream';
+    cadence: 'quarterly';
+    sample: '1999-Q1/2012-Q2';
+    economicSeries: 7;
+    factorGroups: 4;
+    assetClasses: 13;
+    preliminaryResults: true;
+  };
+  sourceCloneMismatch: {
+    cloneSample: '1990-2026';
+    cloneCadence: 'monthly';
+    cloneDataset: 'ETFs-Daily-Price-plus-All-Monthly-Coreeconomicdata';
+    cloneCurrentPortfolio: '27-long-US-stocks';
+    paperCurrentPortfolioSpecified: false;
+    clonePseudoCodePublic: false;
+  };
+  inputProvenance: {
+    exactSourceBytesSupplied: false;
+    proprietaryMsciIndexesRequired: true;
+    hedgeIndexHoldingsPublic: false;
+    datastreamSeriesPubliclyPinned: false;
+    authorizedDatasetPresent: false;
+  };
+  publishedCostTreatment: {
+    transactionCostModelSupplied: false;
+    causalFillRuleSupplied: false;
+    turnoverLinkedLedgerSupplied: false;
+    completeFrictionModelSupplied: false;
+  };
+  validation: {
+    chronologicalFoldsSupplied: false;
+    untouchedHoldoutSupplied: false;
+    externalFalsificationMarketSupplied: false;
+    deterministicReplayArtifactSupplied: false;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -837,6 +938,7 @@ export type TradeClawResearchSourceAuditEvidence =
   | TradeClawCryptocurrencyAsMoneySourceAuditEvidence
   | TradeClawRollingVsExpandingSourceAuditEvidence
   | TradeClawGoodCarrySourceAuditEvidence
+  | TradeClawRiskFactorParitySourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -923,6 +1025,7 @@ const CRYPTOCURRENCY_AS_MONEY_ID = 'cryptocurrency-as-money-a-trading-strategy-s
 const ROLLING_VS_EXPANDING_MEAN_REVERSION_ID =
   'rolling-vs-expanding-windows-in-mean-reversion-strategies-evidence-from-gold-silver-and-cross-asset-validation';
 const GOOD_CARRY_BAD_CARRY_ID = 'good-carry-bad-carry';
+const RISK_FACTOR_PARITY_ID = 'risk-parity-portfolios-with-risk-factors';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -1440,6 +1543,125 @@ const TC265_GOOD_CARRY_SOURCE_AUDIT: TradeClawGoodCarrySourceAuditEvidence = {
   ],
   reason:
     'Exact replay requires unavailable proprietary forward and bid/ask source bytes; the visible spot-only clone is materially non-equivalent, while the fixed headline subsets are ex-post selections with author-disclosed look-back bias. A public-data implementation would be a materially new hypothesis.',
+};
+
+const TC266_RISK_FACTOR_PARITY_SOURCE_AUDIT: TradeClawRiskFactorParitySourceAuditEvidence = {
+  taskId: 'TC-266',
+  auditDate: '2026-08-30',
+  researchPath: 'docs/research/2026-08-30-risk-factor-parity-source-audit.md',
+  researchSha256: 'fe1a4b5bc80c5bfcc90150f05a74c2c4070f29c9e40e7d2a256209e478bcc9fd',
+  disposition: 'no-go',
+  tradeClawBacktestRun: false,
+  primarySource: {
+    title: 'Risk Parity Portfolios with Risk Factors',
+    authors: ['Thierry Roncalli', 'Guillaume Weisang'],
+    discoveryUrl:
+      'https://paperswithbacktest.com/strategies/risk-parity-portfolios-with-risk-factors',
+    mpraRecordUrl: 'https://mpra.ub.uni-muenchen.de/44017/',
+    mpraDocumentUrl:
+      'https://mpra.ub.uni-muenchen.de/44017/1/risk-factor-parity.pdf',
+    mpraItemId: 44017,
+    documentPages: 33,
+    documentSha256: null,
+    localByteAcquisition: 'blocked-before-hash',
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2155159',
+    ssrnDoi: 'https://doi.org/10.2139/ssrn.2155159',
+    journalDoi: 'https://doi.org/10.1080/14697688.2015.1046907',
+    publicReplicationPackageSupplied: false,
+    redistributionRightsEstablished: false,
+  },
+  paperScope: {
+    sourceType: 'methodology-with-three-distinct-applications',
+    applications: [
+      'equity-factor-risk-budgeting',
+      'hedge-fund-pca-factor-parity',
+      'strategic-asset-allocation',
+    ],
+    singleExecutableStrategySpecified: false,
+    optimizationMayHaveMultipleSolutions: true,
+    longOnlyMatchingGuaranteed: false,
+  },
+  equityApplication: {
+    universe: [
+      'MSCI-USA-Large-Growth',
+      'MSCI-USA-Large-Value',
+      'MSCI-USA-Mid-Growth',
+      'MSCI-USA-Mid-Value',
+      'MSCI-USA-Small-Growth',
+      'MSCI-USA-Small-Value',
+    ],
+    factorModel: 'Fama-French-Carhart-market-SMB-HML-MOM',
+    estimator: 'maximum-likelihood',
+    rollingWindowMonths: 12,
+    snapshots: ['2011-06', '2012-06'],
+    studyDateSensitivityAcknowledged: true,
+  },
+  hedgeFundApplication: {
+    universe: 'Dow-Jones-Credit-Suisse-AllHedge-plus-10-subindexes',
+    returnCadence: 'monthly',
+    covarianceWindowMonths: 24,
+    factors: 'first-four-PCA-factors',
+    factorRiskBudgetEachPct: 25,
+    rebalance: 'month-end',
+    simulationWindow: '2009-09/2012-08',
+    holdingsNoLongerPublic: true,
+    holdingsAssumedConstant: true,
+    higherTurnoverAcknowledged: true,
+  },
+  strategicApplication: {
+    source: 'Datastream',
+    cadence: 'quarterly',
+    sample: '1999-Q1/2012-Q2',
+    economicSeries: 7,
+    factorGroups: 4,
+    assetClasses: 13,
+    preliminaryResults: true,
+  },
+  sourceCloneMismatch: {
+    cloneSample: '1990-2026',
+    cloneCadence: 'monthly',
+    cloneDataset: 'ETFs-Daily-Price-plus-All-Monthly-Coreeconomicdata',
+    cloneCurrentPortfolio: '27-long-US-stocks',
+    paperCurrentPortfolioSpecified: false,
+    clonePseudoCodePublic: false,
+  },
+  inputProvenance: {
+    exactSourceBytesSupplied: false,
+    proprietaryMsciIndexesRequired: true,
+    hedgeIndexHoldingsPublic: false,
+    datastreamSeriesPubliclyPinned: false,
+    authorizedDatasetPresent: false,
+  },
+  publishedCostTreatment: {
+    transactionCostModelSupplied: false,
+    causalFillRuleSupplied: false,
+    turnoverLinkedLedgerSupplied: false,
+    completeFrictionModelSupplied: false,
+  },
+  validation: {
+    chronologicalFoldsSupplied: false,
+    untouchedHoldoutSupplied: false,
+    externalFalsificationMarketSupplied: false,
+    deterministicReplayArtifactSupplied: false,
+  },
+  blockers: [
+    'The source is a methodology with three distinct applications rather than one executable strategy matching the discovery clone.',
+    'Exact MSCI USA style-index bytes, identifiers, vintages, and redistribution rights are not supplied.',
+    'Exact Dow Jones Credit Suisse hedge-fund index bytes and historical holdings or exposures are not publicly supplied.',
+    'Exact Datastream economic and asset-class series, vendor identifiers, vintages, and revision histories are not supplied.',
+    'No authorized copy of any decisive proprietary input is present in the TradeClaw repository.',
+    'The optimizer can be non-unique, and a matching long-only solution is not guaranteed; solver and infeasibility policies are not frozen.',
+    'The equity example is date-sensitive and supplies point estimates rather than a deterministic chronological portfolio ledger.',
+    'PCA standardization, component ordering and sign conventions, covariance details, and solver tolerances are not executable end to end.',
+    'The strategic application lacks point-in-time macro release and revision rules.',
+    'No causal signal-to-fill rule or tradable instrument mapping is supplied.',
+    'No complete transaction-cost model or turnover-linked ledger is supplied.',
+    'No chronological folds, untouched holdout, or external falsification gate is supplied.',
+    'The clone code is hidden and its 1990-2026, 27-stock implementation is materially different from the paper applications.',
+    'A valid local primary-PDF byte stream could not be acquired and hashed during this audit.',
+  ],
+  reason:
+    'Exact replay requires unavailable proprietary inputs across three different empirical applications, non-unique optimization choices, causal fills, full costs, and a frozen falsification protocol; the hidden 27-stock clone is materially non-equivalent. A public-data implementation would be a materially new hypothesis.',
 };
 
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
@@ -2024,7 +2246,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
                         ? TC264_ROLLING_VS_EXPANDING_SOURCE_AUDIT
                         : candidate.id === GOOD_CARRY_BAD_CARRY_ID
                           ? TC265_GOOD_CARRY_SOURCE_AUDIT
-                          : null;
+                          : candidate.id === RISK_FACTOR_PARITY_ID
+                            ? TC266_RISK_FACTOR_PARITY_SOURCE_AUDIT
+                            : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {
@@ -2068,9 +2292,11 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         stage: 'source-audited' as const,
         verdict: 'not-tested' as const,
         costStatus: 'unassessed' as const,
-        nextAction: tradeClawSourceAudit.taskId === 'TC-265'
-          ? 'Archive the exact-source no-go; any new public-data currency-carry hypothesis must freeze immutable inputs, causal fills, complete costs, chronological folds, a post-publication holdout, and external falsification before returns.'
-          : tradeClawSourceAudit.taskId === 'TC-264'
+        nextAction: tradeClawSourceAudit.taskId === 'TC-266'
+          ? 'Archive the exact-source no-go; any public risk-factor-parity implementation must begin as a separately hashed hypothesis with frozen universe, data, estimator, costs, folds, and holdout before returns.'
+          : tradeClawSourceAudit.taskId === 'TC-265'
+            ? 'Archive the exact-source no-go; any new public-data currency-carry hypothesis must freeze immutable inputs, causal fills, complete costs, chronological folds, a post-publication holdout, and external falsification before returns.'
+            : tradeClawSourceAudit.taskId === 'TC-264'
             ? 'Archive the exact-source no-go; any new public-commodity mean-reversion hypothesis must freeze instruments, source bytes, fills, costs, controls, and a prospective holdout in a later UTC window before returns.'
             : tradeClawSourceAudit.taskId === 'TC-263'
             ? 'Archive the exact-source no-go; any new venue-specific cryptocurrency grid hypothesis must freeze rules, event data, costs, controls, and holdout in a later UTC window before returns.'

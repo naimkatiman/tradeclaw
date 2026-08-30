@@ -140,7 +140,7 @@ describe('GET /api/admin/research-intake', () => {
               {
                 value: 'discovered',
                 label: 'Discovered',
-                count: 50,
+                count: 49,
                 selected: false,
                 href: '/api/admin/research-intake?stage=discovered&page=1&limit=25',
               },
@@ -180,7 +180,7 @@ describe('GET /api/admin/research-intake', () => {
               {
                 value: 'no-go',
                 label: 'No-go',
-                count: 7,
+                count: 8,
                 selected: false,
                 href:
                   '/api/admin/research-intake?sourceAuditDisposition=no-go&page=1&limit=25',
@@ -243,23 +243,23 @@ describe('GET /api/admin/research-intake', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 50,
-        sourceAudited: 7,
+        discovered: 49,
+        sourceAudited: 8,
         replicated: 4,
         failed: 3,
         inconclusive: 1,
         untested: 57,
-        sourceNoGo: 7,
+        sourceNoGo: 8,
       },
       catalogEvidenceStateSummary: {
         totalCandidates: 61,
-        withTradeClawRecord: 11,
+        withTradeClawRecord: 12,
         performanceGatesEvaluated: 3,
         performanceGatesNotEvaluated: 58,
       },
       filteredEvidenceStateSummary: {
         totalCandidates: 61,
-        withTradeClawRecord: 11,
+        withTradeClawRecord: 12,
         performanceGatesEvaluated: 3,
         performanceGatesNotEvaluated: 58,
       },
@@ -400,7 +400,7 @@ describe('GET /api/admin/research-intake', () => {
     ).toBe(true);
   });
 
-  it('exposes all seven source-audit no-go records without relabeling any as a local failure', async () => {
+  it('exposes all eight source-audit no-go records without relabeling any as a local failure', async () => {
     mockedAdmin.mockResolvedValue(null);
 
     const response = await GET(
@@ -409,12 +409,12 @@ describe('GET /api/admin/research-intake', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.pagination).toMatchObject({ totalRecords: 7, returnedRecords: 7 });
+    expect(body.pagination).toMatchObject({ totalRecords: 8, returnedRecords: 8 });
     expect(body.filteredSummary).toMatchObject({
-      sourceAudited: 7,
-      sourceNoGo: 7,
+      sourceAudited: 8,
+      sourceNoGo: 8,
       failed: 0,
-      untested: 7,
+      untested: 8,
     });
     expect(body.records.map((record: { id: string }) => record.id)).toEqual([
       'properties-of-the-most-diversified-portfolio',
@@ -423,6 +423,7 @@ describe('GET /api/admin/research-intake', () => {
       'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
       'price-overreactions-in-the-cryptocurrency-market',
       'cryptocurrency-as-money-a-trading-strategy-solution',
+      'risk-parity-portfolios-with-risk-factors',
       'a-risk-based-approach-to-tactical-asset-allocation',
     ]);
     expect(body.records[0].tradeClawSourceAudit).toMatchObject({
@@ -471,6 +472,15 @@ describe('GET /api/admin/research-intake', () => {
       },
     });
     expect(body.records[6].tradeClawSourceAudit).toMatchObject({
+      taskId: 'TC-266',
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      primarySource: {
+        mpraItemId: 44017,
+        documentSha256: null,
+      },
+    });
+    expect(body.records[7].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-260',
       disposition: 'no-go',
       tradeClawBacktestRun: false,

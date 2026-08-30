@@ -1,11 +1,88 @@
 project: tradeclaw
-updated: 2026-08-30T16:51:02+08:00
+updated: 2026-08-30T17:33:43+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_risk_factor_parity_source_audit_2026_08_30:
+  at: 2026-08-30T17:09:08+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_ready_for_local_commit
+  scope: Audit the exact primary-source specification behind the Papers With Backtest risk-factor-parity candidate before opening any return results
+  base_commit: 49ddeda81dfc28bd02c1fe64d04ea3e7811a93f5
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T09:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_ends_at: 2026-08-30T12:00:00.000Z
+  gate_observed_at: 2026-08-30T09:05:26.917Z
+  gate_snapshot:
+    receipt_count_before: 10
+    current_window_receipt_count_before: 0
+    latest_task_id_before: TC-265
+    automatic_execution_triggered: false
+  candidate_id: risk-parity-portfolios-with-risk-factors
+  source_position: 59
+  selection_basis: >-
+    Receipt-neutral cost-first triage preferred a monthly, low-transition
+    multi-asset concept with a public primary working paper and a long horizon
+    over higher-turnover or source-inaccessible alternatives. Upstream Sharpe
+    was not used as the selection criterion.
+  source_status: exact_source_audit_closed_verified_no_go
+  source_audit_path: docs/research/2026-08-30-risk-factor-parity-source-audit.md
+  source_audit_bytes_lf: 14488
+  source_audit_sha256: fe1a4b5bc80c5bfcc90150f05a74c2c4070f29c9e40e7d2a256209e478bcc9fd
+  primary_pdf_pages_inspected: 33
+  primary_pdf_sha256: null
+  primary_pdf_hash_status: blocked_before_valid_local_byte_acquisition
+  receipt_created: true
+  preregistration_frozen: false
+  returns_opened: false
+  backtest_run: false
+  marketing_draft_created: false
+  external_action_taken: false
+  focused_red_contract:
+    test: apps/web/lib/__tests__/research-intake-tc266-source-audit.test.ts
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-tc266-source-audit.test.ts
+    result: PASS - 4/4 tests failed only at the intentionally absent TC-266 audit overlay, 49/8 summary transition, protected and public evidence projections, and sole 09:00Z receipt
+  focused_green_contract:
+    command: npm test -- --runInBand apps/web/lib/__tests__/research-intake-tc266-source-audit.test.ts
+    result: PASS - 1 suite and 4 tests bind the exact audit hash, three-application no-go, 49/8 catalog transition, public and protected projections, sole 09:00Z receipt, and no marketing or authority
+  adjacent_green_verification:
+    command: npm test -- --runInBand --testPathPattern="apps/web/lib/__tests__/(research-intake|research-loop).*\\.test\\.ts$"
+    result: PASS - 43 suites and 220 tests cover catalog, public and protected projections, CSV, compact navigation, receipt integrity, review invariants, no-draft marketing, and deterministic serialization
+  final_verification:
+    pinned_source: PASS - exact catalog commit and README hash reconstruct all 61 candidates
+    review_manifest: PASS - all 4 manual-review manifests and their repository evidence bytes verify exactly
+    marketing_safety: PASS - TypeScript and 8 focused tests force TC-266 through the explicit no-draft branch
+    web_typecheck: PASS - npm run typecheck:web
+    lint: PASS - zero errors and 21 inherited warnings
+    full_repository_tests: PASS - 321 runnable suites and 2295 tests; 3 suites and 26 tests skipped; 1 snapshot passed
+    production_build: PASS - shared packages compiled and Next.js generated 331 of 331 pages with inherited warnings only
+    source_and_state: PASS - STATE parses; exact audit is 14488 LF bytes at SHA-256 fe1a4b5bc80c5bfcc90150f05a74c2c4070f29c9e40e7d2a256209e478bcc9fd; git diff check has no whitespace errors apart from Windows line-ending notices
+    compose: PASS - no Docker Compose path changed; Docker CLI is unavailable for an additional local runtime check
+  final_gate_observed_at: 2026-08-30T09:33:27.271Z
+  final_gate_snapshot: >-
+    Complete with TC-266 as the sole 09:00Z receipt and latest receipt, 11
+    receipts across 10 windows, only the expected
+    2026-08-29T06:00:00.000Z legacy duplicate, no additional duplicate, no
+    TC-266 marketing handoff, and automatic candidate selection, publication,
+    and trading controls false.
+  disposition_basis: >-
+    The primary paper is a methodology with three distinct proprietary-data
+    applications, not one executable 27-stock rule. Exact MSCI, hedge-index and
+    holdings, and Datastream inputs are unavailable; the optimization may be
+    non-unique; costs, causal fills, folds, and holdout are not supplied; and the
+    subscription-only 1990-2026 clone is materially non-equivalent.
+  next_action: >-
+    Create the verified local implementation commit, record its exact hash in a
+    state-only closure commit, then wait until the exact 12:00Z boundary before
+    any later separately hashed candidate or proxy hypothesis.
+  safety: >-
+    No push, PR, merge, deploy, publication, billing, signal, broker, or trading
+    action is authorized; the broad dirty checkout remains untouched.
 
 research_admin_review_one_command_verification_2026_08_30:
   at: 2026-08-30T16:51:02+08:00
@@ -7722,6 +7799,44 @@ research_intake_desk_2026_08_29:
     trading_approved: false
     external_actions: none
     next_action: Archive the exact-source no-go; any new public-data currency-carry hypothesis must freeze immutable inputs, causal fills, complete costs, chronological folds, a post-publication holdout, and external falsification before returns
+  cycle_11:
+    id: 2026-08-30T09:00:00.000Z/PT3H
+    recorded_at: 2026-08-30T09:07:36.506Z
+    task_id: TC-266
+    started_at: 2026-08-30T09:05:26.917Z
+    ends_at: 2026-08-30T12:00:00.000Z
+    candidate_id: risk-parity-portfolios-with-risk-factors
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    source_audit_sha256: fe1a4b5bc80c5bfcc90150f05a74c2c4070f29c9e40e7d2a256209e478bcc9fd
+    source_pdf_sha256: null
+    source_pdf_hash_status: blocked_before_valid_local_byte_acquisition
+    evidence_paths:
+      - docs/research/2026-08-30-risk-factor-parity-source-audit.md
+    verification:
+      - focused RED observed 4/4 intended absent-overlay, summary, projection, and receipt failures
+      - focused TC-266 contract passes 4/4 and no-draft marketing boundary passes 8/8 combined
+      - adjacent intake and loop contracts pass 43 suites and 220 tests
+      - pinned source verifier reconstructs 61/61 candidates at the exact commit and README hash
+      - exact manual-review verifier remains green for all 4 review tasks
+      - web TypeScript passes and lint has zero errors with 21 inherited warnings
+      - all 321 runnable repository suites and 2295 tests pass; 3 suites and 26 tests are skipped and 1 snapshot passes
+      - required production build compiles shared packages and generates 331/331 pages
+      - exact source audit is 14488 LF bytes at SHA-256 fe1a4b5bc80c5bfcc90150f05a74c2c4070f29c9e40e7d2a256209e478bcc9fd
+      - final gate has TC-266 sole in the current window with no marketing handoff or automatic authority
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    next_action: Archive the exact-source no-go; any public risk-factor-parity implementation must begin as a separately hashed hypothesis with frozen universe, data, estimator, costs, folds, and holdout before returns
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00
