@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T12:42:55+08:00
+updated: 2026-08-30T12:43:49+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_next_marketing_review_2026_08_30:
-  at: 2026-08-30T12:42:55+08:00
+  at: 2026-08-30T12:43:49+08:00
   agent: TradeClaw PM agent
-  status: done_protected_next_review_verified_pending_local_commit
+  status: done_protected_next_review_verified_and_committed_local
   scope: Give a protected admin one exact manual marketing-review action from the compact overview and complete review queue without inventing review completion, publication approval, or another research receipt
   base_commit: a65b8b7424bffa48920a558b6cd1a7bcb6c415ec
-  implementation_commit: pending-local-implementation-commit
+  implementation_commit: 05a497e5e0034cbe0b7bf4822b04968b77d54103
+  implementation_committed_at: 2026-08-30T04:43:49Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-264
   current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
@@ -171,7 +172,7 @@ research_admin_next_marketing_review_2026_08_30:
     - apps/web/lib/__tests__/research-intake-overview.test.ts
     - apps/web/lib/__tests__/research-intake-public-discovery-context.test.ts
     - apps/web/lib/__tests__/research-intake-start-here.test.ts
-  next_action: Create the local implementation commit, record its hash in STATE.yaml, create a state-only closure commit, save MemoryCore, and prove the isolated worktree clean.
+  next_action: Create the state-only closure commit, save MemoryCore, and prove the isolated worktree clean; the recurring goal remains active for the exact 2026-08-30T06:00:00.000Z rollover.
   safety: No candidate, receipt, return, preregistration, result artifact, marketing handoff or draft mutation, review decision, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action is authorized.
 
 research_shared_decision_context_2026_08_30:
