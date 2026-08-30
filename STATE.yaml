@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T22:23:33+08:00
+updated: 2026-08-30T22:25:02+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_public_evidence_index_brief_2026_08_30:
-  at: 2026-08-30T22:23:33+08:00
+  at: 2026-08-30T22:25:02+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_implementation_commit
+  status: done_verified_implementation_committed_local
   scope: Add one public human-readable examined-candidate index so the evidence brief's next click does not force a user into JSON before they can choose an exact record
   branch: agent/research-intake-desk-20260829
   base_commit: 04868400b40a376482fc3b7455667c8d724974a8
+  implementation_commit: 0168e8e58b0c7fad6c2a5fc409088a18a45801e2
   cycle_id: 2026-08-30T12:00:00.000Z/PT3H
   receipt_neutral: true
   new_research_receipt: false
@@ -165,7 +166,7 @@ research_public_evidence_index_brief_2026_08_30:
     full_repository: PASS - 336 runnable suites / 2417 tests / 1 snapshot
     production_build: PASS - 333/333 static pages and the new one-hour-cacheable Markdown route
   external_actions: none
-  next_step: Create the exact local implementation commit, record its hash in STATE, create a state-closure commit, update shared MemoryCore, and wait for the exact next UTC receipt window without opening, selecting, publishing, posting, or trading automatically.
+  next_step: Create the local STATE closure commit, update shared MemoryCore, and wait for the exact next UTC receipt window without opening, selecting, publishing, posting, or trading automatically.
 
 research_public_evidence_brief_2026_08_30:
   at: 2026-08-30T21:57:30+08:00
