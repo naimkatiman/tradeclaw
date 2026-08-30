@@ -68,6 +68,10 @@ function formatEvidenceIntegrity(
     '- Normalization: UTF-8 text normalized to LF before byte count and hashing',
     `- Manifest canonicalization: ${inlineCode(integrity.manifestCanonicalization)}`,
     `- Manifest SHA-256: ${inlineCode(integrity.manifestSha256)}`,
+    `- Verification status: ${inlineCode(integrity.verification.status)}`,
+    `- Run from the repository root: ${inlineCode(integrity.verification.command)}`,
+    `- Success meaning: ${inlineCode(integrity.verification.successMeaning)}`,
+    '- A passing command verifies current repository bytes only; it does not complete the human review or grant publication or trading authority.',
     '',
     ...integrity.files.map(
       (file) =>

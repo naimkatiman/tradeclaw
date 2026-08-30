@@ -12,14 +12,24 @@ export interface ResearchMarketingReviewEvidenceFileFingerprint {
   sha256: string;
 }
 
+export interface ResearchMarketingReviewEvidenceVerification {
+  status: 'not-run-by-read-only-api';
+  command: string;
+  successMeaning: 'current-repository-evidence-matches-pinned-manifest';
+  recordsReviewCompletion: false;
+  grantsPublicationAuthority: false;
+  grantsTradingAuthority: false;
+}
+
 export interface ResearchMarketingReviewEvidenceIntegrity {
-  schemaVersion: 1;
+  schemaVersion: 2;
   status: 'repository-evidence-pinned';
   algorithm: 'sha256';
   normalization: 'utf8-lf';
   manifestCanonicalization:
     'role-tab-path-tab-normalizedBytes-tab-sha256-lf-v1';
   manifestSha256: string;
+  verification: ResearchMarketingReviewEvidenceVerification;
   files: readonly ResearchMarketingReviewEvidenceFileFingerprint[];
 }
 
@@ -33,23 +43,33 @@ function fingerprint(
 }
 
 function integrity(
+  taskId: ResearchLoopMarketingTaskId,
   manifestSha256: string,
   files: readonly ResearchMarketingReviewEvidenceFileFingerprint[],
 ): ResearchMarketingReviewEvidenceIntegrity {
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     status: 'repository-evidence-pinned',
     algorithm: 'sha256',
     normalization: 'utf8-lf',
     manifestCanonicalization:
       'role-tab-path-tab-normalizedBytes-tab-sha256-lf-v1',
     manifestSha256,
+    verification: Object.freeze({
+      status: 'not-run-by-read-only-api',
+      command: `npm run verify:research-review -- --task ${taskId}`,
+      successMeaning: 'current-repository-evidence-matches-pinned-manifest',
+      recordsReviewCompletion: false,
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    }),
     files: Object.freeze(files),
   });
 }
 
 const RESEARCH_MARKETING_REVIEW_EVIDENCE_INTEGRITY = Object.freeze({
   'TC-255': integrity(
+    'TC-255',
     'baa1778585d32bd9a5b99f2dc7a7157d8b29f32f7046b5c83610e4b051c170a8',
     [
       fingerprint(
@@ -73,6 +93,7 @@ const RESEARCH_MARKETING_REVIEW_EVIDENCE_INTEGRITY = Object.freeze({
     ],
   ),
   'TC-257': integrity(
+    'TC-257',
     'e1de6d592c497ccbe0b7dcc2cdf7ff63d398d8f79a2a24bedaa3c5a60a31c642',
     [
       fingerprint(
@@ -96,6 +117,7 @@ const RESEARCH_MARKETING_REVIEW_EVIDENCE_INTEGRITY = Object.freeze({
     ],
   ),
   'TC-258': integrity(
+    'TC-258',
     'f5c1807e044af3370e267391d77224190b1d2bf93f8f99ba6b55751e3cce9c0b',
     [
       fingerprint(
@@ -119,6 +141,7 @@ const RESEARCH_MARKETING_REVIEW_EVIDENCE_INTEGRITY = Object.freeze({
     ],
   ),
   'TC-259': integrity(
+    'TC-259',
     '7608fc20c7d49978875e6ae85caef7c7f6a569e7ca1026add84796a5a89f704d',
     [
       fingerprint(
@@ -145,6 +168,20 @@ const RESEARCH_MARKETING_REVIEW_EVIDENCE_INTEGRITY = Object.freeze({
   ResearchLoopMarketingTaskId,
   ResearchMarketingReviewEvidenceIntegrity
 >);
+
+export const RESEARCH_MARKETING_REVIEW_EVIDENCE_TASK_IDS: readonly ResearchLoopMarketingTaskId[] =
+  Object.freeze(
+    Object.keys(
+      RESEARCH_MARKETING_REVIEW_EVIDENCE_INTEGRITY,
+    ) as ResearchLoopMarketingTaskId[],
+  );
+
+export function isResearchMarketingReviewEvidenceTaskId(
+  value: string,
+): value is ResearchLoopMarketingTaskId {
+  return (RESEARCH_MARKETING_REVIEW_EVIDENCE_TASK_IDS as readonly string[])
+    .includes(value);
+}
 
 export function getResearchMarketingReviewEvidenceIntegrity(
   taskId: ResearchLoopMarketingTaskId,

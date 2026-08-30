@@ -119,12 +119,20 @@ describe('GET /api/admin/research-intake/review/[taskId]/handoff.yaml', () => {
       notes: null,
     });
     expect(parsed.evidenceIntegrity).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       status: 'repository-evidence-pinned',
       algorithm: 'sha256',
       normalization: 'utf8-lf',
       manifestSha256:
         'baa1778585d32bd9a5b99f2dc7a7157d8b29f32f7046b5c83610e4b051c170a8',
+      verification: {
+        status: 'not-run-by-read-only-api',
+        command: 'npm run verify:research-review -- --task TC-255',
+        successMeaning: 'current-repository-evidence-matches-pinned-manifest',
+        recordsReviewCompletion: false,
+        grantsPublicationAuthority: false,
+        grantsTradingAuthority: false,
+      },
     });
     expect(
       (parsed.evidenceIntegrity as { files: unknown[] }).files,

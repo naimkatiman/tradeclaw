@@ -112,8 +112,8 @@ describe('protected exact-review protocol', () => {
       )),
     }).toEqual({
       packet: {
-        bytes: 9_944,
-        sha256: '11074ec744334a469c51fd41fc9abc6dae6dae6dbf3bb012ed0973e5734720fd',
+        bytes: 10_589,
+        sha256: '14f912b3f6e3bb72abd54ff6761763e49ec99407b15432eae3a3b077648cdadf',
       },
       queue: {
         bytes: 31_246,

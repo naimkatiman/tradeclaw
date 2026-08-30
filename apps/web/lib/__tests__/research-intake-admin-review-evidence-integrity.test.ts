@@ -32,7 +32,7 @@ interface EvidenceFileFingerprint {
 }
 
 interface EvidenceIntegrity {
-  schemaVersion: 1;
+  schemaVersion: 2;
   status: 'repository-evidence-pinned';
   algorithm: 'sha256';
   normalization: 'utf8-lf';
@@ -91,7 +91,7 @@ describe('protected exact-review evidence integrity manifest', () => {
 
     const { integrity, paths, templateIntegrity } = exact;
     expect(integrity).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       status: 'repository-evidence-pinned',
       algorithm: 'sha256',
       normalization: 'utf8-lf',

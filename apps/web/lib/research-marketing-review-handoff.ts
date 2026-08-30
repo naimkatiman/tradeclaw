@@ -24,6 +24,15 @@ function yamlEvidenceIntegrity(
       integrity.manifestCanonicalization,
     )}`,
     `  manifestSha256: ${yamlString(integrity.manifestSha256)}`,
+    '  verification:',
+    `    status: ${yamlString(integrity.verification.status)}`,
+    `    command: ${yamlString(integrity.verification.command)}`,
+    `    successMeaning: ${yamlString(
+      integrity.verification.successMeaning,
+    )}`,
+    `    recordsReviewCompletion: ${integrity.verification.recordsReviewCompletion}`,
+    `    grantsPublicationAuthority: ${integrity.verification.grantsPublicationAuthority}`,
+    `    grantsTradingAuthority: ${integrity.verification.grantsTradingAuthority}`,
     '  files:',
     ...integrity.files.flatMap((file) => [
       `    - role: ${yamlString(file.role)}`,

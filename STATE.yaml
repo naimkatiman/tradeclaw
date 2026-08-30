@@ -1,11 +1,157 @@
 project: tradeclaw
-updated: 2026-08-30T16:28:34+08:00
+updated: 2026-08-30T16:50:11+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_review_one_command_verification_2026_08_30:
+  at: 2026-08-30T16:50:11+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_pending_local_commit
+  scope: Give repository operators one canonical fail-closed command to independently verify every exact manual-review evidence manifest before human review
+  base_commit: 86aac4561ace5f712aa264fbc94645ccee0fffe0
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T06:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-265
+  current_cycle_ends_at: 2026-08-30T09:00:00.000Z
+  observed_at: 2026-08-30T08:32:35.964Z
+  receipt_neutral: true
+  new_research_receipt: false
+  audit_basis: >-
+    Exact reviews now pin the expected preregistration, result, and artifact
+    bytes, but the packet leaves UTF-8/LF normalization, per-file hashing, and
+    canonical manifest reconstruction to the reviewer. There is no repository
+    command that checks the frozen manifest or fails closed on drift, so the
+    integrity data is accurate but unnecessarily difficult to use.
+  selected_improvement:
+    repository_root_command: npm run verify:research-review -- --task TC-255
+    verifies_all_tasks_without_task_flag: true
+    exact_task_filter: true
+    utf8_lf_normalization: true
+    per_file_byte_and_sha256_check: true
+    canonical_manifest_sha256_check: true
+    machine_readable_report: true
+    nonzero_exit_on_drift_or_invalid_arguments: true
+    exact_packet_and_yaml_reuse_same_command: true
+    command_run_by_read_only_api: false
+    review_completion_recorded: false
+    publication_or_trading_authority_granted: false
+  success_contract:
+    - One documented repository-root command verifies all four review manifests, and an exact task flag verifies only the named review.
+    - The verifier independently reads current files, normalizes UTF-8 text to LF, recomputes every byte count and SHA-256, recomputes the ordered manifest digest, and exits nonzero on any mismatch or invalid task.
+    - Exact protected JSON identifies the task-specific command as not run by the read-only API; the Markdown packet and blank YAML handoff render the same command and byte-only success meaning.
+    - A successful command proves only repository evidence matches the pinned manifest; it records no human check, review outcome, owner decision, publication approval, or trading authority.
+    - Queue, nextReview, compact overview/index, public JSON/OpenAPI, every CSV, every research receipt, rendered UI, Docker, dependencies, database, billing, signals, broker, execution, and trading remain unchanged.
+  frozen_boundaries:
+    current_receipt_changed: false
+    research_candidate_stage_or_verdict_changed: false
+    return_preregistration_result_or_marketing_handoff_changed: false
+    review_queue_payload_changed: false
+    next_review_payload_changed: false
+    public_payload_or_openapi_changed: false
+    csv_payload_changed: false
+    exact_review_payload_changed: true
+    markdown_packet_changed: true
+    handoff_yaml_changed: true
+    rendered_ui_changed: false
+    docker_dependency_database_or_migration_changed: false
+    publication_posting_billing_signal_allocation_broadcast_broker_execution_or_trading_changed: false
+  library_search: MemoryCore contains no reusable checksum-manifest verifier, normalized-LF evidence verifier, or integrity CLI pattern; keep the first implementation project-local and research-review-scoped.
+  baseline:
+    review_tasks: 4
+    repository_evidence_files: 12
+    current_verification_command_exists: false
+    current_exact_payload_reports_command: false
+    current_packet_reports_command: false
+    current_handoff_yaml_reports_command: false
+    exact_tc255_json_bytes: 16123
+    exact_tc255_json_sha256: 2e972f150052fbef012562a3de7023576cf033c10ba7ec8182953b9402569ab8
+    packet_tc255_bytes: 9944
+    packet_tc255_sha256: 11074ec744334a469c51fd41fc9abc6dae6dae6dbf3bb012ed0973e5734720fd
+    handoff_tc255_bytes: 1939
+    handoff_tc255_sha256: 49a8c3606349088aabd6e04cd16d3f80b517c268661d97932758856c3aadfebd
+    queue_bytes_unchanged: 31246
+    queue_sha256_unchanged: e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea
+  red_contract:
+    path: scripts/research/__tests__/research-marketing-review-evidence-verifier.test.ts
+    run_at: 2026-08-30T08:36:00.000Z
+    result: EXPECTED RED - thirteen assertions failed only for the absent npm command, verifier entrypoint, schema-v2 task command metadata, packet/YAML reuse, all-task and exact-task execution, drift reporting, and argument validation; the queue/compact/public/CSV exclusion boundary passed
+    failed_tests: 13
+    passing_boundary_tests: 1
+    unexpected_failures: 0
+  implementation_checkpoint:
+    package_command_added: true
+    pure_verifier_added: true
+    cli_entrypoint_added: true
+    all_task_default: true
+    exact_task_filter: true
+    invalid_argument_preflight: true
+    utf8_lf_normalization: true
+    per_file_byte_and_sha256_check: true
+    canonical_manifest_sha256_check: true
+    machine_readable_report: true
+    nonzero_exit_on_failure: true
+    schema_v2_verification_metadata: true
+    deeply_frozen_task_command: true
+    all_task_list_derived_from_exhaustive_manifest_record: true
+    packet_and_yaml_reuse_same_command: true
+    read_only_api_runs_command: false
+    review_completion_recorded: false
+    publication_or_trading_authority_granted: false
+  focused_green_verification:
+    at: 2026-08-30T08:38:00.000Z
+    result: PASS - fourteen tests cover the package entrypoint, four frozen exact commands, packet/YAML reuse, all four current manifests and twelve files, exact-task scope, injected drift, invalid arguments, and excluded queue/compact/public/CSV surfaces
+    tests: 14
+  command_verification:
+    all_tasks: PASS - exit zero; four manifests and twelve files match expected normalized byte counts, per-file SHA-256 values, and canonical manifest SHA-256 values
+    exact_tc255: PASS - exit zero; only TC-255 and its three files are reported
+    invalid_tc999: PASS - exit one with machine-readable unknown-task failure and all-false authority controls
+  adjacent_preflight:
+    result: EXPECTED COMPATIBILITY UPDATE - 61 tests passed; four integrity schema-v1 assertions and two packet fingerprints failed only for the intended schema-v2 command metadata; one nonexistent test path was mistakenly included in the command and is an orchestration error, not a product failure
+    passing_tests: 61
+    expected_compatibility_failures: 6
+    unexpected_product_failures: 0
+    invocation_errors: 1
+  adjacent_green_verification:
+    result: PASS - fifteen verifier, exact-review, integrity, protocol, handoff, packet, queue, public, README, and real authenticated JSON/Markdown/YAML route suites pass eighty tests
+    suites: 15
+    tests: 80
+    real_auth_delivery_covered: true
+  deterministic_boundary_audit:
+    result: PASS
+    exact_tc255_json_bytes: 16687
+    exact_tc255_json_sha256: ae9627c4d8aa27d755249e959d3369df0521bf18db79f84d4e5c25827a395726
+    integrity_tc255_bytes: 1185
+    integrity_tc255_sha256: b2c457754e6e9f8e5816e58c24df62bd21fa1c4a0632f3879da2e81f98db0223
+    template_tc255_bytes: 2276
+    template_tc255_sha256: 60c45d403e711384b1ef7dafce81f68c970c12ebcab8e9c724114712bdfb8f7e
+    handoff_tc255_bytes: 2238
+    handoff_tc255_sha256: de26373311c3289aff7b15281bfba9fdc3460f4ddaa3288a64d90b22b03ba3a9
+    packet_tc255_bytes: 10589
+    packet_tc255_sha256: 14f912b3f6e3bb72abd54ff6761763e49ec99407b15432eae3a3b077648cdadf
+    queue_bytes_unchanged: 31246
+    queue_sha256_unchanged: e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea
+    public_overview_unchanged: 7637 bytes / a5fe58400cd6b9991147157cecd3b7ac83e000174d331b6be3f6245f08e37bf1
+    public_catalog_csv_unchanged: 37222 bytes / 2a9b607cf4fd0adcc5efb4486ff7d2d28c4575a46e35fa64e1dc8df152ff571e
+    public_evidence_csv_unchanged: 7958 bytes / 14fd4f3c2b6e87acadebe77076791436b2e01239507ebe8931a39c736a0b48b4
+    protected_review_csv_unchanged: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+    review_completion_recorded: false
+    publication_authority: false
+    trading_authority: false
+  scope_audit: PASS - exactly fifteen intended paths cover README/state/package wiring, the frozen schema-v2 command metadata, packet/YAML rendering, the pure verifier and CLI, focused contracts, real authenticated route assertions, and two expected packet fingerprints; no receipt, research evidence, public/OpenAPI/CSV implementation, rendered UI, Docker, lockfile, dependency, migration, database, billing, signal, allocation, broadcast, broker, execution, or trading path changed
+  source_reconstruction_verification: PASS - exact pinned awesome-systematic-trading source reconstructs all 61 candidates in frozen source order with gross discovery-only treatment
+  static_verification: PASS - web TypeScript and standalone strict verifier TypeScript exit zero; changed web lint exits zero; full web ESLint exits zero with 21 inherited warnings and no error; STATE.yaml parses and git diff check passes
+  broad_test_verification: PASS - terminal explicit force-exit run against the final manifest-derived task list passes 320 suites, 2291 tests, and 1 snapshot with 3 suites and 26 tests skipped in 79.020 seconds; force-exit only terminates the inherited post-summary open handle
+  production_build_verification: PASS - terminal npm run build against the final manifest-derived task list compiled signals, trading-agents, and the Next.js production app, generated all 331 static pages, and retained the exact JSON, packet.md, and handoff.yaml admin routes with exit code zero; only inherited middleware, NFT tracing, edge-runtime, and url.parse warnings appeared
+  docker_compose_verification: Existing deployment-surface integrity tests and the production build pass; Docker CLI remains unavailable locally, so no runtime Compose command was attempted and the fifteen-path diff contains no Compose, Dockerfile, lockfile, dependency, database, or migration path.
+  terminal_refinement: Derive the verifier's default task list directly from the exhaustive typed manifest record so a future review task cannot compile into the registry yet silently escape verify-all; focused verifier/integrity tests pass 23/23, strict verifier TypeScript passes, the all-task command still checks four manifests and twelve files, and terminal broad/build gates were rerun after this change.
+  post_state_verification: PASS - the real all-task command verifies four manifests and twelve files; seven verifier, exact-integrity, signed-cookie JSON/Markdown/YAML, receipt, and marketing-loop suites pass 45 tests; STATE.yaml parses, git diff check passes, and exactly fifteen intended paths remain
+  next_action: Re-run all-task and exact-task verification plus focused review/route/receipt tests against terminal STATE, parse YAML, audit diff and exact fifteen-path scope, then commit implementation and state closure locally and reobserve the gate without minting a second receipt.
+  safety: No new receipt, source outcome, return, preregistration, result artifact, review completion, owner decision, mutation, rendered UI, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, deployment, or trading is authorized.
 
 research_admin_review_evidence_integrity_2026_08_30:
   at: 2026-08-30T16:28:34+08:00
