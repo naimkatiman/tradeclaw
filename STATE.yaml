@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T21:27:00+08:00
+updated: 2026-08-30T21:29:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_cycle_brief_2026_08_30:
-  at: 2026-08-30T21:27:00+08:00
+  at: 2026-08-30T21:29:00+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_ready_to_commit
+  status: done_verified_implementation_committed_local
   scope: Add one authenticated human-readable research cycle brief so an admin can see the current manual action, receipt window, review queue, evidence state, and safety boundary without reconstructing the large protected JSON graph
   branch: agent/research-intake-desk-20260829
   base_commit: 79385de5a586d842d92c470c0999f24b145869ad
+  implementation_commit: e3d4192893dd13871f89191411750037328bc4c1
   cycle_id: 2026-08-30T12:00:00.000Z/PT3H
   receipt_neutral: true
   new_research_receipt: false
@@ -141,7 +142,7 @@ research_admin_cycle_brief_2026_08_30:
   staged_audit: PASS - exactly 20 audited paths are staged with 721 insertions and 34 deletions; the cached diff has no whitespace errors and no unrelated path is present
   docker_compose_preservation: PASS by scope and diff; Docker CLI is not installed in this environment, so no Compose runtime command was available
   external_actions: none
-  next_step: Commit the verified implementation locally, bind its full hash in a state-only closure commit, then recheck the clean branch and live gate.
+  next_step: Recheck the clean branch and live gate; do not create another receipt before the exact next UTC boundary.
 
 research_admin_receipt_gate_2026_08_30:
   at: 2026-08-30T20:58:00+08:00
