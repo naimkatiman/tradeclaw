@@ -2,6 +2,7 @@ import {
   buildResearchIntakeAdminReviewItemPayload,
   type ResearchIntakeAdminReviewItemPayload,
 } from './research-intake-admin';
+import { formatResearchMarketingReviewHandoff } from './research-marketing-review-handoff';
 
 function yesNo(value: boolean): 'Yes' | 'No' {
   return value ? 'Yes' : 'No';
@@ -34,30 +35,19 @@ function formatClaimReference(
 function formatReviewHandoffTemplate(
   template: ResearchIntakeAdminReviewItemPayload['reviewHandoffTemplate'],
 ): string[] {
-  const { blankRecord } = template;
+  const handoffYaml = formatResearchMarketingReviewHandoff(template)
+    .trimEnd()
+    .split('\n');
   return [
     '> Copy this blank record into a separate manual workflow after completing the checks above. This read-only API does not save the copy or approve an outcome.',
     '',
+    `- Blank YAML handoff: ${inlineCode(template.downloadHref)}`,
     `- Required check IDs: ${template.requiredCheckIds.map(inlineCode).join(', ')}`,
     `- Numeric claim IDs: ${template.claimIds.map(inlineCode).join(', ')}`,
     `- Allowed review outcomes: ${template.allowedOutcomes.map(inlineCode).join(', ')}`,
     '',
     '```yaml',
-    `taskId: ${blankRecord.taskId}`,
-    `candidateId: ${blankRecord.candidateId}`,
-    `reviewedProjectionObservedAt: ${blankRecord.reviewedProjectionObservedAt}`,
-    'requiredCheckIds:',
-    ...template.requiredCheckIds.map((id) => `  - ${id}`),
-    'claimIds:',
-    ...template.claimIds.map((id) => `  - ${id}`),
-    'allowedOutcomes:',
-    ...template.allowedOutcomes.map((outcome) => `  - ${outcome}`),
-    'reviewer: null',
-    'reviewedAt: null',
-    'completedCheckIds: []',
-    'verifiedClaimIds: []',
-    'outcome: null',
-    'notes: null',
+    ...handoffYaml,
     '```',
     '',
     `- Completion recorded by this API: ${yesNo(template.completionRecorded)}`,

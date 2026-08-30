@@ -1,11 +1,130 @@
 project: tradeclaw
-updated: 2026-08-30T15:51:00+08:00
+updated: 2026-08-30T16:08:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_review_handoff_download_2026_08_30:
+  at: 2026-08-30T15:57:00+08:00
+  agent: TradeClaw PM agent
+  status: done_verified_pending_local_commit
+  scope: Add one exact-review-only authenticated YAML download for the existing blank manual-review handoff without recording review completion or granting approval
+  base_commit: a809161e577958b98a6761d53c7112e819ea02e5
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-30T06:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_task_id: TC-265
+  current_cycle_ends_at: 2026-08-30T09:00:00.000Z
+  observed_at: 2026-08-30T07:55:33.436Z
+  receipt_neutral: true
+  new_research_receipt: false
+  audit_basis: >-
+    Exact protected reviews already expose a blank handoff in JSON and inside
+    the Markdown packet, but an admin still has to select and copy the fenced
+    block manually. A standalone attachment can remove that final transcription
+    step while preserving the existing separate-workflow and owner-decision gates.
+  selected_improvement:
+    exact_protected_review_only: true
+    standalone_yaml_attachment: true
+    generated_from_existing_template: true
+    auth_before_params_clock_or_serialization: true
+    private_no_store: true
+    get_only: true
+    completion_recorded: false
+    mutation_supported: false
+    owner_decision_recorded: false
+    publication_or_trading_authority_granted: false
+  success_contract:
+    - Every observation-visible exact review names one canonical handoff.yaml download generated from the same required-check, claim, allowed-outcome, and blank-record data.
+    - The attachment remains blank and repeats false completion, owner-decision, publication-authority, and trading-authority controls.
+    - Authentication completes before task parameters, the server clock, or serialization; unavailable tasks share one private non-reflective 404.
+    - Queue, nextReview, compact overview/index, public JSON/OpenAPI, every CSV, and every research receipt remain unchanged.
+    - The route supports GET only and cannot save a reviewer, time, check, claim, outcome, note, or decision.
+  frozen_boundaries:
+    current_receipt_changed: false
+    research_candidate_stage_or_verdict_changed: false
+    return_preregistration_result_or_marketing_handoff_changed: false
+    review_queue_payload_changed: false
+    next_review_payload_changed: false
+    public_payload_or_openapi_changed: false
+    csv_payload_changed: false
+    exact_review_payload_changed: true
+    markdown_packet_changed: true
+    rendered_ui_changed: false
+    docker_dependency_database_or_migration_changed: false
+    publication_posting_billing_signal_allocation_broadcast_broker_execution_or_trading_changed: false
+  library_search: MemoryCore contains no reusable protected manual-review YAML download or handoff serializer pattern; extend only the established exact-review and packet contracts.
+  red_contract:
+    paths:
+      - apps/web/lib/__tests__/research-intake-admin-review-handoff-template.test.ts
+      - apps/web/lib/__tests__/research-marketing-review-handoff.test.ts
+      - apps/web/app/api/admin/research-intake/review/[taskId]/handoff.yaml/__tests__/route.test.ts
+    run_at: 2026-08-30T07:58:00.000Z
+    result: EXPECTED RED - all 18 focused assertions failed only because the formatter, exact-template link, packet link, and authenticated route do not exist
+    failed_tests: 18
+    unexpected_failures: 0
+    existing_exclusion_boundary_passed: true
+  implementation_checkpoint:
+    at: 2026-08-30T08:01:00.000Z
+    exact_template_download_href_added: true
+    shared_deterministic_yaml_formatter_added: true
+    all_strings_yaml_quoted: true
+    packet_reuses_same_formatter: true
+    standalone_route_added: true
+    auth_before_params_clock_or_serialization: true
+    private_no_store: true
+    generic_non_reflective_404: true
+    get_only: true
+    completion_recorded: false
+    mutation_supported: false
+    owner_decision_recorded: false
+    publication_or_trading_authority_granted: false
+  focused_green_verification:
+    at: 2026-08-30T08:01:00.000Z
+    result: PASS - two formatter/template suites pass 14 tests and the exact authenticated route suite passes 4 tests
+    tests: 18
+  adjacent_preflight:
+    at: 2026-08-30T08:02:00.000Z
+    result: EXPECTED COMPATIBILITY UPDATE - 52 of 54 tests passed; only the two intentionally changed packet byte/hash assertions failed, while queue, exact review, claim map, protocol, CSV, packet content, README, and exclusion contracts passed
+    unexpected_failures: 0
+  adjacent_green_verification:
+    at: 2026-08-30T08:03:00.000Z
+    result: PASS - 12 exact-review, packet, queue, CSV, and README suites pass 54 tests; all 19 protected catalog/evidence/overview/review/auth route suites pass 80 tests by exact path
+    suites: 31
+    tests: 134
+  deterministic_boundary_audit:
+    result: PASS
+    exact_tc255_json_bytes: 14275
+    exact_tc255_json_sha256: b8e79fd4fb73cdffa30199b1eb65ff6f3f67cf1a6be78c57c7f13883d18e298a
+    handoff_template_bytes: 1070
+    handoff_template_sha256: 08fd1cca4c7a3325c247d1fdd75c7cf2f0e96869e4e99d9785efd30bfcd217c1
+    handoff_yaml_bytes: 959
+    handoff_yaml_sha256: e48afc655f036842cc52816ecf815a531a9af388e5a477ae7e6aa6e468c33c60
+    packet_bytes: 7909
+    packet_sha256: 099a2242a2bbd6f86da59ff355f64a1f3af4240a9d3ca958138f73263e614beb
+    queue_bytes_unchanged: 31246
+    queue_sha256_unchanged: e4343630344b445864d2e5d38df51ce0afa000aada54fa2d76f98e646cc6dcea
+    compact_public_and_csv_handoff_exclusion: true
+    completion_recorded: false
+    owner_decision_recorded: false
+    publication_authority: false
+    trading_authority: false
+  scope_audit: PASS - exactly eleven intended paths cover README/state, exact-template construction, shared formatting, packet rendering, authenticated download delivery, focused contracts, and the two expected packet fingerprint updates; no receipt, public/OpenAPI/CSV, research evidence, rendered UI, Docker, dependency, migration, database, billing, signal, allocation, broadcast, broker, or execution path changed
+  static_preflight:
+    at: 2026-08-30T08:04:00.000Z
+    result: EXPECTED LOCAL REPAIR - source reconstruction and STATE/diff checks passed; TypeScript found one test-only map(JSON.stringify) overload and the first changed-lint command ran outside the web ESLint workspace
+    unexpected_product_failures: 0
+    repair: Replace the overloaded callback with an explicit lambda and rerun ESLint through the apps/web workspace script.
+  source_reconstruction_verification: PASS - exact pinned awesome-systematic-trading source reconstructs all 61 candidates in frozen source order with gross discovery-only treatment
+  static_verification: PASS - web TypeScript exits zero; changed-file lint exits zero; full ESLint exits zero with the same 21 inherited warnings and no warning introduced; STATE.yaml parses and git diff check passes
+  broad_test_verification: PASS - explicit force-exit run passes 318 suites, 2268 tests, and 1 snapshot with 3 suites and 26 tests skipped in 80.493 seconds; force-exit only terminates the inherited post-summary open handle
+  production_build_verification: PASS - npm run build compiled signals, trading-agents, and the Next.js production app, generated all 331 static pages, and registered the dynamic handoff.yaml route with exit code zero; only inherited middleware, NFT tracing, edge-runtime, and url.parse warnings appeared
+  docker_compose_verification: Existing deployment-surface integrity tests and the production build pass; Docker CLI remains unavailable locally, so no runtime Compose command was attempted and the eleven-path diff contains no Compose, Dockerfile, lockfile, dependency, database, or migration path.
+  next_action: Commit the verified implementation locally, record the implementation hash and a clean state-closure commit, refresh shared MemoryCore, and re-observe the exact research-loop gate without opening a new receipt before 2026-08-30T09:00:00.000Z.
+  safety: No new research receipt, mutation, review completion, approval, owner decision, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment is authorized.
 
 research_admin_manual_review_handoff_template_2026_08_30:
   at: 2026-08-30T15:50:00+08:00

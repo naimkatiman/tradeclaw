@@ -690,6 +690,7 @@ export interface ResearchIntakeAdminReviewHandoffTemplate {
   ownerDecisionRequiredForPublication: true;
   grantsPublicationAuthority: false;
   grantsTradingAuthority: false;
+  downloadHref: string;
   requiredCheckIds: readonly ResearchIntakeAdminReviewCheckId[];
   claimIds: readonly string[];
   allowedOutcomes: typeof RESEARCH_INTAKE_ADMIN_REVIEW_OUTCOMES;
@@ -2008,6 +2009,9 @@ function buildResearchIntakeAdminReviewHandoffTemplate(
     ownerDecisionRequiredForPublication: true,
     grantsPublicationAuthority: false,
     grantsTradingAuthority: false,
+    downloadHref: `${buildResearchIntakeAdminReviewItemHref(
+      reviewItem.handoff.taskId,
+    )}/handoff.yaml`,
     requiredCheckIds: Object.freeze(
       reviewProtocol.checks.map((check) => check.id),
     ),

@@ -34,6 +34,7 @@ interface ReviewHandoffTemplate {
   ownerDecisionRequiredForPublication: true;
   grantsPublicationAuthority: false;
   grantsTradingAuthority: false;
+  downloadHref: string;
   requiredCheckIds: readonly string[];
   claimIds: readonly string[];
   allowedOutcomes: readonly (typeof REVIEW_OUTCOMES)[number][];
@@ -75,6 +76,7 @@ describe('protected exact-review blank manual handoff template', () => {
       ownerDecisionRequiredForPublication: true,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
+      downloadHref: '/api/admin/research-intake/review/TC-255/handoff.yaml',
       requiredCheckIds: exact.reviewProtocol.checks.map((check) => check.id),
       claimIds: exact.claimVerification.claims.map((claim) => claim.id),
       allowedOutcomes: REVIEW_OUTCOMES,
@@ -121,6 +123,9 @@ describe('protected exact-review blank manual handoff template', () => {
     );
     expect(template.allowedOutcomes).toEqual(REVIEW_OUTCOMES);
     expect(template.allowedOutcomes).not.toContain('approved');
+    expect(template.downloadHref).toBe(
+      `/api/admin/research-intake/review/${taskId}/handoff.yaml`,
+    );
   });
 
   it('renders a copy-ready packet block while staying off queue, public, and CSV surfaces', () => {
@@ -130,9 +135,12 @@ describe('protected exact-review blank manual handoff template', () => {
 
     expect(packet).toContain('## Manual review handoff template (not recorded)');
     expect(packet).toContain('Copy this blank record into a separate manual workflow');
-    expect(packet).toContain('taskId: TC-255');
-    expect(packet).toContain(`candidateId: ${template.blankRecord.candidateId}`);
-    expect(packet).toContain(`reviewedProjectionObservedAt: ${AUDIT_AT}`);
+    expect(packet).toContain(template.downloadHref);
+    expect(packet).toContain('taskId: "TC-255"');
+    expect(packet).toContain(
+      `candidateId: "${template.blankRecord.candidateId}"`,
+    );
+    expect(packet).toContain(`reviewedProjectionObservedAt: "${AUDIT_AT}"`);
     expect(packet).toContain('completedCheckIds: []');
     expect(packet).toContain('verifiedClaimIds: []');
     expect(packet).toContain('outcome: null');
