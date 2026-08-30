@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T15:01:15+08:00
+updated: 2026-08-30T15:02:12+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,7 +10,7 @@ description: >
 research_admin_exact_review_protocol_2026_08_30:
   at: 2026-08-30T14:49:30+08:00
   agent: TradeClaw PM agent
-  status: ready_for_local_commit
+  status: done_verified_implementation_committed_local
   scope: Add one structured, read-only review protocol to the exact protected marketing-review response and make the existing Markdown packet render its required checks from that same source
   base_commit: ebb8b16920b824894d03b3405df49442a4654634
   branch: agent/research-intake-desk-20260829
@@ -84,10 +84,11 @@ research_admin_exact_review_protocol_2026_08_30:
   scope_audit: PASS - exactly six intended paths cover README/state, the exact-review protocol builder, packet reuse, focused contract, and real auth-route assertion; no queue/public/CSV, rendered UI, receipt, research evidence, Docker, dependency, migration, database, billing, signal, allocation, broadcast, broker, or execution path changed
   source_and_state_audit: PASS - STATE.yaml parses, git diff --check has no whitespace errors apart from Windows line-ending notices, the current receipt remains TC-265, and public/compact/queue projections contain no reviewProtocol
   verification: PASS - focused 3/3, protected review 43/43, adjacent research desk 281/281, real auth boundary 5/5, source reconstruction 61/61, TypeScript, zero-error lint, full repository 2244/2244 assertions, deterministic hashes, six-path scope, YAML/diff checks, and 331/331-page production build
-  implementation_commit: pending
-  closure_commit: pending
+  implementation_commit: 260f2af11a223085183cb477049f49fb2629db49
+  implementation_committed_at: 2026-08-30T07:02:02.000Z
+  completed_at: 2026-08-30T07:02:12.598Z
   library_search: MemoryCore contains no reusable exact-review checklist or admin decision-protocol pattern; this slice reuses the existing TradeClaw exact-review and packet contracts without creating a new architecture
-  memory_update: pending until the local implementation and closure commit hashes exist
+  memory_update: Exact contract hashes, verification totals, receipt gate, implementation commit, and the following state-closure head will be saved to shared MemoryCore after this repository closure.
   recurring_goal_status: active
   next_action: Keep the recurring goal active. Do not open another research receipt before exact 2026-08-30T09:00:00.000Z; at or after that boundary, screen at most one untouched cost-first candidate before another product or marketing increment, with rendered UI still owner/design-confirmation gated.
   safety: No mutation, approval, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment is authorized.
