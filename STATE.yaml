@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T17:33:43+08:00
+updated: 2026-08-30T17:34:33+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,10 +10,11 @@ description: >
 research_risk_factor_parity_source_audit_2026_08_30:
   at: 2026-08-30T17:09:08+08:00
   agent: TradeClaw PM agent
-  status: done_verified_ready_for_local_commit
+  status: done_verified_implementation_committed_local
   scope: Audit the exact primary-source specification behind the Papers With Backtest risk-factor-parity candidate before opening any return results
   base_commit: 49ddeda81dfc28bd02c1fe64d04ea3e7811a93f5
   branch: agent/research-intake-desk-20260829
+  implementation_commit: d1b4346459ebbcb22ef41c33126f87cd639802bc
   current_cycle_id: 2026-08-30T09:00:00.000Z/PT3H
   current_cycle_status: complete
   current_cycle_ends_at: 2026-08-30T12:00:00.000Z
@@ -77,9 +78,9 @@ research_risk_factor_parity_source_audit_2026_08_30:
     non-unique; costs, causal fills, folds, and holdout are not supplied; and the
     subscription-only 1990-2026 clone is materially non-equivalent.
   next_action: >-
-    Create the verified local implementation commit, record its exact hash in a
-    state-only closure commit, then wait until the exact 12:00Z boundary before
-    any later separately hashed candidate or proxy hypothesis.
+    Wait until the exact 2026-08-30T12:00:00.000Z boundary, reobserve the UTC
+    receipt gate, and only then open at most one later separately hashed
+    candidate or proxy hypothesis; do not push, publish, or trade.
   safety: >-
     No push, PR, merge, deploy, publication, billing, signal, broker, or trading
     action is authorized; the broad dirty checkout remains untouched.
@@ -7803,6 +7804,7 @@ research_intake_desk_2026_08_29:
     id: 2026-08-30T09:00:00.000Z/PT3H
     recorded_at: 2026-08-30T09:07:36.506Z
     task_id: TC-266
+    implementation_commit: d1b4346459ebbcb22ef41c33126f87cd639802bc
     started_at: 2026-08-30T09:05:26.917Z
     ends_at: 2026-08-30T12:00:00.000Z
     candidate_id: risk-parity-portfolios-with-risk-factors
