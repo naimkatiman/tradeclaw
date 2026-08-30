@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T10:05:09+08:00
+updated: 2026-08-30T10:05:41+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,11 @@ description: >
 research_compact_overview_2026_08_30:
   at: 2026-08-30T09:44:11+08:00
   agent: TradeClaw PM agent
-  status: ready_for_verified_local_commit
+  status: done_compact_overviews_verified_and_committed_local
   scope: Add compact public and protected research overview read models so clients can answer what the evidence says and what to do next without downloading candidate-heavy catalog or evidence bodies
   base_commit: f5372938092c397d27dc2ee6974c877ec3df97a7
+  implementation_commit: 4dfff705548b18ed577a355b9a76aa46f7016be9
+  implementation_committed_at: 2026-08-30T02:05:30Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-263
   current_cycle_id: 2026-08-30T00:00:00.000Z/PT3H
@@ -22,6 +24,8 @@ research_compact_overview_2026_08_30:
   next_rollover_at: 2026-08-30T03:00:00.000Z
   gate_observed_at: 2026-08-30T01:44:11.8506344Z
   gate_decision: The 03:00Z gate remains closed; add only derived read-only overview projections and create no candidate, receipt, return, preregistration, evidence artifact, or marketing draft
+  final_gate_observed_at: 2026-08-30T02:05:41.0654024Z
+  final_gate_decision: The exact 03:00Z rollover remains closed after the local implementation commit; TC-263 stays the sole current-window receipt and no research or marketing-loop artifact was created
   library_search: MemoryCore has no reusable compact overview, bootstrap API, summary endpoint, or read-model pattern for this gap
   problem: >-
     A public client currently downloads 103595 catalog bytes or 47222 evidence
@@ -176,8 +180,8 @@ research_compact_overview_2026_08_30:
     docker_dependency_database_migration_or_billing_changed: false
     signal_allocation_broadcast_broker_or_execution_changed: false
     publication_or_external_action: none
-  current_step: Fully verified and ready for local implementation commit
-  next_action: Commit the exact 22-file patch locally, record its hash in STATE, save MemoryCore, and recheck the 03:00Z gate without opening research work early
+  current_step: Done - compact overview implementation committed locally after full verification
+  next_action: Do not open a new intake cycle before 2026-08-30T03:00:00.000Z; at or after that exact UTC boundary, re-audit the receipt ledger before any candidate, receipt, return, preregistration, artifact, or marketing draft
   publish_approved: false
   trading_approved: false
   external_actions: none
