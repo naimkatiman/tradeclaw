@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T16:26:35+08:00
+updated: 2026-08-30T16:28:34+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,9 +8,9 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_review_evidence_integrity_2026_08_30:
-  at: 2026-08-30T16:26:35+08:00
+  at: 2026-08-30T16:28:34+08:00
   agent: TradeClaw PM agent
-  status: done_verified_pending_local_commit
+  status: done_verified_implementation_committed_local
   scope: Cryptographically bind every exact manual-review projection, packet, and blank YAML handoff to the repository preregistration, result, and artifact bytes under review
   base_commit: a203595274c52c4682abfa14b49642f30c0418b8
   branch: agent/research-intake-desk-20260829
@@ -130,7 +130,25 @@ research_admin_review_evidence_integrity_2026_08_30:
   production_build_verification: PASS - npm run build compiled signals, trading-agents, and the Next.js production app, generated all 331 static pages, and registered the exact JSON, packet.md, and handoff.yaml admin routes with exit code zero; only inherited middleware, NFT tracing, edge-runtime, and url.parse warnings appeared
   docker_compose_verification: Existing deployment-surface integrity tests and the production build pass; Docker CLI remains unavailable locally, so no runtime Compose command was attempted and the fourteen-path diff contains no Compose, Dockerfile, lockfile, dependency, database, or migration path.
   post_state_verification: PASS - eleven exact-review, evidence-integrity, packet, YAML handoff, receipt, and marketing-loop suites pass 56 tests after the terminal STATE update; STATE.yaml parses, git diff check passes, and exactly fourteen intended paths remain
-  next_action: Recheck focused exact-review/manifest/packet/YAML/receipt contracts plus STATE parsing, diff hygiene, and exact changed-path scope, then commit implementation and state closure locally and reobserve the recurring gate without minting a second receipt.
+  implementation_commit: 7e7f354065c9a91e50a9646597cb838db7427238
+  final_gate_observed_at: 2026-08-30T08:27:50.645Z
+  final_gate_snapshot:
+    current_window_id: 2026-08-30T06:00:00.000Z/PT3H
+    current_window_ends_at: 2026-08-30T09:00:00.000Z
+    current_window_status: complete
+    current_window_receipt_count: 1
+    current_window_task_id: TC-265
+    latest_receipt_is_current_window_receipt: true
+    total_receipts: 10
+    expected_legacy_duplicate_windows:
+      - 2026-08-29T06:00:00.000Z/PT3H
+    additional_duplicate_windows: []
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_trading: false
+  state_closure_verification: PASS - receipt-ledger and marketing-loop suites pass 9 tests against the final gate receipt; STATE.yaml parses, diff hygiene passes, and STATE.yaml is the sole closure change
+  recurring_goal_status: active
+  next_action: At or after 2026-08-30T09:00:00.000Z, reobserve the UTC gate before opening at most one new cost-first receipt; until then keep the completed TC-265 receipt, manual-review integrity manifest, and false publication/trading authority unchanged.
   safety: No new receipt, source outcome, return, preregistration, result artifact, review completion, owner decision, mutation, rendered UI, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment is authorized.
 
 research_admin_review_handoff_download_2026_08_30:
