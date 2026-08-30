@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T11:58:54+08:00
+updated: 2026-08-30T12:01:08+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,10 +10,11 @@ description: >
 research_evidence_decision_summaries_2026_08_30:
   at: 2026-08-30T11:44:18+08:00
   agent: TradeClaw PM agent
-  status: done_decision_summaries_verified_pending_local_commit
+  status: done_decision_summaries_verified_and_committed_local
   scope: Give every compact public and protected evidence-index row one candidate-specific explanation, plus the protected row its already-frozen research next action, without opening another 03:00Z receipt or changing rendered UI
   base_commit: b2c98adee40112300659c1c7eeecdef5a7022fa4
-  implementation_commit: pending-local-implementation-commit
+  implementation_commit: 565d370c5282d3a8e6b61943ff9059c2c0a10e0f
+  implementation_committed_at: 2026-08-30T03:59:40Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-264
   current_cycle_id: 2026-08-30T03:00:00.000Z/PT3H
@@ -162,7 +163,8 @@ research_evidence_decision_summaries_2026_08_30:
   completed_at: 2026-08-30T03:58:54.3111024Z
   final_gate_observed_at: 2026-08-30T03:57:15.891Z
   final_gate_decision: TC-264 remains the sole 03:00Z receipt; the expected legacy 06:00Z duplicate is the only historical conflict and there are no additional duplicate windows. Create no second candidate, return, preregistration, artifact, or marketing draft before the exact 06:00Z rollover.
-  memory_update: pending-exact-local-commit-hash
+  implementation_commit_verification: PASS - the exact verified 16-path implementation is committed locally at 565d370c5282d3a8e6b61943ff9059c2c0a10e0f; no remote action occurred
+  memory_update: Saved the product contract, deterministic payloads, verification totals, implementation hash, receipt gate, and safety boundary to shared current-session and TradeClaw project memory
   next_action: At or after the exact 2026-08-30T06:00:00.000Z rollover, screen at most one untouched candidate under a new receipt; do not select, publish, post, activate, or trade automatically.
   safety: No candidate, receipt, return, preregistration, result artifact, marketing draft, rendered UI, publication, posting, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment action occurred.
 
