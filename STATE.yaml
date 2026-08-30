@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T15:50:00+08:00
+updated: 2026-08-30T15:51:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,7 +10,7 @@ description: >
 research_admin_manual_review_handoff_template_2026_08_30:
   at: 2026-08-30T15:50:00+08:00
   agent: TradeClaw PM agent
-  status: done_verified_implementation_pending_local_commit
+  status: done_verified_implementation_committed_local
   scope: Add one exact-review-only blank manual-review handoff template and render it in the existing Markdown packet without recording review completion or granting approval
   base_commit: 3aee2771076bb75be65e1c456ad0591bb9515dfb
   branch: agent/research-intake-desk-20260829
@@ -126,8 +126,25 @@ research_admin_manual_review_handoff_template_2026_08_30:
     trading_authority: false
   scope_audit: PASS - exactly eight intended paths cover README/state, exact-review construction, packet rendering, focused contract, authenticated route delivery, and the two expected packet fingerprint updates; no public/OpenAPI/CSV, receipt, research evidence, rendered UI, Docker, dependency, migration, database, billing, signal, allocation, broadcast, broker, or execution path changed
   docker_compose_verification: Existing deployment-surface integrity tests and the production build pass; Docker CLI remains unavailable locally, so no runtime Compose command was attempted and the eight-path diff contains no Compose, Dockerfile, lockfile, dependency, database, or migration path.
+  implementation_commit: fc8b36b829bd1d2fa71893ca626ac6e4c0589d60
+  final_gate_observed_at: 2026-08-30T07:50:53.591Z
+  final_gate_snapshot:
+    current_window_id: 2026-08-30T06:00:00.000Z/PT3H
+    current_window_ends_at: 2026-08-30T09:00:00.000Z
+    current_window_status: complete
+    current_window_receipt_count: 1
+    current_window_task_id: TC-265
+    latest_receipt_is_current_window_receipt: true
+    total_receipts: 10
+    expected_legacy_duplicate_windows:
+      - 2026-08-29T06:00:00.000Z/PT3H
+    additional_duplicate_windows: []
+    automatic_candidate_selection: false
+    automatic_publication: false
+    automatic_trading: false
+    new_receipt_opened_by_this_slice: false
   recurring_goal_status: active
-  next_action: Commit the verified receipt-neutral implementation locally, record its exact commit, then add one state-only closure and re-observe the 09:00Z receipt gate without opening another candidate.
+  next_action: At or after exact 2026-08-30T09:00:00.000Z, re-observe the receipt gate before selecting at most one next bounded cost-first catalog intake or another receipt-neutral admin simplification. Until then open no additional research receipt.
   safety: No new research receipt, mutation, review completion, approval, owner decision, publication, posting, external action, billing, signal, allocation, broadcast, broker, execution, push, merge, or deployment is authorized.
 
 research_admin_exact_review_claim_map_2026_08_30:
