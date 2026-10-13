@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-10-14T04:04:45+08:00
+updated: 2026-10-14T04:05:36+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -84,7 +84,7 @@ research_admin_manual_screening_queue_2026_08_31:
     deterministic_queue: 47778_bytes_sha256_57465f9a623c42d585ad7218a8cb6af4b6645ab05c1a1933607ae1d161bd7e28_at_2026-08-30T16:15:39.731Z
     build_cycle_brief: 2858_bytes_sha256_83e81396598d094d6549c92b05ce22e6b81839d5f8788c13e334c65a54521159_at_2026-08-30T13:00:26.528Z
     docker: CLI unavailable locally; no Docker, Compose, environment, migration, or dependency manifest changed and repository deployment contracts passed.
-  implementation_commit: pending
+  implementation_commit: c0eb7360a39290e38f7610298303e4418d46fe42
   external_actions: none
   safety_boundary: No candidate, source audit, return, receipt, research verdict, evidence artifact, marketing decision, publication, posting, billing, signal, allocation, broker, execution, or trading state changes.
 
