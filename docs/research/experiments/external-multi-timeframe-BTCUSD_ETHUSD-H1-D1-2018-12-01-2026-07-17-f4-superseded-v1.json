@@ -1,0 +1,2063 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "studyDate": "2026-08-29",
+    "task": "TC-255",
+    "catalogCommit": "d9c98521c76662d5eae03ab97a4fc721d010dde3",
+    "preregistration": "docs/plans/2026-08-29-external-multi-timeframe-replication.md",
+    "preregistrationSha256": "8679c1aa033b5e52f1cc6c9097ed14d34aa101a6fd592188d8edb20f8a23cb8f"
+  },
+  "spec": {
+    "sourceRule": {
+      "indicator": "MACD(12,26,9), SMA-seeded EMAs",
+      "direction": "long-flat",
+      "signal": "H1 bullish MACD crossover at close",
+      "fill": "next contiguous H1 open",
+      "d1Filter": "MACD above signal on latest D1 bar closed by H1 signal close",
+      "finalExit": "first H1 close below its open"
+    },
+    "configurations": [
+      "h1-macd-one-bar",
+      "d1h1-macd-one-bar",
+      "d1h1-macd-negative-bar-exit"
+    ],
+    "universe": [
+      "BTCUSD",
+      "ETHUSD"
+    ],
+    "originalReplicationMarket": "BTCUSD",
+    "externalFalsificationMarket": "ETHUSD",
+    "costs": {
+      "feePctPerSide": 0.05,
+      "slippagePctPerSide": 0.15,
+      "fundingPctPer8h": 0.01
+    },
+    "fundingAccrual": "linear by wall-clock held hours, sign-agnostic cost",
+    "sizing": {
+      "kind": "fixed-independent-sleeves",
+      "weights": {
+        "BTCUSD": 0.5,
+        "ETHUSD": 0.5
+      },
+      "crossRebalancing": false
+    },
+    "folds": 4,
+    "foldMethod": "four equal contiguous elapsed-time windows; full-history indicators; entries attributed by entry time; force-close at boundary",
+    "benchmarks": [
+      "cash",
+      "costed-spot-buy-and-hold",
+      "costed-perpetual-buy-and-hold"
+    ],
+    "annualizationDays": 365,
+    "riskFreeRate": 0,
+    "noParameterSearch": true,
+    "researchOnly": true
+  },
+  "sources": {
+    "BTCUSD": {
+      "H1": {
+        "source": "binance",
+        "sha256": "2ae70142b058695e4bf4fd5b212712f0c2a2068646c7c19469e1effda8068e91",
+        "bars": 78035,
+        "from": "2017-08-17T04:00:00.000Z",
+        "to": "2026-07-17T22:00:00.000Z"
+      },
+      "D1": {
+        "source": "binance",
+        "sha256": "e8ffc544670131dccb0a0717e45ac6504c2666d5e060755ebc546a711c669a91",
+        "bars": 3256,
+        "from": "2017-08-17T00:00:00.000Z",
+        "to": "2026-07-16T00:00:00.000Z"
+      }
+    },
+    "ETHUSD": {
+      "H1": {
+        "source": "binance",
+        "sha256": "4c6a77b50b254f358277e45e64f5ac2890362df59bf151bf0fe3606e02c30128",
+        "bars": 78035,
+        "from": "2017-08-17T04:00:00.000Z",
+        "to": "2026-07-17T22:00:00.000Z"
+      },
+      "D1": {
+        "source": "binance",
+        "sha256": "eeee00aed94d5f51be5e315427c935e41519bab693726c62a0d1d1d209f91ed7",
+        "bars": 3256,
+        "from": "2017-08-17T00:00:00.000Z",
+        "to": "2026-07-16T00:00:00.000Z"
+      }
+    }
+  },
+  "qa": {
+    "sourceIdentityPassed": true,
+    "crossSymbolH1Aligned": true,
+    "cadence": {
+      "BTCUSD": {
+        "H1": {
+          "bars": 78035,
+          "from": "2017-08-17T04:00:00.000Z",
+          "to": "2026-07-17T22:00:00.000Z",
+          "utcAligned": true,
+          "strictlyIncreasing": true,
+          "gapCount": 28,
+          "largestGapBars": 34,
+          "passed": true
+        },
+        "D1": {
+          "bars": 3256,
+          "from": "2017-08-17T00:00:00.000Z",
+          "to": "2026-07-16T00:00:00.000Z",
+          "utcAligned": true,
+          "strictlyIncreasing": true,
+          "gapCount": 0,
+          "largestGapBars": 1,
+          "passed": true
+        }
+      },
+      "ETHUSD": {
+        "H1": {
+          "bars": 78035,
+          "from": "2017-08-17T04:00:00.000Z",
+          "to": "2026-07-17T22:00:00.000Z",
+          "utcAligned": true,
+          "strictlyIncreasing": true,
+          "gapCount": 28,
+          "largestGapBars": 34,
+          "passed": true
+        },
+        "D1": {
+          "bars": 3256,
+          "from": "2017-08-17T00:00:00.000Z",
+          "to": "2026-07-16T00:00:00.000Z",
+          "utcAligned": true,
+          "strictlyIncreasing": true,
+          "gapCount": 0,
+          "largestGapBars": 1,
+          "passed": true
+        }
+      }
+    },
+    "causalAlignment": {
+      "BTCUSD": {
+        "h1BullishCrossovers": 2982,
+        "d1AdmittedCrossovers": 1555,
+        "d1RejectedCrossovers": 1427,
+        "skippedCrossGapEntries": 0,
+        "missingCompletedD1": 0,
+        "lookaheadViolations": 0,
+        "maximumD1StalenessHours": 23
+      },
+      "ETHUSD": {
+        "h1BullishCrossovers": 2943,
+        "d1AdmittedCrossovers": 1523,
+        "d1RejectedCrossovers": 1420,
+        "skippedCrossGapEntries": 0,
+        "missingCompletedD1": 0,
+        "lookaheadViolations": 0,
+        "maximumD1StalenessHours": 23
+      }
+    },
+    "prefixInvariance": {
+      "BTCUSD": {
+        "passed": true,
+        "checkpoints": [
+          {
+            "h1Bars": 19508,
+            "d1Bars": 816,
+            "through": "2019-11-11T19:00Z",
+            "h1MacdMatches": true,
+            "d1MacdMatches": true,
+            "passed": true
+          },
+          {
+            "h1Bars": 39017,
+            "d1Bars": 1631,
+            "through": "2022-02-03T03:00Z",
+            "h1MacdMatches": true,
+            "d1MacdMatches": true,
+            "passed": true
+          },
+          {
+            "h1Bars": 58526,
+            "d1Bars": 2444,
+            "through": "2024-04-26T01:00Z",
+            "h1MacdMatches": true,
+            "d1MacdMatches": true,
+            "passed": true
+          },
+          {
+            "h1Bars": 78034,
+            "d1Bars": 3256,
+            "through": "2026-07-17T21:00Z",
+            "h1MacdMatches": true,
+            "d1MacdMatches": true,
+            "passed": true
+          }
+        ]
+      },
+      "ETHUSD": {
+        "passed": true,
+        "checkpoints": [
+          {
+            "h1Bars": 19508,
+            "d1Bars": 816,
+            "through": "2019-11-11T19:00Z",
+            "h1MacdMatches": true,
+            "d1MacdMatches": true,
+            "passed": true
+          },
+          {
+            "h1Bars": 39017,
+            "d1Bars": 1631,
+            "through": "2022-02-03T03:00Z",
+            "h1MacdMatches": true,
+            "d1MacdMatches": true,
+            "passed": true
+          },
+          {
+            "h1Bars": 58526,
+            "d1Bars": 2444,
+            "through": "2024-04-26T01:00Z",
+            "h1MacdMatches": true,
+            "d1MacdMatches": true,
+            "passed": true
+          },
+          {
+            "h1Bars": 78034,
+            "d1Bars": 3256,
+            "through": "2026-07-17T21:00Z",
+            "h1MacdMatches": true,
+            "d1MacdMatches": true,
+            "passed": true
+          }
+        ]
+      }
+    },
+    "passed": true
+  },
+  "windows": {
+    "full": {
+      "from": "2018-12-01T00:00:00.000Z",
+      "toExclusive": "2026-07-17T23:00:00.000Z"
+    },
+    "holdout": {
+      "from": "2025-11-14T00:00:00.000Z",
+      "toExclusive": "2026-07-17T23:00:00.000Z"
+    },
+    "folds": [
+      {
+        "label": "fold1",
+        "from": "2018-12-01T00:00:00.000Z",
+        "toExclusive": "2020-10-27T11:00:00.000Z"
+      },
+      {
+        "label": "fold2",
+        "from": "2020-10-27T11:00:00.000Z",
+        "toExclusive": "2022-09-23T23:00:00.000Z"
+      },
+      {
+        "label": "fold3",
+        "from": "2022-09-23T23:00:00.000Z",
+        "toExclusive": "2024-08-20T11:00:00.000Z"
+      },
+      {
+        "label": "fold4",
+        "from": "2024-08-20T11:00:00.000Z",
+        "toExclusive": "2026-07-17T23:00:00.000Z"
+      }
+    ]
+  },
+  "results": {
+    "symbols": {
+      "BTCUSD": {
+        "configurations": {
+          "h1-macd-one-bar": {
+            "full": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 2548,
+              "heldHours": 2548,
+              "exposureFraction": 0.03810777,
+              "grossCompoundedReturn": 0.29768002,
+              "netCompoundedReturn": -0.99995338,
+              "meanGrossTradeReturn": 0.00012932,
+              "meanNetTradeReturn": -0.00387965,
+              "netWinRate": 0.17425432,
+              "netProfitFactor": 0.20813363,
+              "netTradeTStatistic": -26.79258129,
+              "annualizedVolatility": 0.14610845,
+              "sharpe": -8.85298509,
+              "maximumDrawdown": 0.99995338,
+              "cagr": -0.72952127,
+              "calmar": -0.72955528,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 1019.2,
+                "fundingPctSum": 3.185,
+                "compoundedReturnDrag": 1.2976334
+              }
+            },
+            "holdout": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 225,
+              "heldHours": 225,
+              "exposureFraction": 0.03811621,
+              "grossCompoundedReturn": 0.03844031,
+              "netCompoundedReturn": -0.57936669,
+              "meanGrossTradeReturn": 0.00018278,
+              "meanNetTradeReturn": -0.00382641,
+              "netWinRate": 0.15111111,
+              "netProfitFactor": 0.15929344,
+              "netTradeTStatistic": -10.4387433,
+              "annualizedVolatility": 0.1115154,
+              "sharpe": -11.44614194,
+              "maximumDrawdown": 0.57936669,
+              "cagr": -0.72362799,
+              "calmar": -1.24899825,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 90,
+                "fundingPctSum": 0.28125,
+                "compoundedReturnDrag": 0.617807
+              }
+            },
+            "folds": [
+              {
+                "label": "fold1",
+                "from": "2018-12-01T00:00:00.000Z",
+                "toExclusive": "2020-10-27T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16675,
+                  "performanceDays": 696.45833333,
+                  "completedTrades": 640,
+                  "heldHours": 640,
+                  "exposureFraction": 0.03828896,
+                  "grossCompoundedReturn": -0.08780724,
+                  "netCompoundedReturn": -0.93022416,
+                  "meanGrossTradeReturn": -0.00010883,
+                  "meanNetTradeReturn": -0.00411684,
+                  "netWinRate": 0.159375,
+                  "netProfitFactor": 0.19839031,
+                  "netTradeTStatistic": -12.56011907,
+                  "annualizedVolatility": 0.16153197,
+                  "sharpe": -8.53306307,
+                  "maximumDrawdown": 0.93022416,
+                  "cagr": -0.75248945,
+                  "calmar": -0.80893347,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 256,
+                    "fundingPctSum": 0.8,
+                    "compoundedReturnDrag": 0.84241692
+                  }
+                }
+              },
+              {
+                "label": "fold2",
+                "from": "2020-10-27T11:00:00.000Z",
+                "toExclusive": "2022-09-23T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16697,
+                  "performanceDays": 696.5,
+                  "completedTrades": 640,
+                  "heldHours": 640,
+                  "exposureFraction": 0.03828667,
+                  "grossCompoundedReturn": 0.18147367,
+                  "netCompoundedReturn": -0.90962621,
+                  "meanGrossTradeReturn": 0.00030319,
+                  "meanNetTradeReturn": -0.00370647,
+                  "netWinRate": 0.2625,
+                  "netProfitFactor": 0.30941911,
+                  "netTradeTStatistic": -10.23470502,
+                  "annualizedVolatility": 0.17896056,
+                  "sharpe": -6.93108348,
+                  "maximumDrawdown": 0.91108299,
+                  "cagr": -0.71650813,
+                  "calmar": -0.78643564,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 256,
+                    "fundingPctSum": 0.8,
+                    "compoundedReturnDrag": 1.09109987
+                  }
+                }
+              },
+              {
+                "label": "fold3",
+                "from": "2022-09-23T23:00:00.000Z",
+                "toExclusive": "2024-08-20T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16715,
+                  "performanceDays": 696.5,
+                  "completedTrades": 623,
+                  "heldHours": 623,
+                  "exposureFraction": 0.03726968,
+                  "grossCompoundedReturn": 0.07881608,
+                  "netCompoundedReturn": -0.91164731,
+                  "meanGrossTradeReturn": 0.00013714,
+                  "meanNetTradeReturn": -0.00387186,
+                  "netWinRate": 0.1187801,
+                  "netProfitFactor": 0.15481771,
+                  "netTradeTStatistic": -17.51492551,
+                  "annualizedVolatility": 0.11783001,
+                  "sharpe": -10.70563806,
+                  "maximumDrawdown": 0.9116676,
+                  "cagr": -0.71985074,
+                  "calmar": -0.78959781,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 249.2,
+                    "fundingPctSum": 0.77875,
+                    "compoundedReturnDrag": 0.99046339
+                  }
+                }
+              },
+              {
+                "label": "fold4",
+                "from": "2024-08-20T11:00:00.000Z",
+                "toExclusive": "2026-07-17T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16716,
+                  "performanceDays": 696.5,
+                  "completedTrades": 645,
+                  "heldHours": 645,
+                  "exposureFraction": 0.03858579,
+                  "grossCompoundedReturn": 0.11611652,
+                  "netCompoundedReturn": -0.91632297,
+                  "meanGrossTradeReturn": 0.00018556,
+                  "meanNetTradeReturn": -0.00382363,
+                  "netWinRate": 0.15503876,
+                  "netProfitFactor": 0.15182627,
+                  "netTradeTStatistic": -17.64241746,
+                  "annualizedVolatility": 0.11576201,
+                  "sharpe": -11.14418838,
+                  "maximumDrawdown": 0.91632297,
+                  "cagr": -0.72772587,
+                  "calmar": -0.79418054,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 258,
+                    "fundingPctSum": 0.80625,
+                    "compoundedReturnDrag": 1.03243949
+                  }
+                }
+              }
+            ]
+          },
+          "d1h1-macd-one-bar": {
+            "full": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 1335,
+              "heldHours": 1335,
+              "exposureFraction": 0.0199662,
+              "grossCompoundedReturn": 0.12588439,
+              "netCompoundedReturn": -0.99471808,
+              "meanGrossTradeReturn": 0.00011391,
+              "meanNetTradeReturn": -0.003895,
+              "netWinRate": 0.15730337,
+              "netProfitFactor": 0.19625562,
+              "netTradeTStatistic": -20.13372022,
+              "annualizedVolatility": 0.10649126,
+              "sharpe": -6.39109571,
+              "maximumDrawdown": 0.99471808,
+              "cagr": -0.49713766,
+              "calmar": -0.49977744,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 534,
+                "fundingPctSum": 1.66875,
+                "compoundedReturnDrag": 1.12060247
+              }
+            },
+            "holdout": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 133,
+              "heldHours": 133,
+              "exposureFraction": 0.02253092,
+              "grossCompoundedReturn": 0.0843192,
+              "netCompoundedReturn": -0.36443626,
+              "meanGrossTradeReturn": 0.00062116,
+              "meanNetTradeReturn": -0.00338978,
+              "netWinRate": 0.12781955,
+              "netProfitFactor": 0.17202853,
+              "netTradeTStatistic": -7.85142959,
+              "annualizedVolatility": 0.08418355,
+              "sharpe": -7.93893366,
+              "maximumDrawdown": 0.36707762,
+              "cagr": -0.48985953,
+              "calmar": -1.33448489,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 53.2,
+                "fundingPctSum": 0.16625,
+                "compoundedReturnDrag": 0.44875546
+              }
+            },
+            "folds": [
+              {
+                "label": "fold1",
+                "from": "2018-12-01T00:00:00.000Z",
+                "toExclusive": "2020-10-27T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16675,
+                  "performanceDays": 696.45833333,
+                  "completedTrades": 367,
+                  "heldHours": 367,
+                  "exposureFraction": 0.02195633,
+                  "grossCompoundedReturn": 0.00466464,
+                  "netCompoundedReturn": -0.76993737,
+                  "meanGrossTradeReturn": 0.00004582,
+                  "meanNetTradeReturn": -0.00396281,
+                  "netWinRate": 0.14986376,
+                  "netProfitFactor": 0.20542264,
+                  "netTradeTStatistic": -9.29299878,
+                  "annualizedVolatility": 0.12244469,
+                  "sharpe": -6.21643147,
+                  "maximumDrawdown": 0.76993737,
+                  "cagr": -0.53727058,
+                  "calmar": -0.69781075,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 146.8,
+                    "fundingPctSum": 0.45875,
+                    "compoundedReturnDrag": 0.77460201
+                  }
+                }
+              },
+              {
+                "label": "fold2",
+                "from": "2020-10-27T11:00:00.000Z",
+                "toExclusive": "2022-09-23T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16697,
+                  "performanceDays": 696.5,
+                  "completedTrades": 320,
+                  "heldHours": 320,
+                  "exposureFraction": 0.01914334,
+                  "grossCompoundedReturn": 0.10494191,
+                  "netCompoundedReturn": -0.69440328,
+                  "meanGrossTradeReturn": 0.00034826,
+                  "meanNetTradeReturn": -0.00366159,
+                  "netWinRate": 0.259375,
+                  "netProfitFactor": 0.3016681,
+                  "netTradeTStatistic": -7.71139563,
+                  "annualizedVolatility": 0.11592779,
+                  "sharpe": -5.291965,
+                  "maximumDrawdown": 0.69440328,
+                  "cagr": -0.46295834,
+                  "calmar": -0.66669952,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 128,
+                    "fundingPctSum": 0.4,
+                    "compoundedReturnDrag": 0.7993452
+                  }
+                }
+              },
+              {
+                "label": "fold3",
+                "from": "2022-09-23T23:00:00.000Z",
+                "toExclusive": "2024-08-20T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16715,
+                  "performanceDays": 696.5,
+                  "completedTrades": 297,
+                  "heldHours": 297,
+                  "exposureFraction": 0.01776741,
+                  "grossCompoundedReturn": -0.05206589,
+                  "netCompoundedReturn": -0.71245399,
+                  "meanGrossTradeReturn": -0.00016425,
+                  "meanNetTradeReturn": -0.00417204,
+                  "netWinRate": 0.0976431,
+                  "netProfitFactor": 0.1176077,
+                  "netTradeTStatistic": -12.8673607,
+                  "annualizedVolatility": 0.0905696,
+                  "sharpe": -7.15436442,
+                  "maximumDrawdown": 0.71245399,
+                  "cagr": -0.47983403,
+                  "calmar": -0.67349476,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 118.8,
+                    "fundingPctSum": 0.37125,
+                    "compoundedReturnDrag": 0.6603881
+                  }
+                }
+              },
+              {
+                "label": "fold4",
+                "from": "2024-08-20T11:00:00.000Z",
+                "toExclusive": "2026-07-17T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16716,
+                  "performanceDays": 696.5,
+                  "completedTrades": 351,
+                  "heldHours": 351,
+                  "exposureFraction": 0.02099785,
+                  "grossCompoundedReturn": 0.06992931,
+                  "netCompoundedReturn": -0.73872997,
+                  "meanGrossTradeReturn": 0.00020682,
+                  "meanNetTradeReturn": -0.00380246,
+                  "netWinRate": 0.12250712,
+                  "netProfitFactor": 0.14281688,
+                  "netTradeTStatistic": -13.37925715,
+                  "annualizedVolatility": 0.09334228,
+                  "sharpe": -7.47579287,
+                  "maximumDrawdown": 0.73872997,
+                  "cagr": -0.50532808,
+                  "calmar": -0.68404978,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 140.4,
+                    "fundingPctSum": 0.43875,
+                    "compoundedReturnDrag": 0.80865928
+                  }
+                }
+              }
+            ]
+          },
+          "d1h1-macd-negative-bar-exit": {
+            "full": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 1334,
+              "heldHours": 2494,
+              "exposureFraction": 0.03730015,
+              "grossCompoundedReturn": 0.69429616,
+              "netCompoundedReturn": -0.99213436,
+              "meanGrossTradeReturn": 0.00045083,
+              "meanNetTradeReturn": -0.00357036,
+              "netWinRate": 0.16866567,
+              "netProfitFactor": 0.36179936,
+              "netTradeTStatistic": -12.3015948,
+              "annualizedVolatility": 0.14491038,
+              "sharpe": -4.304835,
+              "maximumDrawdown": 0.99223933,
+              "cagr": -0.47018709,
+              "calmar": -0.4738646,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 533.6,
+                "fundingPctSum": 3.1175,
+                "compoundedReturnDrag": 1.68643052
+              }
+            },
+            "holdout": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 132,
+              "heldHours": 270,
+              "exposureFraction": 0.04573945,
+              "grossCompoundedReturn": 0.13528952,
+              "netCompoundedReturn": -0.3330339,
+              "meanGrossTradeReturn": 0.00098863,
+              "meanNetTradeReturn": -0.00303688,
+              "netWinRate": 0.17424242,
+              "netProfitFactor": 0.32429272,
+              "netTradeTStatistic": -4.72752916,
+              "annualizedVolatility": 0.11282299,
+              "sharpe": -5.26608351,
+              "maximumDrawdown": 0.35163074,
+              "cagr": -0.45198463,
+              "calmar": -1.28539565,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 52.8,
+                "fundingPctSum": 0.3375,
+                "compoundedReturnDrag": 0.46832342
+              }
+            },
+            "folds": [
+              {
+                "label": "fold1",
+                "from": "2018-12-01T00:00:00.000Z",
+                "toExclusive": "2020-10-27T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16675,
+                  "performanceDays": 696.45833333,
+                  "completedTrades": 367,
+                  "heldHours": 671,
+                  "exposureFraction": 0.04014358,
+                  "grossCompoundedReturn": 0.20059373,
+                  "netCompoundedReturn": -0.72611347,
+                  "meanGrossTradeReturn": 0.00057435,
+                  "meanNetTradeReturn": -0.00344682,
+                  "netWinRate": 0.14441417,
+                  "netProfitFactor": 0.40608019,
+                  "netTradeTStatistic": -5.28935083,
+                  "annualizedVolatility": 0.17861153,
+                  "sharpe": -3.70588096,
+                  "maximumDrawdown": 0.72611347,
+                  "cagr": -0.49296253,
+                  "calmar": -0.67890564,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 146.8,
+                    "fundingPctSum": 0.83875,
+                    "compoundedReturnDrag": 0.9267072
+                  }
+                }
+              },
+              {
+                "label": "fold2",
+                "from": "2020-10-27T11:00:00.000Z",
+                "toExclusive": "2022-09-23T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16697,
+                  "performanceDays": 696.5,
+                  "completedTrades": 320,
+                  "heldHours": 631,
+                  "exposureFraction": 0.03774827,
+                  "grossCompoundedReturn": 0.42012088,
+                  "netCompoundedReturn": -0.60875736,
+                  "meanGrossTradeReturn": 0.00117527,
+                  "meanNetTradeReturn": -0.00285016,
+                  "netWinRate": 0.2625,
+                  "netProfitFactor": 0.53630599,
+                  "netTradeTStatistic": -4.05293533,
+                  "annualizedVolatility": 0.15683246,
+                  "sharpe": -3.05324499,
+                  "maximumDrawdown": 0.61097811,
+                  "cagr": -0.38867013,
+                  "calmar": -0.63614412,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 128,
+                    "fundingPctSum": 0.78875,
+                    "compoundedReturnDrag": 1.02887825
+                  }
+                }
+              },
+              {
+                "label": "fold3",
+                "from": "2022-09-23T23:00:00.000Z",
+                "toExclusive": "2024-08-20T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16715,
+                  "performanceDays": 696.5,
+                  "completedTrades": 297,
+                  "heldHours": 520,
+                  "exposureFraction": 0.03110792,
+                  "grossCompoundedReturn": -0.05836432,
+                  "netCompoundedReturn": -0.71515967,
+                  "meanGrossTradeReturn": -0.00016811,
+                  "meanNetTradeReturn": -0.00418531,
+                  "netWinRate": 0.11784512,
+                  "netProfitFactor": 0.22189747,
+                  "netTradeTStatistic": -8.64825553,
+                  "annualizedVolatility": 0.11288911,
+                  "sharpe": -5.76385646,
+                  "maximumDrawdown": 0.71515967,
+                  "cagr": -0.48240653,
+                  "calmar": -0.67454382,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 118.8,
+                    "fundingPctSum": 0.65,
+                    "compoundedReturnDrag": 0.65679535
+                  }
+                }
+              },
+              {
+                "label": "fold4",
+                "from": "2024-08-20T11:00:00.000Z",
+                "toExclusive": "2026-07-17T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16716,
+                  "performanceDays": 696.5,
+                  "completedTrades": 350,
+                  "heldHours": 672,
+                  "exposureFraction": 0.04020101,
+                  "grossCompoundedReturn": 0.0553221,
+                  "netCompoundedReturn": -0.74229918,
+                  "meanGrossTradeReturn": 0.00018419,
+                  "meanNetTradeReturn": -0.00383654,
+                  "netWinRate": 0.15142857,
+                  "netProfitFactor": 0.24076766,
+                  "netTradeTStatistic": -9.17225049,
+                  "annualizedVolatility": 0.12127018,
+                  "sharpe": -5.78900439,
+                  "maximumDrawdown": 0.74573827,
+                  "cagr": -0.50888346,
+                  "calmar": -0.68238883,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 140,
+                    "fundingPctSum": 0.84,
+                    "compoundedReturnDrag": 0.79762128
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "benchmarks": {
+          "cashNetReturn": 0,
+          "full": {
+            "spot": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 1,
+              "heldHours": 66863,
+              "exposureFraction": 1,
+              "grossCompoundedReturn": 14.83314156,
+              "netCompoundedReturn": 14.76987233,
+              "meanGrossTradeReturn": 14.83314156,
+              "meanNetTradeReturn": 14.76987233,
+              "netWinRate": 1,
+              "netProfitFactor": null,
+              "netTradeTStatistic": null,
+              "annualizedVolatility": 0.5982575,
+              "sharpe": 0.90368642,
+              "maximumDrawdown": 0.77198487,
+              "cagr": 0.43562147,
+              "calmar": 0.56428758,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 0.4,
+                "fundingPctSum": 0,
+                "compoundedReturnDrag": 0.06326923
+              }
+            },
+            "perpetual": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 1,
+              "heldHours": 66863,
+              "exposureFraction": 1,
+              "grossCompoundedReturn": 14.83314156,
+              "netCompoundedReturn": 1.58961016,
+              "meanGrossTradeReturn": 14.83314156,
+              "meanNetTradeReturn": 1.58961016,
+              "netWinRate": 1,
+              "netProfitFactor": null,
+              "netTradeTStatistic": null,
+              "annualizedVolatility": 0.59819252,
+              "sharpe": 0.50791526,
+              "maximumDrawdown": 0.81526299,
+              "cagr": 0.13286104,
+              "calmar": 0.16296709,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 0.4,
+                "fundingPctSum": 83.57875,
+                "compoundedReturnDrag": 13.2435314
+              }
+            }
+          },
+          "holdout": {
+            "spot": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 1,
+              "heldHours": 5903,
+              "exposureFraction": 1,
+              "grossCompoundedReturn": -0.35816334,
+              "netCompoundedReturn": -0.36072811,
+              "meanGrossTradeReturn": -0.35816334,
+              "meanNetTradeReturn": -0.36072811,
+              "netWinRate": 0,
+              "netProfitFactor": 0,
+              "netTradeTStatistic": null,
+              "annualizedVolatility": 0.46905494,
+              "sharpe": -1.180031,
+              "maximumDrawdown": 0.416467,
+              "cagr": -0.48543334,
+              "calmar": -1.16559859,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 0.4,
+                "fundingPctSum": 0,
+                "compoundedReturnDrag": 0.00256478
+              }
+            },
+            "perpetual": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 1,
+              "heldHours": 5903,
+              "exposureFraction": 1,
+              "grossCompoundedReturn": -0.35816334,
+              "netCompoundedReturn": -0.40789839,
+              "meanGrossTradeReturn": -0.35816334,
+              "meanNetTradeReturn": -0.40789839,
+              "netWinRate": 0,
+              "netProfitFactor": 0,
+              "netTradeTStatistic": null,
+              "annualizedVolatility": 0.4689041,
+              "sharpe": -1.42255693,
+              "maximumDrawdown": 0.45564122,
+              "cagr": -0.54079492,
+              "calmar": -1.1868876,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 0.4,
+                "fundingPctSum": 7.37875,
+                "compoundedReturnDrag": 0.04973505
+              }
+            }
+          },
+          "folds": [
+            {
+              "label": "fold1",
+              "from": "2018-12-01T00:00:00.000Z",
+              "toExclusive": "2020-10-27T11:00:00.000Z",
+              "spot": {
+                "bars": 16675,
+                "performanceDays": 696.45833333,
+                "completedTrades": 1,
+                "heldHours": 16715,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 2.28182477,
+                "netCompoundedReturn": 2.2687106,
+                "meanGrossTradeReturn": 2.28182477,
+                "meanNetTradeReturn": 2.2687106,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.67519185,
+                "sharpe": 1.25855627,
+                "maximumDrawdown": 0.70412499,
+                "cagr": 0.86105474,
+                "calmar": 1.22287201,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 0,
+                  "compoundedReturnDrag": 0.01311417
+                }
+              },
+              "perpetual": {
+                "bars": 16675,
+                "performanceDays": 696.45833333,
+                "completedTrades": 1,
+                "heldHours": 16715,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 2.28182477,
+                "netCompoundedReturn": 1.58575438,
+                "meanGrossTradeReturn": 2.28182477,
+                "meanNetTradeReturn": 1.58575438,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.6749711,
+                "sharpe": 1.07673863,
+                "maximumDrawdown": 0.72876152,
+                "cagr": 0.64579943,
+                "calmar": 0.88616016,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 20.89375,
+                  "compoundedReturnDrag": 0.69607039
+                }
+              }
+            },
+            {
+              "label": "fold2",
+              "from": "2020-10-27T11:00:00.000Z",
+              "toExclusive": "2022-09-23T23:00:00.000Z",
+              "spot": {
+                "bars": 16697,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 0.45770633,
+                "netCompoundedReturn": 0.45188133,
+                "meanGrossTradeReturn": 0.45770633,
+                "meanNetTradeReturn": 0.45188133,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.73316842,
+                "sharpe": 0.63337255,
+                "maximumDrawdown": 0.74052102,
+                "cagr": 0.21595621,
+                "calmar": 0.29162739,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 0,
+                  "compoundedReturnDrag": 0.00582499
+                }
+              },
+              "perpetual": {
+                "bars": 16697,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 0.45770633,
+                "netCompoundedReturn": 0.14851073,
+                "meanGrossTradeReturn": 0.45770633,
+                "meanNetTradeReturn": 0.14851073,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.73297485,
+                "sharpe": 0.4659422,
+                "maximumDrawdown": 0.76254745,
+                "cagr": 0.07531397,
+                "calmar": 0.09876628,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 20.895,
+                  "compoundedReturnDrag": 0.3091956
+                }
+              }
+            },
+            {
+              "label": "fold3",
+              "from": "2022-09-23T23:00:00.000Z",
+              "toExclusive": "2024-08-20T11:00:00.000Z",
+              "spot": {
+                "bars": 16715,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 2.14063652,
+                "netCompoundedReturn": 2.12808653,
+                "meanGrossTradeReturn": 2.14063652,
+                "meanNetTradeReturn": 2.12808653,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.4887267,
+                "sharpe": 1.46524483,
+                "maximumDrawdown": 0.32310691,
+                "cagr": 0.81856162,
+                "calmar": 2.53340799,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 0,
+                  "compoundedReturnDrag": 0.01254998
+                }
+              },
+              "perpetual": {
+                "bars": 16715,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 2.14063652,
+                "netCompoundedReturn": 1.47447285,
+                "meanGrossTradeReturn": 2.14063652,
+                "meanNetTradeReturn": 1.47447285,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.48856687,
+                "sharpe": 1.21404188,
+                "maximumDrawdown": 0.35802888,
+                "cagr": 0.60821969,
+                "calmar": 1.69880065,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 20.895,
+                  "compoundedReturnDrag": 0.66616366
+                }
+              }
+            },
+            {
+              "label": "fold4",
+              "from": "2024-08-20T11:00:00.000Z",
+              "toExclusive": "2026-07-17T23:00:00.000Z",
+              "spot": {
+                "bars": 16716,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 0.05385713,
+                "netCompoundedReturn": 0.04964592,
+                "meanGrossTradeReturn": 0.05385713,
+                "meanNetTradeReturn": 0.04964592,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.44603145,
+                "sharpe": 0.27900163,
+                "maximumDrawdown": 0.53742065,
+                "cagr": 0.02573463,
+                "calmar": 0.04788545,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 0,
+                  "compoundedReturnDrag": 0.00421121
+                }
+              },
+              "perpetual": {
+                "bars": 16716,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 0.05385713,
+                "netCompoundedReturn": -0.1696776,
+                "meanGrossTradeReturn": 0.05385713,
+                "meanNetTradeReturn": -0.1696776,
+                "netWinRate": 0,
+                "netProfitFactor": 0,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.44590831,
+                "sharpe": 0.0037859,
+                "maximumDrawdown": 0.57993408,
+                "cagr": -0.09290584,
+                "calmar": -0.16020069,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 20.895,
+                  "compoundedReturnDrag": 0.22353473
+                }
+              }
+            }
+          ]
+        }
+      },
+      "ETHUSD": {
+        "configurations": {
+          "h1-macd-one-bar": {
+            "full": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 2530,
+              "heldHours": 2530,
+              "exposureFraction": 0.03783857,
+              "grossCompoundedReturn": 0.37766907,
+              "netCompoundedReturn": -0.9999468,
+              "meanGrossTradeReturn": 0.00016448,
+              "meanNetTradeReturn": -0.00384463,
+              "netWinRate": 0.22252964,
+              "netProfitFactor": 0.28123006,
+              "netTradeTStatistic": -22.32414064,
+              "annualizedVolatility": 0.16769264,
+              "sharpe": -7.59056922,
+              "maximumDrawdown": 0.9999468,
+              "cagr": -0.72479566,
+              "calmar": -0.72483423,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 1012,
+                "fundingPctSum": 3.1625,
+                "compoundedReturnDrag": 1.37761586
+              }
+            },
+            "holdout": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 213,
+              "heldHours": 213,
+              "exposureFraction": 0.03608335,
+              "grossCompoundedReturn": 0.04647857,
+              "netCompoundedReturn": -0.55517969,
+              "meanGrossTradeReturn": 0.00023875,
+              "meanNetTradeReturn": -0.00377065,
+              "netWinRate": 0.19248826,
+              "netProfitFactor": 0.23475968,
+              "netTradeTStatistic": -7.7075235,
+              "annualizedVolatility": 0.12978879,
+              "sharpe": -9.18075644,
+              "maximumDrawdown": 0.55517969,
+              "cagr": -0.69970267,
+              "calmar": -1.2603175,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 85.2,
+                "fundingPctSum": 0.26625,
+                "compoundedReturnDrag": 0.60165826
+              }
+            },
+            "folds": [
+              {
+                "label": "fold1",
+                "from": "2018-12-01T00:00:00.000Z",
+                "toExclusive": "2020-10-27T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16675,
+                  "performanceDays": 696.45833333,
+                  "completedTrades": 603,
+                  "heldHours": 603,
+                  "exposureFraction": 0.03607538,
+                  "grossCompoundedReturn": -0.22634344,
+                  "netCompoundedReturn": -0.93133942,
+                  "meanGrossTradeReturn": -0.00038137,
+                  "meanNetTradeReturn": -0.00438829,
+                  "netWinRate": 0.2106136,
+                  "netProfitFactor": 0.2548331,
+                  "netTradeTStatistic": -11.50245644,
+                  "annualizedVolatility": 0.17932478,
+                  "sharpe": -7.71664771,
+                  "maximumDrawdown": 0.93133942,
+                  "cagr": -0.75457212,
+                  "calmar": -0.810201,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 241.2,
+                    "fundingPctSum": 0.75375,
+                    "compoundedReturnDrag": 0.70499598
+                  }
+                }
+              },
+              {
+                "label": "fold2",
+                "from": "2020-10-27T11:00:00.000Z",
+                "toExclusive": "2022-09-23T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16697,
+                  "performanceDays": 696.5,
+                  "completedTrades": 663,
+                  "heldHours": 663,
+                  "exposureFraction": 0.0396626,
+                  "grossCompoundedReturn": 0.50605745,
+                  "netCompoundedReturn": -0.89496355,
+                  "meanGrossTradeReturn": 0.00067461,
+                  "meanNetTradeReturn": -0.00333654,
+                  "netWinRate": 0.30015083,
+                  "netProfitFactor": 0.4148731,
+                  "netTradeTStatistic": -8.08918856,
+                  "annualizedVolatility": 0.19998984,
+                  "sharpe": -5.79076417,
+                  "maximumDrawdown": 0.89565259,
+                  "cagr": -0.69325102,
+                  "calmar": -0.77401776,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 265.2,
+                    "fundingPctSum": 0.82875,
+                    "compoundedReturnDrag": 1.401021
+                  }
+                }
+              },
+              {
+                "label": "fold3",
+                "from": "2022-09-23T23:00:00.000Z",
+                "toExclusive": "2024-08-20T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16715,
+                  "performanceDays": 696.5,
+                  "completedTrades": 642,
+                  "heldHours": 642,
+                  "exposureFraction": 0.03840632,
+                  "grossCompoundedReturn": -0.00559287,
+                  "netCompoundedReturn": -0.92454396,
+                  "meanGrossTradeReturn": 0.00001297,
+                  "meanNetTradeReturn": -0.00399554,
+                  "netWinRate": 0.16043614,
+                  "netProfitFactor": 0.18033809,
+                  "netTradeTStatistic": -15.47160991,
+                  "annualizedVolatility": 0.14155533,
+                  "sharpe": -9.47039596,
+                  "maximumDrawdown": 0.92700641,
+                  "cagr": -0.7420984,
+                  "calmar": -0.80053211,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 256.8,
+                    "fundingPctSum": 0.8025,
+                    "compoundedReturnDrag": 0.91895109
+                  }
+                }
+              },
+              {
+                "label": "fold4",
+                "from": "2024-08-20T11:00:00.000Z",
+                "toExclusive": "2026-07-17T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16716,
+                  "performanceDays": 696.5,
+                  "completedTrades": 622,
+                  "heldHours": 622,
+                  "exposureFraction": 0.03720986,
+                  "grossCompoundedReturn": 0.18902483,
+                  "netCompoundedReturn": -0.90222955,
+                  "meanGrossTradeReturn": 0.00030627,
+                  "meanNetTradeReturn": -0.00370341,
+                  "netWinRate": 0.21543408,
+                  "netProfitFactor": 0.25005022,
+                  "netTradeTStatistic": -12.40214805,
+                  "annualizedVolatility": 0.14230342,
+                  "sharpe": -8.47072297,
+                  "maximumDrawdown": 0.90412554,
+                  "cagr": -0.70456833,
+                  "calmar": -0.77928152,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 248.8,
+                    "fundingPctSum": 0.7775,
+                    "compoundedReturnDrag": 1.09125438
+                  }
+                }
+              }
+            ]
+          },
+          "d1h1-macd-one-bar": {
+            "full": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 1308,
+              "heldHours": 1308,
+              "exposureFraction": 0.01956239,
+              "grossCompoundedReturn": 0.20359108,
+              "netCompoundedReturn": -0.99370676,
+              "meanGrossTradeReturn": 0.00017575,
+              "meanNetTradeReturn": -0.0038334,
+              "netWinRate": 0.22247706,
+              "netProfitFactor": 0.27605283,
+              "netTradeTStatistic": -16.86707994,
+              "annualizedVolatility": 0.12182421,
+              "sharpe": -5.38400432,
+              "maximumDrawdown": 0.99370676,
+              "cagr": -0.48545445,
+              "calmar": -0.48852888,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 523.2,
+                "fundingPctSum": 1.635,
+                "compoundedReturnDrag": 1.19729785
+              }
+            },
+            "holdout": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 110,
+              "heldHours": 110,
+              "exposureFraction": 0.01863459,
+              "grossCompoundedReturn": 0.11186196,
+              "netCompoundedReturn": -0.28521934,
+              "meanGrossTradeReturn": 0.00098424,
+              "meanNetTradeReturn": -0.00302816,
+              "netWinRate": 0.18181818,
+              "netProfitFactor": 0.26359476,
+              "netTradeTStatistic": -5.00923406,
+              "annualizedVolatility": 0.08590489,
+              "sharpe": -5.75298495,
+              "maximumDrawdown": 0.29266693,
+              "cagr": -0.39264097,
+              "calmar": -1.34159667,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 44,
+                "fundingPctSum": 0.1375,
+                "compoundedReturnDrag": 0.39708129
+              }
+            },
+            "folds": [
+              {
+                "label": "fold1",
+                "from": "2018-12-01T00:00:00.000Z",
+                "toExclusive": "2020-10-27T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16675,
+                  "performanceDays": 696.45833333,
+                  "completedTrades": 333,
+                  "heldHours": 333,
+                  "exposureFraction": 0.01992223,
+                  "grossCompoundedReturn": -0.10161867,
+                  "netCompoundedReturn": -0.76417304,
+                  "meanGrossTradeReturn": -0.000283,
+                  "meanNetTradeReturn": -0.00429032,
+                  "netWinRate": 0.22222222,
+                  "netProfitFactor": 0.26212926,
+                  "netTradeTStatistic": -8.93299671,
+                  "annualizedVolatility": 0.13356731,
+                  "sharpe": -5.5903069,
+                  "maximumDrawdown": 0.76417304,
+                  "cagr": -0.53122606,
+                  "calmar": -0.69516462,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 133.2,
+                    "fundingPctSum": 0.41625,
+                    "compoundedReturnDrag": 0.66255437
+                  }
+                }
+              },
+              {
+                "label": "fold2",
+                "from": "2020-10-27T11:00:00.000Z",
+                "toExclusive": "2022-09-23T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16697,
+                  "performanceDays": 696.5,
+                  "completedTrades": 351,
+                  "heldHours": 351,
+                  "exposureFraction": 0.02099785,
+                  "grossCompoundedReturn": 0.02977452,
+                  "netCompoundedReturn": -0.74853552,
+                  "meanGrossTradeReturn": 0.00012898,
+                  "meanNetTradeReturn": -0.00387998,
+                  "netWinRate": 0.27350427,
+                  "netProfitFactor": 0.33907757,
+                  "netTradeTStatistic": -7.64751087,
+                  "annualizedVolatility": 0.14052429,
+                  "sharpe": -5.06851177,
+                  "maximumDrawdown": 0.75044256,
+                  "cagr": -0.51515234,
+                  "calmar": -0.68646472,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 140.4,
+                    "fundingPctSum": 0.43875,
+                    "compoundedReturnDrag": 0.77831004
+                  }
+                }
+              },
+              {
+                "label": "fold3",
+                "from": "2022-09-23T23:00:00.000Z",
+                "toExclusive": "2024-08-20T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16715,
+                  "performanceDays": 696.5,
+                  "completedTrades": 318,
+                  "heldHours": 318,
+                  "exposureFraction": 0.01902369,
+                  "grossCompoundedReturn": 0.05752096,
+                  "netCompoundedReturn": -0.70515965,
+                  "meanGrossTradeReturn": 0.00020158,
+                  "meanNetTradeReturn": -0.00380768,
+                  "netWinRate": 0.18238994,
+                  "netProfitFactor": 0.21787205,
+                  "netTradeTStatistic": -9.53337671,
+                  "annualizedVolatility": 0.10863637,
+                  "sharpe": -5.82712974,
+                  "maximumDrawdown": 0.70515965,
+                  "cagr": -0.47295553,
+                  "calmar": -0.67070701,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 127.2,
+                    "fundingPctSum": 0.3975,
+                    "compoundedReturnDrag": 0.76268062
+                  }
+                }
+              },
+              {
+                "label": "fold4",
+                "from": "2024-08-20T11:00:00.000Z",
+                "toExclusive": "2026-07-17T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16716,
+                  "performanceDays": 696.5,
+                  "completedTrades": 306,
+                  "heldHours": 306,
+                  "exposureFraction": 0.01830581,
+                  "grossCompoundedReturn": 0.23023228,
+                  "netCompoundedReturn": -0.6400707,
+                  "meanGrossTradeReturn": 0.0007018,
+                  "meanNetTradeReturn": -0.00330946,
+                  "netWinRate": 0.20588235,
+                  "netProfitFactor": 0.26675915,
+                  "netTradeTStatistic": -8.2708884,
+                  "annualizedVolatility": 0.09961769,
+                  "sharpe": -5.31789789,
+                  "maximumDrawdown": 0.64705057,
+                  "cagr": -0.414837,
+                  "calmar": -0.6411199,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 122.4,
+                    "fundingPctSum": 0.3825,
+                    "compoundedReturnDrag": 0.87030298
+                  }
+                }
+              }
+            ]
+          },
+          "d1h1-macd-negative-bar-exit": {
+            "full": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 1308,
+              "heldHours": 2411,
+              "exposureFraction": 0.03605881,
+              "grossCompoundedReturn": -0.1274927,
+              "netCompoundedReturn": -0.99550038,
+              "meanGrossTradeReturn": -0.00004891,
+              "meanNetTradeReturn": -0.00406776,
+              "netWinRate": 0.19801223,
+              "netProfitFactor": 0.3457481,
+              "netTradeTStatistic": -13.95397122,
+              "annualizedVolatility": 0.15180279,
+              "sharpe": -4.58334309,
+              "maximumDrawdown": 0.9955201,
+              "cagr": -0.50759521,
+              "calmar": -0.50987942,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 523.2,
+                "fundingPctSum": 3.01375,
+                "compoundedReturnDrag": 0.86800767
+              }
+            },
+            "holdout": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 110,
+              "heldHours": 210,
+              "exposureFraction": 0.03557513,
+              "grossCompoundedReturn": 0.15640749,
+              "netCompoundedReturn": -0.25751115,
+              "meanGrossTradeReturn": 0.00137748,
+              "meanNetTradeReturn": -0.00264792,
+              "netWinRate": 0.14545455,
+              "netProfitFactor": 0.49059872,
+              "netTradeTStatistic": -2.60666961,
+              "annualizedVolatility": 0.1412461,
+              "sharpe": -3.05635944,
+              "maximumDrawdown": 0.26376348,
+              "cagr": -0.35735139,
+              "calmar": -1.35481755,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 44,
+                "fundingPctSum": 0.2625,
+                "compoundedReturnDrag": 0.41391864
+              }
+            },
+            "folds": [
+              {
+                "label": "fold1",
+                "from": "2018-12-01T00:00:00.000Z",
+                "toExclusive": "2020-10-27T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16675,
+                  "performanceDays": 696.45833333,
+                  "completedTrades": 333,
+                  "heldHours": 587,
+                  "exposureFraction": 0.03511816,
+                  "grossCompoundedReturn": -0.16754771,
+                  "netCompoundedReturn": -0.78217227,
+                  "meanGrossTradeReturn": -0.00049328,
+                  "meanNetTradeReturn": -0.00450934,
+                  "netWinRate": 0.1951952,
+                  "netProfitFactor": 0.31649122,
+                  "netTradeTStatistic": -7.68072195,
+                  "annualizedVolatility": 0.15810674,
+                  "sharpe": -4.96294565,
+                  "maximumDrawdown": 0.78248637,
+                  "cagr": -0.55034374,
+                  "calmar": -0.70332693,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 133.2,
+                    "fundingPctSum": 0.73375,
+                    "compoundedReturnDrag": 0.61462456
+                  }
+                }
+              },
+              {
+                "label": "fold2",
+                "from": "2020-10-27T11:00:00.000Z",
+                "toExclusive": "2022-09-23T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16697,
+                  "performanceDays": 696.5,
+                  "completedTrades": 351,
+                  "heldHours": 655,
+                  "exposureFraction": 0.03918402,
+                  "grossCompoundedReturn": -0.16596054,
+                  "netCompoundedReturn": -0.79710528,
+                  "meanGrossTradeReturn": -0.00044429,
+                  "meanNetTradeReturn": -0.00446185,
+                  "netWinRate": 0.23076923,
+                  "netProfitFactor": 0.38484656,
+                  "netTradeTStatistic": -6.92065468,
+                  "annualizedVolatility": 0.17731131,
+                  "sharpe": -4.61703419,
+                  "maximumDrawdown": 0.80186009,
+                  "cagr": -0.56676114,
+                  "calmar": -0.70680802,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 140.4,
+                    "fundingPctSum": 0.81875,
+                    "compoundedReturnDrag": 0.63114474
+                  }
+                }
+              },
+              {
+                "label": "fold3",
+                "from": "2022-09-23T23:00:00.000Z",
+                "toExclusive": "2024-08-20T11:00:00.000Z",
+                "metrics": {
+                  "bars": 16715,
+                  "performanceDays": 696.5,
+                  "completedTrades": 318,
+                  "heldHours": 579,
+                  "exposureFraction": 0.03463747,
+                  "grossCompoundedReturn": 0.10177218,
+                  "netCompoundedReturn": -0.69382283,
+                  "meanGrossTradeReturn": 0.00035321,
+                  "meanNetTradeReturn": -0.00366696,
+                  "netWinRate": 0.17924528,
+                  "netProfitFactor": 0.32247313,
+                  "netTradeTStatistic": -6.60207309,
+                  "annualizedVolatility": 0.1416126,
+                  "sharpe": -4.30302454,
+                  "maximumDrawdown": 0.70457509,
+                  "cagr": -0.46242365,
+                  "calmar": -0.65631564,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 127.2,
+                    "fundingPctSum": 0.72375,
+                    "compoundedReturnDrag": 0.79559501
+                  }
+                }
+              },
+              {
+                "label": "fold4",
+                "from": "2024-08-20T11:00:00.000Z",
+                "toExclusive": "2026-07-17T23:00:00.000Z",
+                "metrics": {
+                  "bars": 16716,
+                  "performanceDays": 696.5,
+                  "completedTrades": 306,
+                  "heldHours": 590,
+                  "exposureFraction": 0.03529553,
+                  "grossCompoundedReturn": 0.1405946,
+                  "netCompoundedReturn": -0.6674786,
+                  "meanGrossTradeReturn": 0.00047031,
+                  "meanNetTradeReturn": -0.00355167,
+                  "netWinRate": 0.18300654,
+                  "netProfitFactor": 0.34862101,
+                  "netTradeTStatistic": -6.89605568,
+                  "annualizedVolatility": 0.1248758,
+                  "sharpe": -4.55148693,
+                  "maximumDrawdown": 0.6733175,
+                  "cagr": -0.43864384,
+                  "calmar": -0.65146657,
+                  "costs": {
+                    "roundTripFeeSlippagePctSum": 122.4,
+                    "fundingPctSum": 0.7375,
+                    "compoundedReturnDrag": 0.8080732
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "benchmarks": {
+          "cashNetReturn": 0,
+          "full": {
+            "spot": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 1,
+              "heldHours": 66863,
+              "exposureFraction": 1,
+              "grossCompoundedReturn": 15.18107466,
+              "netCompoundedReturn": 15.11641509,
+              "meanGrossTradeReturn": 15.18107466,
+              "meanNetTradeReturn": 15.11641509,
+              "netWinRate": 1,
+              "netProfitFactor": null,
+              "netTradeTStatistic": null,
+              "annualizedVolatility": 0.79387798,
+              "sharpe": 0.85762437,
+              "maximumDrawdown": 0.81343014,
+              "cagr": 0.43971855,
+              "calmar": 0.54057322,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 0.4,
+                "fundingPctSum": 0,
+                "compoundedReturnDrag": 0.06465957
+              }
+            },
+            "perpetual": {
+              "bars": 66803,
+              "performanceDays": 2785.95833333,
+              "completedTrades": 1,
+              "heldHours": 66863,
+              "exposureFraction": 1,
+              "grossCompoundedReturn": 15.18107466,
+              "netCompoundedReturn": 1.64651681,
+              "meanGrossTradeReturn": 15.18107466,
+              "meanNetTradeReturn": 1.64651681,
+              "netWinRate": 1,
+              "netProfitFactor": null,
+              "netTradeTStatistic": null,
+              "annualizedVolatility": 0.79368455,
+              "sharpe": 0.55942155,
+              "maximumDrawdown": 0.92068619,
+              "cagr": 0.13609408,
+              "calmar": 0.14781809,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 0.4,
+                "fundingPctSum": 83.57875,
+                "compoundedReturnDrag": 13.53455785
+              }
+            }
+          },
+          "holdout": {
+            "spot": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 1,
+              "heldHours": 5903,
+              "exposureFraction": 1,
+              "grossCompoundedReturn": -0.43062926,
+              "netCompoundedReturn": -0.43290447,
+              "meanGrossTradeReturn": -0.43062926,
+              "meanNetTradeReturn": -0.43290447,
+              "netWinRate": 0,
+              "netProfitFactor": 0,
+              "netTradeTStatistic": null,
+              "annualizedVolatility": 0.6326712,
+              "sharpe": -1.01348577,
+              "maximumDrawdown": 0.5509613,
+              "cagr": -0.56929728,
+              "calmar": -1.03327997,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 0.4,
+                "fundingPctSum": 0,
+                "compoundedReturnDrag": 0.00227521
+              }
+            },
+            "perpetual": {
+              "bars": 5903,
+              "performanceDays": 245.95833333,
+              "completedTrades": 1,
+              "heldHours": 5903,
+              "exposureFraction": 1,
+              "grossCompoundedReturn": -0.43062926,
+              "netCompoundedReturn": -0.47474903,
+              "meanGrossTradeReturn": -0.43062926,
+              "meanNetTradeReturn": -0.47474903,
+              "netWinRate": 0,
+              "netProfitFactor": 0,
+              "netTradeTStatistic": null,
+              "annualizedVolatility": 0.6324713,
+              "sharpe": -1.19328589,
+              "maximumDrawdown": 0.57716099,
+              "cagr": -0.61563604,
+              "calmar": -1.0666626,
+              "costs": {
+                "roundTripFeeSlippagePctSum": 0.4,
+                "fundingPctSum": 7.37875,
+                "compoundedReturnDrag": 0.04411977
+              }
+            }
+          },
+          "folds": [
+            {
+              "label": "fold1",
+              "from": "2018-12-01T00:00:00.000Z",
+              "toExclusive": "2020-10-27T11:00:00.000Z",
+              "spot": {
+                "bars": 16675,
+                "performanceDays": 696.45833333,
+                "completedTrades": 1,
+                "heldHours": 16715,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 2.48421423,
+                "netCompoundedReturn": 2.47029131,
+                "meanGrossTradeReturn": 2.48421423,
+                "meanNetTradeReturn": 2.47029131,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.87228849,
+                "sharpe": 1.19228483,
+                "maximumDrawdown": 0.73000615,
+                "cagr": 0.92038824,
+                "calmar": 1.26079519,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 0,
+                  "compoundedReturnDrag": 0.01392292
+                }
+              },
+              "perpetual": {
+                "bars": 16675,
+                "performanceDays": 696.45833333,
+                "completedTrades": 1,
+                "heldHours": 16715,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 2.48421423,
+                "netCompoundedReturn": 1.74521732,
+                "meanGrossTradeReturn": 2.48421423,
+                "meanNetTradeReturn": 1.74521732,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.87199294,
+                "sharpe": 1.05155327,
+                "maximumDrawdown": 0.75249754,
+                "cagr": 0.69827023,
+                "calmar": 0.9279369,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 20.89375,
+                  "compoundedReturnDrag": 0.73899691
+                }
+              }
+            },
+            {
+              "label": "fold2",
+              "from": "2020-10-27T11:00:00.000Z",
+              "toExclusive": "2022-09-23T23:00:00.000Z",
+              "spot": {
+                "bars": 16697,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 2.35633518,
+                "netCompoundedReturn": 2.34292327,
+                "meanGrossTradeReturn": 2.35633518,
+                "meanNetTradeReturn": 2.34292327,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.9662442,
+                "sharpe": 1.13815828,
+                "maximumDrawdown": 0.81343014,
+                "cagr": 0.88302442,
+                "calmar": 1.08555655,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 0,
+                  "compoundedReturnDrag": 0.01341192
+                }
+              },
+              "perpetual": {
+                "bars": 16697,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 2.35633518,
+                "netCompoundedReturn": 1.64441945,
+                "meanGrossTradeReturn": 2.35633518,
+                "meanNetTradeReturn": 1.64441945,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.96596973,
+                "sharpe": 1.01109706,
+                "maximumDrawdown": 0.82733755,
+                "cagr": 0.66522647,
+                "calmar": 0.8040569,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 20.895,
+                  "compoundedReturnDrag": 0.71191573
+                }
+              }
+            },
+            {
+              "label": "fold3",
+              "from": "2022-09-23T23:00:00.000Z",
+              "toExclusive": "2024-08-20T11:00:00.000Z",
+              "spot": {
+                "bars": 16715,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 0.99741313,
+                "netCompoundedReturn": 0.98943146,
+                "meanGrossTradeReturn": 0.99741313,
+                "meanNetTradeReturn": 0.98943146,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.57473474,
+                "sharpe": 0.91188207,
+                "maximumDrawdown": 0.45223082,
+                "cagr": 0.43435217,
+                "calmar": 0.96046565,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 0,
+                  "compoundedReturnDrag": 0.00798166
+                }
+              },
+              "perpetual": {
+                "bars": 16715,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": 0.99741313,
+                "netCompoundedReturn": 0.57373976,
+                "meanGrossTradeReturn": 0.99741313,
+                "meanNetTradeReturn": 0.57373976,
+                "netWinRate": 1,
+                "netProfitFactor": null,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.57454966,
+                "sharpe": 0.69827544,
+                "maximumDrawdown": 0.48092427,
+                "cagr": 0.2684494,
+                "calmar": 0.55819476,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 20.895,
+                  "compoundedReturnDrag": 0.42367337
+                }
+              }
+            },
+            {
+              "label": "fold4",
+              "from": "2024-08-20T11:00:00.000Z",
+              "toExclusive": "2026-07-17T23:00:00.000Z",
+              "spot": {
+                "bars": 16716,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": -0.30728425,
+                "netCompoundedReturn": -0.31005235,
+                "meanGrossTradeReturn": -0.30728425,
+                "meanNetTradeReturn": -0.31005235,
+                "netWinRate": 0,
+                "netProfitFactor": 0,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.70366514,
+                "sharpe": 0.07294933,
+                "maximumDrawdown": 0.6914772,
+                "cagr": -0.17685957,
+                "calmar": -0.25577064,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 0,
+                  "compoundedReturnDrag": 0.00276809
+                }
+              },
+              "perpetual": {
+                "bars": 16716,
+                "performanceDays": 696.5,
+                "completedTrades": 1,
+                "heldHours": 16716,
+                "exposureFraction": 1,
+                "grossCompoundedReturn": -0.30728425,
+                "netCompoundedReturn": -0.45421691,
+                "meanGrossTradeReturn": -0.30728425,
+                "meanNetTradeReturn": -0.45421691,
+                "netWinRate": 0,
+                "netProfitFactor": 0,
+                "netTradeTStatistic": null,
+                "annualizedVolatility": 0.7034396,
+                "sharpe": -0.10150689,
+                "maximumDrawdown": 0.72287039,
+                "cagr": -0.2720672,
+                "calmar": -0.37637065,
+                "costs": {
+                  "roundTripFeeSlippagePctSum": 0.4,
+                  "fundingPctSum": 20.895,
+                  "compoundedReturnDrag": 0.14693265
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "portfolio": {
+      "strategy": {
+        "full": {
+          "performanceDays": 2785.95833333,
+          "grossCompoundedReturn": 0.28340173,
+          "netCompoundedReturn": -0.99381737,
+          "annualizedVolatility": 0.11837773,
+          "sharpe": -5.56461144,
+          "maximumDrawdown": 0.99387648,
+          "cagr": -0.48664922,
+          "calmar": -0.48964758
+        },
+        "holdout": {
+          "performanceDays": 245.95833333,
+          "grossCompoundedReturn": 0.1458485,
+          "netCompoundedReturn": -0.29527252,
+          "annualizedVolatility": 0.11536089,
+          "sharpe": -4.44079855,
+          "maximumDrawdown": 0.30220583,
+          "cagr": -0.40528303,
+          "calmar": -1.34108278
+        }
+      },
+      "benchmarks": {
+        "cashNetReturn": 0,
+        "spot": {
+          "full": {
+            "performanceDays": 2785.95833333,
+            "grossCompoundedReturn": 15.00710811,
+            "netCompoundedReturn": 14.94314371,
+            "annualizedVolatility": 0.67967921,
+            "sharpe": 0.8765489,
+            "maximumDrawdown": 0.7925427,
+            "cagr": 0.43767968,
+            "calmar": 0.55224744
+          },
+          "holdout": {
+            "performanceDays": 245.95833333,
+            "grossCompoundedReturn": -0.3943963,
+            "netCompoundedReturn": -0.39681629,
+            "annualizedVolatility": 0.53678781,
+            "sharpe": -1.12829696,
+            "maximumDrawdown": 0.47734044,
+            "cagr": -0.52797393,
+            "calmar": -1.10607416
+          }
+        },
+        "perpetual": {
+          "full": {
+            "performanceDays": 2785.95833333,
+            "grossCompoundedReturn": 15.00710811,
+            "netCompoundedReturn": 1.61806349,
+            "annualizedVolatility": 0.67957147,
+            "sharpe": 0.52821552,
+            "maximumDrawdown": 0.8819584,
+            "cagr": 0.13448519,
+            "calmar": 0.15248473
+          },
+          "holdout": {
+            "performanceDays": 245.95833333,
+            "grossCompoundedReturn": -0.3943963,
+            "netCompoundedReturn": -0.44132371,
+            "annualizedVolatility": 0.53661688,
+            "sharpe": -1.34021699,
+            "maximumDrawdown": 0.50697558,
+            "cagr": -0.57875862,
+            "calmar": -1.14159072
+          }
+        }
+      },
+      "sleeveTradeCounts": {
+        "full": {
+          "BTCUSD": 1334,
+          "ETHUSD": 1308
+        },
+        "holdout": {
+          "BTCUSD": 132,
+          "ETHUSD": 110
+        }
+      }
+    }
+  },
+  "decision": {
+    "btcReplication": {
+      "verdict": "FAIL",
+      "conditions": {
+        "qaPassed": true,
+        "fullNetReturnPositive": false,
+        "meanNetTradeReturnPositive": false,
+        "tradeTStatisticAtLeast1Point96": false,
+        "atLeast100Trades": true,
+        "atLeastThreePositiveFolds": false,
+        "holdoutAtLeast20Trades": true,
+        "holdoutNetReturnPositive": false,
+        "holdoutMeanNetTradeReturnPositive": false,
+        "maximumDrawdownBelowSpot": false,
+        "calmarAboveSpot": false
+      },
+      "positiveFolds": 0,
+      "reasons": [
+        "BTC condition failed: fullNetReturnPositive",
+        "BTC condition failed: meanNetTradeReturnPositive",
+        "BTC condition failed: tradeTStatisticAtLeast1Point96",
+        "BTC condition failed: atLeastThreePositiveFolds",
+        "BTC condition failed: holdoutNetReturnPositive",
+        "BTC condition failed: holdoutMeanNetTradeReturnPositive",
+        "BTC condition failed: maximumDrawdownBelowSpot",
+        "BTC condition failed: calmarAboveSpot"
+      ]
+    },
+    "portfolioCandidate": {
+      "verdict": "FAIL",
+      "conditions": {
+        "btcReplicationPassed": false,
+        "ethFullNetReturnPositive": false,
+        "ethMeanNetTradeReturnPositive": false,
+        "ethTradeTStatisticAtLeast1Point96": false,
+        "ethAtLeastThreePositiveFolds": false,
+        "portfolioFullNetReturnPositive": false,
+        "portfolioHoldoutNetReturnPositive": false,
+        "portfolioMaximumDrawdownBelowSpot": false,
+        "portfolioCalmarAboveSpot": false
+      },
+      "ethPositiveFolds": 0,
+      "reasons": [
+        "portfolio condition failed: btcReplicationPassed",
+        "portfolio condition failed: ethFullNetReturnPositive",
+        "portfolio condition failed: ethMeanNetTradeReturnPositive",
+        "portfolio condition failed: ethTradeTStatisticAtLeast1Point96",
+        "portfolio condition failed: ethAtLeastThreePositiveFolds",
+        "portfolio condition failed: portfolioFullNetReturnPositive",
+        "portfolio condition failed: portfolioHoldoutNetReturnPositive",
+        "portfolio condition failed: portfolioMaximumDrawdownBelowSpot",
+        "portfolio condition failed: portfolioCalmarAboveSpot"
+      ]
+    },
+    "eligibleForProspectiveReview": false,
+    "activationApproved": false,
+    "liveMutationApproved": false,
+    "lane": "modeled-research"
+  }
+}

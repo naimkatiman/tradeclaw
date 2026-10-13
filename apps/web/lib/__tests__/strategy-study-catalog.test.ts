@@ -190,16 +190,38 @@ describe('strategy study catalog integrity', () => {
       .filter((file) => file.endsWith('.json'))
       .sort();
     const shelfFiles = EXPERIMENT_SHELF.map((entry) => entry.file).sort();
+    const registry = readFileSync(resolve(experimentDir, 'REGISTRY.md'), 'utf8');
 
     expect(shelfFiles).toEqual(committedFiles);
     expect(new Set(shelfFiles).size).toBe(shelfFiles.length);
     expect(EXPERIMENT_SHELF.every((entry) => entry.reason.length >= 40)).toBe(true);
+    for (const entry of EXPERIMENT_SHELF) {
+      expect(registry).toContain('`' + entry.file + '`');
+    }
 
     const legacy = EXPERIMENT_SHELF.find((entry) => entry.file.includes('legacy-zero'));
     const hmm = EXPERIMENT_SHELF.find((entry) => entry.file.startsWith('regime-hmm'));
+    const treasuryQaHold = EXPERIMENT_SHELF.find((entry) =>
+      entry.file.startsWith('end-of-month-treasury'),
+    );
+    const termPremiumFail = EXPERIMENT_SHELF.find((entry) =>
+      entry.file.startsWith('trading-term-premium'),
+    );
     expect(legacy).toMatchObject({ disposition: 'shelved' });
     expect(legacy?.reason).toMatch(/zero-cost|production cost/i);
     expect(hmm).toMatchObject({ disposition: 'shelved' });
     expect(hmm?.reason).toMatch(/diagnostic|no standalone trading return/i);
+    expect(treasuryQaHold).toMatchObject({ disposition: 'shelved' });
+    expect(treasuryQaHold?.reason).toMatch(/no performance result/i);
+    expect(termPremiumFail).toMatchObject({ disposition: 'shelved' });
+    expect(termPremiumFail?.reason).toMatch(/1\/4 paper folds.*one-month sleeve/i);
+
+    const btcOnlyPredecessor = EXPERIMENT_SHELF.find(
+      (entry) => entry.file === 'daily-momentum-validation-BTCUSD-D1-f4.json',
+    );
+    const btcOnlyArtifact = artifact<{ meta: { runAt: string } }>(
+      'daily-momentum-validation-BTCUSD-D1-f4.json',
+    );
+    expect(btcOnlyPredecessor?.runDate).toBe(btcOnlyArtifact.meta.runAt.slice(0, 10));
   });
 });

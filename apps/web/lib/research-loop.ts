@@ -1,0 +1,165 @@
+import type { ResearchIntakeRecord } from './research-intake';
+
+export const RESEARCH_LOOP_DURATION_HOURS = 3;
+export const RESEARCH_LOOP_DURATION_MS = RESEARCH_LOOP_DURATION_HOURS * 60 * 60 * 1000;
+const EXPLICIT_UTC_OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/;
+
+export interface ResearchLoopWindow {
+  id: string;
+  startAt: string;
+  endsAt: string;
+  durationHours: 3;
+}
+
+export interface MarketingReviewDraft {
+  candidateId: string;
+  title: string;
+  summary: string;
+  body: string;
+  evidenceBasis: 'modeled-research';
+  disposition: 'human-review-draft-only';
+  publishApproved: false;
+  resultPath: string;
+  artifactPath: string;
+}
+
+function researchLoopTimestamp(at: Date | string | number): number {
+  if (typeof at === 'string') {
+    const timestamp = Date.parse(at);
+    if (!Number.isFinite(timestamp)) {
+      throw new Error('research loop time must be a valid instant');
+    }
+    if (!EXPLICIT_UTC_OFFSET.test(at)) {
+      throw new Error('research loop time string must include an explicit UTC offset or Z suffix');
+    }
+    return timestamp;
+  }
+
+  const timestamp = at instanceof Date ? at.getTime() : new Date(at).getTime();
+  if (!Number.isFinite(timestamp)) throw new Error('research loop time must be a valid instant');
+  return timestamp;
+}
+
+export function getResearchLoopWindow(at: Date | string | number): ResearchLoopWindow {
+  const timestamp = researchLoopTimestamp(at);
+  const startMs = Math.floor(timestamp / RESEARCH_LOOP_DURATION_MS) * RESEARCH_LOOP_DURATION_MS;
+  const endMs = startMs + RESEARCH_LOOP_DURATION_MS;
+  const start = new Date(startMs);
+  const end = new Date(endMs);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
+    throw new Error('research loop time must be a valid instant');
+  }
+  const startAt = start.toISOString();
+  const endsAt = end.toISOString();
+
+  return {
+    id: `${startAt}/PT3H`,
+    startAt,
+    endsAt,
+    durationHours: RESEARCH_LOOP_DURATION_HOURS,
+  };
+}
+
+function signedPercent(ratio: number): string {
+  const value = ratio * 100;
+  return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+}
+
+function unsupportedEvidence(evidence: never): null {
+  void evidence;
+  return null;
+}
+
+export function buildMarketingReviewDraft(
+  record: ResearchIntakeRecord,
+): MarketingReviewDraft | null {
+  const evidence = record.tradeClawEvidence;
+  if (!evidence || record.marketingDisposition !== 'human-review-draft-only') return null;
+
+  if (evidence.taskId === 'TC-257') {
+    const observedBps = evidence.qa.maximumErrorPct * 100;
+    const toleranceBps = evidence.qa.frozenTolerancePct * 100;
+    return {
+      candidateId: record.id,
+      title: 'A Treasury replication stopped at its frozen data gate',
+      summary:
+        `One of ${evidence.qa.suppliedYieldChecks.toLocaleString('en-US')} official curve checks exceeded the preregistered ${toleranceBps.toFixed(2)} bp tolerance, so no performance result was published.`,
+      body: [
+        `We audited and preregistered “${record.title}” as a low-turnover, cost-aware independent replication.`,
+        `The pinned sources passed hashes, dates, counts, ${evidence.qa.evaluationMonths} evaluation months, and daily financing coverage. One five-year curve check on ${evidence.qa.maximumErrorDate} differed by ${observedBps.toFixed(4)} bp, above the frozen ${toleranceBps.toFixed(2)} bp limit.`,
+        'Verdict: INCONCLUSIVE. Performance gates were not evaluated, the artifact contains no return observations, and the tolerance was not loosened after seeing the source.',
+        'This modeled research receipt is not live performance and does not authorize promotion, publication, allocation, broadcast, or execution.',
+      ].join(' '),
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+      resultPath: evidence.resultPath,
+      artifactPath: evidence.artifactPath,
+    };
+  }
+
+  if (evidence.taskId === 'TC-258') {
+    return {
+      candidateId: record.id,
+      title: 'Bitcoin MAX10/MIN10 failed its post-paper holdout',
+      summary:
+        `BTC holdout gross ${signedPercent(evidence.btc.holdoutGrossCompoundedReturn)} became ${signedPercent(evidence.btc.holdoutNetCompoundedReturn)} net under frozen spot costs.`,
+      body: [
+        `We independently replicated “${record.title}” from hashed Gemini inputs after freezing exact MAX10/MIN10 rules, fills, costs, folds, and a 2022-2026 holdout.`,
+        `The zero-cost paper-window control annualized at ${signedPercent(evidence.paperWindowGrossControl.annualizedReturn)} versus the source's ${signedPercent(evidence.paperWindowGrossControl.sourceTargetAnnualizedReturn)} audit target.`,
+        `BTC returned ${signedPercent(evidence.btc.grossCompoundedReturn)} gross and ${signedPercent(evidence.btc.netCompoundedReturn)} net over the full history, but its holdout moved from ${signedPercent(evidence.btc.holdoutGrossCompoundedReturn)} gross to ${signedPercent(evidence.btc.holdoutFeeOnlyCompoundedReturn)} with the fee alone and ${signedPercent(evidence.btc.holdoutNetCompoundedReturn)} under the ${evidence.costs.headlineTotalPctPerSide.toFixed(2)}%-per-side headline cost.`,
+        `ETH repeated the break: ${signedPercent(evidence.eth.holdoutGrossCompoundedReturn)} holdout gross became ${signedPercent(evidence.eth.holdoutNetCompoundedReturn)} net. Both assets had ${evidence.btc.positiveFolds} of ${evidence.btc.totalFolds} positive chronological folds.`,
+        `The separate daily two-hour lane was not backtested because its published-result break-even cost was only ${evidence.intradayCostNoGo.breakEvenCostPctPerSide.toFixed(4)}% per side, below the fee alone.`,
+        'Verdict: FAIL. The adverse artifact remains visible, no better-looking MAX-only control was selected after the result, and this modeled research does not authorize promotion, publication, allocation, broadcast, or execution.',
+      ].join(' '),
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+      resultPath: evidence.resultPath,
+      artifactPath: evidence.artifactPath,
+    };
+  }
+
+  if (evidence.taskId === 'TC-259') {
+    return {
+      candidateId: record.id,
+      title: 'Term-spread timing failed stability and its holdout cash benchmark',
+      summary:
+        `Holdout headline return was ${signedPercent(evidence.holdout.headlineCompoundedReturn)} versus ${signedPercent(evidence.holdout.alwaysOneMonthHeadlineCompoundedReturn)} for the identically costed one-month sleeve; only ${evidence.stability.passingPaperFolds}/${evidence.stability.totalPaperFolds} paper folds beat both frozen benchmarks.`,
+      body: [
+        `We independently replicated “${record.title}” from an exact Federal Reserve curve snapshot after freezing the MA40 timing, modeled zero-coupon returns, ${evidence.costs.headlineSideBps} bp-per-side headline roll cost, folds, controls, and a 2023-2026 holdout.`,
+        `All standing QA and full-window gates passed; the canonical full-history headline return was ${signedPercent(evidence.full.headlineCompoundedReturn)}.`,
+        `The durability test failed: only ${evidence.stability.passingPaperFolds} of ${evidence.stability.totalPaperFolds} paper folds beat both benchmarks, and the canonical holdout returned ${signedPercent(evidence.holdout.headlineCompoundedReturn)} after modeled costs versus ${signedPercent(evidence.holdout.alwaysOneMonthHeadlineCompoundedReturn)} for the same-window one-month sleeve.`,
+        `The frozen prior-only ambiguity control returned ${signedPercent(evidence.holdout.priorOnlyHeadlineCompoundedReturn)} in the holdout and cannot replace the canonical result after the run.`,
+        'Verdict: FAIL. These fitted current-vintage curve results are not observed security fills and do not authorize promotion, publication, allocation, broadcast, or execution.',
+      ].join(' '),
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+      resultPath: evidence.resultPath,
+      artifactPath: evidence.artifactPath,
+    };
+  }
+
+  if (evidence.taskId !== 'TC-255') return unsupportedEvidence(evidence);
+
+  return {
+    candidateId: record.id,
+    title: 'A high-turnover Bitcoin trend idea failed after realistic costs',
+    summary: `BTC gross ${signedPercent(evidence.btc.grossCompoundedReturn)} became net ${signedPercent(evidence.btc.netCompoundedReturn)} under the frozen TradeClaw cost model.`,
+    body: [
+      `We independently replicated “${record.title}” under a preregistered rule and TradeClaw's frozen crypto-perpetual costs.`,
+      `BTC returned ${signedPercent(evidence.btc.grossCompoundedReturn)} gross but ${signedPercent(evidence.btc.netCompoundedReturn)} net across ${evidence.btc.completedTrades.toLocaleString('en-US')} trades; ETH returned ${signedPercent(evidence.eth.grossCompoundedReturn)} gross and ${signedPercent(evidence.eth.netCompoundedReturn)} net.`,
+      `The fixed 50/50 portfolio finished ${signedPercent(evidence.portfolio.netCompoundedReturn)} net, and its holdout returned ${signedPercent(evidence.portfolio.holdoutNetCompoundedReturn)}. Both assets had ${evidence.btc.positiveFolds} of ${evidence.btc.totalFolds} positive chronological folds.`,
+      `The useful result is the cost boundary: BTC averaged ${signedPercent(evidence.btc.meanGrossTradeReturn)} gross per trade against ${(
+        2 * (evidence.costs.feePctPerSide + evidence.costs.slippagePctPerSide)
+      ).toFixed(2)}% round-trip fee and slippage before funding.`,
+      'Verdict: FAIL. This modeled research result is not live performance and does not authorize promotion, allocation, broadcast, or execution.',
+    ].join(' '),
+    evidenceBasis: 'modeled-research',
+    disposition: 'human-review-draft-only',
+    publishApproved: false,
+    resultPath: evidence.resultPath,
+    artifactPath: evidence.artifactPath,
+  };
+}

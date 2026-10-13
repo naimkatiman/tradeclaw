@@ -265,6 +265,41 @@ export const FEATURED_STRATEGY_STUDIES: readonly StrategyStudyRecord[] = [
 
 export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
   {
+    file: 'trading-term-premium-US-NOMINAL-MA40-1968-01-2026-07-f4.json',
+    runDate: '2026-08-29',
+    label: 'U.S. term-spread MA40 external replication',
+    disposition: 'shelved',
+    reason: 'TC-259 passed standing QA and all full-window gates but failed temporal stability at 1/4 paper folds and trailed the identically costed one-month sleeve in the untouched holdout; no timing control is eligible for promotion.',
+  },
+  {
+    file: 'bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json',
+    runDate: '2026-08-29',
+    label: 'Bitcoin MAX10/MIN10 external replication',
+    disposition: 'shelved',
+    reason: 'TC-258 reproduced a large early gross effect but failed its frozen post-paper holdout, fold-stability, and risk-adjusted benchmark gates on BTC and ETH; no control is eligible for promotion.',
+  },
+  {
+    file: 'end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json',
+    runDate: '2026-08-29',
+    label: 'End-of-month Treasury replication / reconstruction QA hold',
+    disposition: 'shelved',
+    reason: 'TC-257 stopped at the frozen source-reconstruction gate after one 0.0301 bp mismatch exceeded the 0.01 bp limit; the artifact contains no performance result and is ineligible for promotion.',
+  },
+  {
+    file: 'external-multi-timeframe-BTCUSD_ETHUSD-H1-D1-2018-12-01-2026-07-17-f4.json',
+    runDate: '2026-08-29',
+    label: 'External D1/H1 multi-timeframe replication',
+    disposition: 'shelved',
+    reason: 'Canonical TC-255 costed external replication; BTC, ETH, and the fixed 50/50 portfolio failed every performance gate and are ineligible for prospective review.',
+  },
+  {
+    file: 'external-multi-timeframe-BTCUSD_ETHUSD-H1-D1-2018-12-01-2026-07-17-f4-superseded-v1.json',
+    runDate: '2026-08-29',
+    label: 'External D1/H1 replication / superseded source-audit version',
+    disposition: 'shelved',
+    reason: 'Complete pre-erratum artifact retained for auditability; the final schema adds only an ungated ambiguous-exit sensitivity and does not change any gate input or failed verdict.',
+  },
+  {
     file: 'd1-slow-gate-walk-forward-BTCUSD_ETHUSD-D1-2017-09-01-2026-07-16-f4.json',
     runDate: '2026-08-08',
     label: 'D1 slow-gate walk-forward',
@@ -283,7 +318,7 @@ export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
     runDate: '2026-07-17',
     label: 'Slow-gate sandbox predecessor',
     disposition: 'shelved',
-    reason: 'Predecessor sandbox with different spot-cost and sizing assumptions; superseded for the tracked lane by the frozen build artifact.',
+    reason: 'Predecessor sandbox with different spot-cost and sizing assumptions. The 50/50 vol-targeted portfolio trailed buy-and-hold CAGR (22.75% vs 28.09%) but improved modeled Calmar (0.61 vs 0.32) and max drawdown (37.42% vs 86.49%). EMA200 had isolated raw-CAGR wins, so the study did not establish uniform raw-return outperformance across both assets; HMM sizing underperformed buy-and-hold on drawdown-adjusted metrics. This is sandbox-only modeled research, not live performance, broker fills, or a trading recommendation; it was superseded for the tracked lane by the frozen build artifact.',
   },
   {
     file: 'xsection-validation-30majors-D1-lb14-rb7-top5-f4.json',
@@ -308,7 +343,7 @@ export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
   },
   {
     file: 'daily-momentum-validation-BTCUSD-D1-f4.json',
-    runDate: '2026-06-12',
+    runDate: '2026-06-26',
     label: 'Daily momentum / BTC-only predecessor',
     disposition: 'shelved',
     reason: 'Superseded single-symbol predecessor; the ten-major validation is the canonical breadth test.',

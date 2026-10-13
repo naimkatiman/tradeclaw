@@ -88,7 +88,11 @@ That finding on the live homepage — one dot per OHLCV-resolved sized signal, a
 
 ## Research status
 
-The [research page](https://tradeclaw.win/research) is the verdict board. Headline tests of single-asset hourly timing, HMM regime routing, daily momentum, funding carry, and cross-sectional momentum failed their registered gates or were too thin to deploy.
+The [research page](https://tradeclaw.win/research) is the verdict board. TradeClaw also publishes a pinned 61-candidate intake from [paperswithbacktest/awesome-systematic-trading](https://github.com/paperswithbacktest/awesome-systematic-trading) in original source order. It is a discovery queue, not a leaderboard: upstream figures are gross discovery metadata, not TradeClaw performance.
+
+The catalog currently separates 47 untouched discoveries, 10 source-audit no-go records (not local performance failures), 1 QA-only INCONCLUSIVE replication, and 3 cost- or stability-failed replications. This catalog grants neither publication nor trading authority.
+
+Separately, the retained TradeClaw study ledger records headline tests of single-asset hourly timing, HMM regime routing, daily momentum, funding carry, and cross-sectional momentum that failed their registered gates or were too thin to deploy.
 
 Two narrow later results exist and stay labeled:
 
@@ -157,6 +161,13 @@ npm run dev
 | `npm run lint` | Lint `apps/web` |
 | `npm test` | Jest |
 | `npm run test:e2e` | Playwright (`apps/web`) |
+| `npm run verify:research-review` | Verify every pinned manual-review evidence manifest |
+| `npm run validate:research-review-handoff -- --file <path>` | Validate one completed handoff and its current evidence without recording it |
+| `npm run prepare:research-owner-decision-request -- --file <completed-handoff.yaml>` | Revalidate a ready handoff and print its fingerprinted owner-request artifact without recording a decision |
+| `npm run prepare:research-owner-decision-template -- --file <completed-handoff.yaml>` | Print a ready-only blank owner-decision YAML form without writing a file |
+| `npm run validate:research-owner-decision -- --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>` | Validate a manual owner response against the exact handoff, request, and current evidence without persisting it |
+| `npm run prepare:research-publication-action-request -- --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>` | Print an approval-only, exact-draft request for a separate publication action without performing it |
+| `npm run verify:research-publication-action-request -- --artifact <publication-action-request.json> --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>` | Verify exact saved artifact bytes against the handoff, decision, and current evidence without performing an action |
 | `npm run ws:dev` | Websocket server |
 | `npm run agent` | Trading-agent CLI |
 
@@ -198,9 +209,49 @@ Gate-approved signal → apps/web/lib/execution/executor.ts
 
 ## API
 
-No key required on the public research routes. Cache on your side; responses already carry short `s-maxage` headers.
+No key required on the public research routes. Cache on your side; responses already carry short `s-maxage` headers. Public users can start with the human-readable research evidence brief at `/api/research/intake/brief.md`; it states the evaluated-versus-not-evaluated denominator, adverse results, pinned source, preregistration workflow, and safe next resource without candidate bodies. It does not recommend a strategy, publish or broadcast a claim, or trade. Its next human click is the human-readable examined-candidate index at `/api/research/intake/evidence/index.md`, which preserves every compact decision in pinned source order. Each row opens a human-readable exact record at `/api/research/intake/{candidateId}/brief.md` first and retains the machine JSON separately, completing the human-readable index to human-readable exact record journey. The exact brief does not rank or recommend a strategy, publish a claim, or trade. Machine clients can start with the compact overview, then use the JSON evidence index to choose exact candidate detail without downloading complete nested evidence. Every public candidate's links advertise both exact formats. Every compact row includes one evidence-derived decision summary explaining why that candidate stopped or failed and its canonical evidence date; the same decision summary continues into exact candidate detail. Authenticated admins can start with the human-readable research cycle brief at `/api/admin/research-intake/brief.md`; it combines the exact do-now action, current and next receipt timing, next review packet, evidence counts, and safety boundary from one server observation. When a UTC receipt window is empty, `startHere` opens the protected human-readable manual screening queue at `/api/admin/research-intake/screening/index.md`, which keeps all 47 untouched candidates in pinned source order with one cost-first checklist. It does not create or authorize a receipt, does not select a candidate, calculate returns, publish, post, or trade. The next evidence-browsing step is the protected human-readable examined-candidate index at `/api/admin/research-intake/evidence/index.md`, where all 14 audited or replicated candidates remain in pinned source order with the frozen next action and only the receipt and review state visible at that observation. Each row opens the protected human-readable exact candidate at `/api/admin/research-intake/{candidateId}/brief.md`; protected machine JSON stays separate at `/api/admin/research-intake/evidence/index`. This completes the admin cycle brief to index to exact candidate journey without creating or authorizing a receipt, completing a review, publishing, posting, or trading. The same state remains machine-readable at `/api/admin/research-intake/overview`; every protected resource map advertises both human briefs. That one-observation exact record joins the decision, frozen next action, visible receipt, review packet, repository files, and previous/next navigation; it does not create a receipt, change research state, complete a review, publish, post, or trade. The oldest visible human-review handoff is named as `nextReview`, which links directly to one exact protected review item instead of requiring a complete-queue search. The protected human-readable marketing-review queue at `/api/admin/research-intake/review/index.md` completes the cycle brief to review queue to exact review packet journey: it shows all observation-visible drafts oldest-first with summaries and evidence state, while full draft copy stays in each exact packet. Exact packets link back to the queue and to their visible previous and next packets. This queue does not create or authorize a receipt, complete a review, record an owner decision, publish, post, or trade. Its navigation is visible-only and grants no approval; the compact cycle brief and queue contain no draft body. When manual review is the highest-priority action, every protected JSON projection's `startHere` opens that handoff's concise Markdown review packet directly. Both audiences remain read-only, and protected routes stay outside the public OpenAPI surface.
+
+Research JSON is self-describing: use `resources` for sibling endpoints, each public record's `links.candidateBrief` for exact human-readable detail, and `links.candidate` for exact JSON. Protected candidate links similarly expose `adminCandidateBrief`, `adminCandidate`, `publicCandidateBrief`, and `publicCandidate` without changing authority. `startHere` gives one server-authored evidence-first target; `targetResource` names it and `targetIsCurrentResource` prevents clients from turning an already-open target into a circular next link. It is navigation convenience, not a strategy recommendation, evidence claim, or authority. Every evidence-state summary includes `plainLanguageSummary`, generated from the same classifier counts in `statuses`; it adds convenience copy, not evidence or authority. Each exact protected review includes a structured `reviewProtocol` with stable required-check IDs, plus a `claimVerification` map that links draft numbers to the protected candidate overlay and preregistration while naming the result and artifact files as the sources of truth. Its frozen `evidenceIntegrity` manifest pins the preregistration, result, and artifact by normalized byte count and SHA-256; the same manifest and claim map render in the Markdown packet and blank YAML handoff. From the repository root, `npm run verify:research-review` checks every manifest or `npm run verify:research-review -- --task TC-255` checks one exact review; success proves current repository-byte parity only. After filling a downloaded handoff, `npm run validate:research-review-handoff -- --file <completed-handoff.yaml>` checks its exact immutable binding, reviewer metadata, required-check and claim sets, non-approving outcome, and current repository evidence. Report schema v2 gives one explicit workflow status: `draft-rejected`, `revision-required`, `ready-for-separate-owner-decision`, or `invalid-handoff`. Only a valid ready outcome includes `ownerDecisionRequest`, bound to the completed-file and evidence-manifest hashes with protected packet links. For a transport-ready copy, `npm run prepare:research-owner-decision-request -- --file <completed-handoff.yaml>` revalidates the handoff and evidence, then emits a compact artifact with the canonical request byte count and SHA-256. It writes JSON to stdout and does not write files. The artifact does not record an owner decision, approve publication, post, or grant publication or trading authority.
+
+Every protected research JSON projection also carries the same observation-safe `researchLoop.receiptGate`. `open-for-one-receipt` means the current UTC window has one empty manual slot, `wait-for-next-window` names the exact later window after the current slot is used, and `blocked-by-conflict` promises no future slot until the ledger is reconciled. The gate does not create or authorize a receipt, select a candidate, publish, or trade; its controls keep manual screening required and automatic receipt creation false.
+
+For the separate manual owner step, `npm run prepare:research-owner-decision-template -- --file <completed-handoff.yaml>` prints a deterministic blank YAML form only when that handoff and current evidence still produce the ready request. The owner fills `owner`, `decidedAt`, `outcome`, and `notes`, then an admin runs `npm run validate:research-owner-decision -- --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>`. Validation re-derives the exact request and fingerprint, rejects immutable drift, and recognizes only decline, revision, or approval for a separate publication action. The owner name is structural metadata: identity is not authenticated and the form is not a cryptographic signature. The validator does not persist or record an owner decision, does not publish or post, and grants no publication or trading authority. The handoff's `downloadHref` avoids manual transcription, and its only review outcomes are `reject-draft`, `needs-revision`, or `ready-for-separate-owner-decision`. Human review remains required and does not approve publication. The API records no completion or decision, and the template, download, validators, request, form, and artifacts grant no publication or trading authority.
+
+Only after that validator accepts the explicit approval outcome may an admin run `npm run prepare:research-publication-action-request -- --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>`. The command revalidates current evidence and emits one deterministic JSON artifact binding the exact reviewed draft, completed handoff, submitted decision, evidence manifest, and prior request fingerprint. Declines, revisions, invalid forms, tampering, and evidence drift produce no request. Owner identity remains unauthenticated structural metadata. The command writes only to stdout: it does not select a publication target, does not enqueue the social queue, and does not publish or post. The outbound step remains a separately authorized publication action, and the artifact grants no publication or trading authority.
+
+Before any separately authorized publication action, run `npm run verify:research-publication-action-request -- --artifact <publication-action-request.json> --handoff <completed-handoff.yaml> --decision <completed-owner-decision.yaml>`. The verifier compares the exact saved artifact bytes with a freshly re-derived canonical artifact under current repository evidence; changed content, unknown fields, whitespace, inputs, or evidence fail closed. It writes only a report to stdout. It does not authenticate owner identity, does not authorize publication, does not perform publication, and does not enqueue the social queue. Verification grants no publication or trading authority.
 
 ```bash
+# Human-readable adverse-inclusive research orientation
+curl https://tradeclaw.win/api/research/intake/brief.md
+
+# Human-readable source-ordered index of every examined candidate
+curl https://tradeclaw.win/api/research/intake/evidence/index.md
+
+# One exact candidate in human-readable form; replace the canonical ID as needed
+curl https://tradeclaw.win/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation/brief.md
+
+# Compact evidence overview and safe next resource, with no candidate records
+curl https://tradeclaw.win/api/research/intake/overview
+
+# Compact evidence index with exact candidate-detail links and no nested research bodies
+curl https://tradeclaw.win/api/research/intake/evidence/index
+
+# All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
+curl https://tradeclaw.win/api/research/intake
+
+# All examined candidates, including failures, no-go audits, and the inconclusive run
+curl https://tradeclaw.win/api/research/intake/evidence
+
+# Complete examined-candidate evidence spreadsheet: failures, no-go audits, and the inconclusive run
+curl https://tradeclaw.win/api/research/intake/evidence.csv -o tradeclaw-systematic-research-evidence-2026-08-30.csv
+
+# One canonical candidate, with its complete safe evidence overlay
+curl https://tradeclaw.win/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation
+
+# 25-column spreadsheet index; canonical JSON above retains complete nested evidence
+curl https://tradeclaw.win/api/research/intake.csv -o tradeclaw-systematic-research-intake-2026-08-29.csv
+
 # Cost-adjusted sequential summary (the table above)
 curl 'https://tradeclaw.win/api/signals/equity?summaryOnly=1&scope=pro'
 
@@ -211,7 +262,7 @@ curl https://tradeclaw.win/api/research/cost-field
 curl 'https://tradeclaw.win/api/signals/history?limit=50'
 ```
 
-More endpoints: [open data](https://tradeclaw.win/open-data) and [API docs](https://tradeclaw.win/api-docs).
+Explore the [research verdict board](https://tradeclaw.win/research), download from [open data](https://tradeclaw.win/open-data), or inspect the [API docs](https://tradeclaw.win/api-docs).
 
 ## Notifications
 

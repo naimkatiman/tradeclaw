@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Navbar } from '../components/navbar';
 import { EditorialHeroArt } from '../../components/editorial-hero-art';
+import { EXPERIMENT_SHELF } from '../../lib/strategy-study-catalog';
 
 /**
  * /open-data — the developer front door.
@@ -20,11 +21,11 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Open Data | TradeClaw',
   description:
-    'Free, machine-readable signal-study data: OHLCV-resolved outcomes, modeled per-trade costs, a sequential equity simulation, and committed research backtests.',
+    'Free, machine-readable research data: a pinned 61-candidate systematic catalog, completed evidence overlays, OHLCV-resolved outcomes, modeled costs, and committed backtests.',
   openGraph: {
     title: 'Open Data | TradeClaw',
     description:
-      'Public signal-study JSON APIs, committed research artifacts, and copy-paste recipes — MIT licensed, no API key required, with public fair-use limits.',
+      'Public research JSON APIs, the complete committed artifact shelf, and copy-paste recipes — MIT licensed, no API key required, with public fair-use limits.',
     url: 'https://tradeclaw.win/open-data',
     siteName: 'TradeClaw',
     type: 'website',
@@ -61,8 +62,23 @@ interface Endpoint {
 const ENDPOINTS: Endpoint[] = [
   {
     method: 'GET',
-    path: '/api/research/cost-field',
+    path: '/api/research/intake',
     headline: true,
+    desc: 'All 61 pinned awesome-systematic-trading discovery candidates in original source order, plus complete TradeClaw source-audit and replication evidence where it exists. Upstream figures stay labeled gross discovery metadata. The response excludes admin timing, next actions, and marketing workflow, and grants no publication or trading authority.',
+    params: [
+      { name: '(none)', note: 'returns the whole deterministic catalog; no API key or pagination required' },
+    ],
+    shape: '{ schemaVersion, access, source, selectionPolicy, workflow[], claimBoundary, catalogSummary, records[61] }',
+    curl: `curl ${BASE}/api/research/intake`,
+    altCurl: {
+      label: '25-column spreadsheet index; canonical JSON retains complete nested evidence',
+      command: `curl ${BASE}/api/research/intake.csv -o tradeclaw-systematic-research-intake-2026-08-29.csv`,
+    },
+    rendered: { href: '/research', label: '/research' },
+  },
+  {
+    method: 'GET',
+    path: '/api/research/cost-field',
     desc: 'One entry per counted 24h outcome with a valid stop: gross R from its OHLCV-resolved outcome, the stored modeled round-trip cost in R, and asset class. Net modeled R is grossR[i] minus costR[i]. costR uses fee/slippage assumptions, not broker fills. The response reports its source-read limit and potential window truncation.',
     params: [
       { name: 'scope', values: 'pro | broadcast', note: 'eligible engine stream (default) or gate-approved rows recorded since 2026-06-10' },
@@ -127,62 +143,6 @@ const ENDPOINTS: Endpoint[] = [
     ],
     shape: 'JSON Feed 1.1: { version, title, feed_url, items: [ { id, url, title, content_html, summary, date_published, tags } ] }',
     curl: `curl ${BASE}/feed.json`,
-  },
-];
-
-interface Artifact {
-  file: string;
-  size: string;
-  desc: string;
-  labels?: string[];
-}
-
-const ARTIFACTS: Artifact[] = [
-  {
-    file: 'BTCUSD-H1-2024-06-10-2026-06-09-live-crypto-classic_regime-aware_hmm-top3_vwap-ema-bb_full-risk-f4.json',
-    size: '9.5 KB',
-    desc: 'BTCUSD H1, five entry strategies scored under the stated crypto fee/slippage assumptions. Best run (regime-aware) 0.6% at 50% win rate; classic loses 11.1%.',
-  },
-  {
-    file: 'BTCUSD-H1-2024-06-10-2026-06-09-legacy-zero-classic_regime-aware_hmm-top3_vwap-ema-bb_full-risk-f4.json',
-    size: '9.4 KB',
-    desc: 'Same BTCUSD H1 window with zero costs and legacy fixed 2:1 sizing. The cost-free counterfactual to the live-crypto run above.',
-  },
-  {
-    file: 'carry-validation-10majors-f4.json',
-    size: '300 KB',
-    desc: 'Carry strategy across 10 majors with two-leg costs. All three variants (always-on, threshold, top-3 rotation) fail the deployment gate.',
-  },
-  {
-    file: 'daily-momentum-validation-BTCUSD_ETHUSD_SOLUSD_BNBUSD_XRPUSD_ADAUSD_DOGEUSD_DOTUSD_LINKUSD_AVAXUSD-D1-f4.json',
-    size: '141 KB',
-    desc: 'Daily time-series momentum across 10 crypto majors, D1. No config survives ~0.4% crypto costs robustly; the two positive symbols are flukes.',
-  },
-  {
-    file: 'daily-momentum-validation-BTCUSD-D1-f4.json',
-    size: '20 KB',
-    desc: 'Daily momentum isolated to BTCUSD, D1. Single-symbol slice of the majors validation for a focused read.',
-  },
-  {
-    file: 'regime-hmm-walkforward-BTCUSD_ETHUSD_SOLUSD-H1-2024-06-12-2026-06-11.json',
-    size: '13 KB',
-    desc: 'Three-state structural regime HMM (trend, volatile, range) on BTC/ETH/SOL H1, walk-forward. States price magnitude, not drift; no directional premium.',
-  },
-  {
-    file: 'regime-routed-walkforward-BTCUSD_ETHUSD_SOLUSD-H1-2024-06-01-2026-06-01-f4.json',
-    size: '52 KB',
-    desc: 'Per-regime routed entries on BTC/ETH/SOL H1 walk-forward. The only non-thin routed cell is negative on all three symbols; the gate fails on paper.',
-  },
-  {
-    file: 'slow-gate-BTCUSD_ETHUSD-D1-2017-09-01-2026-07-16-f4.json',
-    size: '26 KB',
-    desc: 'Fixed-parameter BTC/ETH daily long/flat sandbox study under modeled spot costs. The 50/50 vol-targeted portfolio trailed buy-and-hold CAGR (22.75% vs 28.09%) but improved modeled Calmar (0.61 vs 0.32) and max drawdown (37.42% vs 86.49%). EMA200 had isolated raw-CAGR wins, so the study did not establish uniform raw-return outperformance across both assets; HMM sizing underperformed buy-and-hold on drawdown-adjusted metrics. This is not live performance, does not represent broker fills, and is not a recommendation.',
-    labels: ['sandbox only', 'non-live', 'modeled backtest', 'no broker fills', 'informational only'],
-  },
-  {
-    file: 'xsection-validation-30majors-D1-lb14-rb7-top5-f4.json',
-    size: '9.3 KB',
-    desc: 'Cross-sectional momentum, 30 majors D1, top-5. Long-only and long-short both fail against the basket benchmark over the full window.',
   },
 ];
 
@@ -338,12 +298,12 @@ export default function OpenDataPage() {
                 you can call.
               </h1>
               <p className="mt-6 max-w-prose text-base leading-relaxed text-[var(--text-secondary)]">
-                TradeClaw publishes the signal-study data: recorded signal rows,
-                OHLCV-resolved outcomes, modeled per-trade costs, and the sequential
-                equity simulation used by the public research charts. Backtest
-                artifacts are committed to the repo as JSON. These datasets are
-                public and untiered; call them, cache them, fork them, and audit the
-                assumptions.
+                TradeClaw publishes its pinned systematic-research intake, completed
+                evidence overlays, recorded signal rows, OHLCV-resolved outcomes,
+                modeled per-trade costs, and the sequential equity simulation used by
+                the public research charts. Every committed backtest artifact is linked
+                below. These datasets are public and untiered; call them, cache them,
+                fork them, and audit the assumptions.
               </p>
               <p className="mt-4 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
                 The full reference lives at{' '}
@@ -367,9 +327,9 @@ export default function OpenDataPage() {
           <section className="reveal mt-16">
             <SectionHeading id="endpoints">Live endpoints</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
-              Read-only GET routes. Responses carry public cache headers
-              (s-maxage of 60 seconds on the signal and cost-field routes) so a
-              reverse proxy or your own cache can absorb repeat calls.
+              Read-only GET routes. Responses carry public cache headers with a cadence
+              suited to the underlying data, so a reverse proxy or your own cache can
+              absorb repeat calls.
             </p>
             <div className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)]">
               {ENDPOINTS.map((ep) => (
@@ -390,8 +350,9 @@ export default function OpenDataPage() {
               </a>{' '}
               is backed by a deterministic backtest JSON in{' '}
               <code className="font-mono text-[var(--foreground)]">docs/research/experiments/</code>.
-              Each experiment file holds its registered spec and results, so a given
-              candle store state reproduces the same numbers byte for byte.
+              The list below renders all {EXPERIMENT_SHELF.length} committed JSON artifacts
+              from the canonical catalog, including superseded, failed, QA-only, and
+              featured sources. Each row explains why it remains on the shelf.
             </p>
 
             <div className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)]">
@@ -467,7 +428,7 @@ export default function OpenDataPage() {
                 </p>
               </a>
 
-              {ARTIFACTS.map((a) => (
+              {EXPERIMENT_SHELF.map((a) => (
                 <a
                   key={a.file}
                   href={`${REPO_BLOB}/${a.file}`}
@@ -482,19 +443,17 @@ export default function OpenDataPage() {
                       {a.file}
                     </code>
                     <span className="font-mono text-[11px] tabular-nums text-[var(--text-secondary)]">
-                      {a.size}
+                      {a.runDate}
                     </span>
-                    {a.labels?.map((label) => (
-                      <span
-                        key={label}
-                        className="rounded-[var(--radius-pill)] border border-[var(--border)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)]"
-                      >
-                        {label}
-                      </span>
-                    ))}
+                    <span className="rounded-[var(--radius-pill)] border border-[var(--border)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
+                      {a.disposition === 'featured-source' ? 'featured source' : 'shelved'}
+                    </span>
                   </div>
+                  <p className="max-w-prose text-sm font-medium leading-relaxed text-[var(--foreground)]">
+                    {a.label}
+                  </p>
                   <p className="max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
-                    {a.desc}
+                    {a.reason}
                   </p>
                 </a>
               ))}

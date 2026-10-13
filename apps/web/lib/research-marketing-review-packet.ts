@@ -1,0 +1,226 @@
+import {
+  buildResearchIntakeAdminReviewItemPayload,
+  type ResearchIntakeAdminReviewItemPayload,
+} from './research-intake-admin';
+import { formatResearchMarketingReviewHandoff } from './research-marketing-review-handoff';
+
+function yesNo(value: boolean): 'Yes' | 'No' {
+  return value ? 'Yes' : 'No';
+}
+
+function oneLine(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function inlineCode(value: string): string {
+  const runs = value.match(/`+/g) ?? [];
+  const fence = '`'.repeat(Math.max(1, ...runs.map((run) => run.length + 1)));
+  const padded = /^(?:`|\s)|(?:`|\s)$/.test(value) ? ` ${value} ` : value;
+  return `${fence}${padded}${fence}`;
+}
+
+function nullableText(value: string | null): string {
+  return value === null ? 'not recorded' : oneLine(value);
+}
+
+function formatPacketNavigation(
+  item: ResearchIntakeAdminReviewItemPayload['navigation']['previous'],
+): string {
+  if (item === null) return 'None';
+  return `[${item.taskId} — ${oneLine(item.headline)}](${item.href}/packet.md)`;
+}
+
+function formatClaimReference(
+  reference: ResearchIntakeAdminReviewItemPayload['claimVerification']['claims'][number]['references'][number],
+): string {
+  if (reference.source === 'protected-candidate-json') {
+    return `- Protected candidate JSON ${inlineCode(reference.jsonPointer)}: ${inlineCode(reference.renderedValue)}`;
+  }
+  return `- Preregistration ${inlineCode(reference.locator)}: ${inlineCode(reference.renderedValue)}`;
+}
+
+function formatReviewHandoffTemplate(
+  template: ResearchIntakeAdminReviewItemPayload['reviewHandoffTemplate'],
+): string[] {
+  const handoffYaml = formatResearchMarketingReviewHandoff(template)
+    .trimEnd()
+    .split('\n');
+  return [
+    '> Copy this blank record into a separate manual workflow after completing the checks above. This read-only API does not save the copy or approve an outcome.',
+    '',
+    `- Blank YAML handoff: ${inlineCode(template.downloadHref)}`,
+    `- Required check IDs: ${template.requiredCheckIds.map(inlineCode).join(', ')}`,
+    `- Numeric claim IDs: ${template.claimIds.map(inlineCode).join(', ')}`,
+    `- Allowed review outcomes: ${template.allowedOutcomes.map(inlineCode).join(', ')}`,
+    `- Validate the completed YAML from the repository root: ${inlineCode(template.validation.command)}`,
+    `- Validation success means: ${inlineCode(template.validation.successMeaning)}`,
+    '- A passing validation does not record review completion or grant publication or trading authority.',
+    '',
+    '```yaml',
+    ...handoffYaml,
+    '```',
+    '',
+    `- Completion recorded by this API: ${yesNo(template.completionRecorded)}`,
+    `- Owner decision recorded by this API: ${yesNo(template.ownerDecisionRecorded)}`,
+    `- Owner decision required for publication: ${yesNo(template.ownerDecisionRequiredForPublication)}`,
+    `- Publication authority granted: ${yesNo(template.grantsPublicationAuthority)}`,
+    `- Trading authority granted: ${yesNo(template.grantsTradingAuthority)}`,
+  ];
+}
+
+function formatEvidenceIntegrity(
+  integrity: ResearchIntakeAdminReviewItemPayload['claimVerification']['evidenceIntegrity'],
+): string[] {
+  return [
+    '> These hashes bind this review projection to repository evidence bytes. They do not record completed human verification or grant approval.',
+    '',
+    `- Algorithm: ${inlineCode(integrity.algorithm)}`,
+    '- Normalization: UTF-8 text normalized to LF before byte count and hashing',
+    `- Manifest canonicalization: ${inlineCode(integrity.manifestCanonicalization)}`,
+    `- Manifest SHA-256: ${inlineCode(integrity.manifestSha256)}`,
+    `- Verification status: ${inlineCode(integrity.verification.status)}`,
+    `- Run from the repository root: ${inlineCode(integrity.verification.command)}`,
+    `- Success meaning: ${inlineCode(integrity.verification.successMeaning)}`,
+    '- A passing command verifies current repository bytes only; it does not complete the human review or grant publication or trading authority.',
+    '',
+    ...integrity.files.map(
+      (file) =>
+        `- ${file.role}: ${inlineCode(file.path)} · ${file.normalizedBytes.toLocaleString('en-US')} normalized bytes · SHA-256 ${inlineCode(file.sha256)}`,
+    ),
+  ];
+}
+
+function formatResearchMarketingReviewPacket(
+  payload: ResearchIntakeAdminReviewItemPayload,
+): string {
+  const {
+    claimVerification,
+    navigation,
+    researchLoop,
+    resources,
+    reviewHandoffTemplate,
+    reviewItem,
+    reviewProtocol,
+  } = payload;
+  const { candidate, controls, handoff, links, receipt } = reviewItem;
+  const { draft } = handoff;
+  const { evidenceState } = candidate;
+  const requiredChecks = reviewProtocol.checks.map(
+    (check) => `- ${check.instruction}`,
+  );
+  const numericClaims = claimVerification.claims.flatMap((claim) => [
+    `### ${inlineCode(claim.id)}`,
+    '',
+    claim.statement,
+    '',
+    ...claim.references.map(formatClaimReference),
+    '',
+  ]);
+  const evidenceIntegrity = formatEvidenceIntegrity(
+    claimVerification.evidenceIntegrity,
+  );
+  const reviewHandoffLines = formatReviewHandoffTemplate(reviewHandoffTemplate);
+  const receiptDescription = receipt === null
+    ? 'none (pre-loop closure)'
+    : `${inlineCode(receipt.taskId)}, recorded ${receipt.recordedAt}, cycle ${inlineCode(receipt.cycleId)}`;
+
+  return [
+    `# TradeClaw marketing review packet: ${handoff.taskId}`,
+    '',
+    '> Human review required. This read-only packet does not approve publication, posting, promotion, trading, allocation, broadcast, broker activity, or execution.',
+    '',
+    '## Review queue and provenance',
+    '',
+    `- Queue position: ${navigation.currentPosition} of ${navigation.totalVisibleItems}`,
+    `- Human-readable review queue: [Open review queue](${resources.marketingReviewBrief})`,
+    `- Machine-readable review queue: ${inlineCode(navigation.queueHref)}`,
+    `- Previous packet: ${formatPacketNavigation(navigation.previous)}`,
+    `- Next packet: ${formatPacketNavigation(navigation.next)}`,
+    `- Observed at: ${researchLoop.observedAt}`,
+    `- Available at: ${handoff.availableAt}`,
+    `- Availability basis: ${handoff.basis}`,
+    `- Research cycle: ${handoff.cycleId === null ? 'none (pre-loop closure)' : inlineCode(handoff.cycleId)}`,
+    `- Receipt: ${receiptDescription}`,
+    '',
+    '## Candidate and evidence',
+    '',
+    `- Candidate: ${oneLine(candidate.title)}`,
+    `- Candidate ID: ${inlineCode(candidate.id)}`,
+    `- Source: ${candidate.sourceUrl}`,
+    `- Asset class: ${candidate.assetClass}`,
+    `- Source position: ${candidate.sourcePosition}`,
+    `- Research task: ${inlineCode(handoff.taskId)}`,
+    `- Stage: ${candidate.stage}`,
+    `- Verdict: ${candidate.verdict}`,
+    `- Cost status: ${candidate.costStatus}`,
+    `- Evidence state: ${oneLine(evidenceState.label)} (${inlineCode(evidenceState.performanceEvidenceStatus)})`,
+    `- Evidence date: ${nullableText(evidenceState.evidenceRecordedOn)}`,
+    `- Performance gates evaluated: ${yesNo(evidenceState.performanceGatesEvaluated)}`,
+    `- Evidence meaning: ${oneLine(evidenceState.meaning)}`,
+    `- Decision: ${nullableText(evidenceState.decisionSummary)}`,
+    '',
+    '## Draft under review (not approved)',
+    '',
+    `### ${oneLine(draft.title)}`,
+    '',
+    `**Summary:** ${oneLine(draft.summary)}`,
+    '',
+    draft.body.trim(),
+    '',
+    '## Evidence files and links',
+    '',
+    `- Result: ${inlineCode(draft.resultPath)}`,
+    `- Artifact: ${inlineCode(draft.artifactPath)}`,
+    `- Protected candidate JSON: ${inlineCode(links.adminCandidate)}`,
+    `- Public candidate JSON: ${inlineCode(links.publicCandidate)}`,
+    `- Exact review JSON: ${inlineCode(links.reviewItem)}`,
+    `- This Markdown packet: ${inlineCode(links.reviewPacket)}`,
+    '',
+    '## Evidence file integrity (verify before review)',
+    '',
+    ...evidenceIntegrity,
+    '',
+    '## Numeric claim map (manual cross-check required)',
+    '',
+    '> This map is navigation assistance, not independent verification or approval.',
+    '',
+    `- Result source of truth: ${inlineCode(claimVerification.files.resultPath)}`,
+    `- Artifact source of truth: ${inlineCode(claimVerification.files.artifactPath)}`,
+    `- Protected candidate JSON: ${inlineCode(claimVerification.files.candidateJsonHref)}`,
+    `- Preregistration: ${inlineCode(claimVerification.files.preregistrationPath)}`,
+    '',
+    ...numericClaims,
+    '## Required manual checks',
+    '',
+    ...requiredChecks,
+    '',
+    '## Manual review handoff template (not recorded)',
+    '',
+    ...reviewHandoffLines,
+    '',
+    '## Publication and trading authority',
+    '',
+    `- Human review required: ${yesNo(controls.humanReviewRequired)}`,
+    `- Publication approved: ${yesNo(controls.publicationApproved)}`,
+    `- Draft publish approved: ${yesNo(draft.publishApproved)}`,
+    `- Automatic publication: ${yesNo(controls.automaticPublication)}`,
+    `- Automatic posting: ${yesNo(controls.automaticPosting)}`,
+    `- Trading approved: ${yesNo(controls.tradingApproved)}`,
+    `- Automatic trading: ${yesNo(controls.automaticTrading)}`,
+    `- External actions: ${controls.externalActions}`,
+    '',
+  ].join('\n');
+}
+
+/**
+ * Build one human-readable packet from the same observation-safe exact review
+ * projection used by the protected JSON route. A null result intentionally
+ * conflates unknown, non-canonical, and not-yet-visible task IDs.
+ */
+export function buildResearchMarketingReviewPacket(
+  taskId: string,
+  at: Date | string | number = new Date(),
+): string | null {
+  const payload = buildResearchIntakeAdminReviewItemPayload(taskId, at);
+  return payload === null ? null : formatResearchMarketingReviewPacket(payload);
+}
