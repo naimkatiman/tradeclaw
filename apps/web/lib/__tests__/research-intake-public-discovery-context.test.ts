@@ -240,16 +240,16 @@ describe('public research-intake discovery context', () => {
       new URLSearchParams(),
       DETERMINISTIC_AT,
     ))).toEqual({
-      bytes: 89_559,
-      sha256: '62e9c199afb34d8f7f029b232a06d680a69afe5110ad343c7663916fbbf539b1',
+      bytes: 89_629,
+      sha256: '6c04917e2b50fa16f54fdd32225e859f28e9e2c467c690dc8a60c4d5120c8b53',
     });
     const protectedEvidence = buildResearchIntakeAdminEvidencePayload(DETERMINISTIC_AT);
     expect(protectedEvidence.catalogEvidenceStateSummary).toEqual(
       context(buildResearchIntakePublicPayload()).catalogEvidenceStateSummary,
     );
     expect(fingerprint(protectedEvidence)).toEqual({
-      bytes: 115_776,
-      sha256: 'b33c48f83f37e5e96f9d23004c8577ffba04c8e6471b208a7fe8eceb140e60d6',
+      bytes: 115_846,
+      sha256: '64ae8c29e1d085e3f87f3455c7be9f42fe43ab8e63c77035582226b9d2779bae',
     });
   });
 });

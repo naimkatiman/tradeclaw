@@ -156,8 +156,8 @@ describe('protected exact marketing review item', () => {
         grantsTradingAuthority: false,
       },
       startHere: {
-        href: '/api/admin/research-intake',
-        targetResource: 'catalog',
+        href: '/api/admin/research-intake/screening/index.md',
+        targetResource: 'screening-queue',
         targetIsCurrentResource: false,
       },
       researchLoop: { observedAt: AT_FIRST },

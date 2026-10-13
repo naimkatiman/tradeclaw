@@ -32,6 +32,7 @@ interface StartHere {
   href: string;
   targetResource:
     | 'catalog'
+    | 'screening-queue'
     | 'evidence-index'
     | 'evidence'
     | 'marketing-review'
@@ -153,19 +154,19 @@ describe('research intake start-here guidance', () => {
       kind: 'screen-current-window',
       label: 'Screen one candidate for the current UTC window',
       reason:
-        'No receipt exists in 2026-08-29T18:00:00.000Z/PT3H. Use the protected catalog manually and keep the frozen cost-first gate; this guidance creates no receipt.',
-      href: '/api/admin/research-intake',
-      targetResource: 'catalog',
+        'No receipt exists in 2026-08-29T18:00:00.000Z/PT3H. Use the protected human-readable manual screening queue and keep the frozen cost-first gate; this guidance creates no receipt or candidate selection.',
+      href: '/api/admin/research-intake/screening/index.md',
+      targetResource: 'screening-queue',
       itemCount: 1,
       automaticAction: false,
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     } as const;
 
-    payloads.forEach((payload, index) => {
+    payloads.forEach((payload) => {
       expect(startHere(payload)).toEqual({
         ...expected,
-        targetIsCurrentResource: index === 0,
+        targetIsCurrentResource: false,
       });
     });
   });
@@ -218,6 +219,7 @@ describe('research intake start-here guidance', () => {
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
+        screeningQueueBrief: '/api/admin/research-intake/screening/index.md',
         evidenceIndex: '/api/admin/research-intake/evidence/index',
         evidence: '/api/admin/research-intake/evidence',
         marketingReview: '/api/admin/research-intake/review',
@@ -251,6 +253,7 @@ describe('research intake start-here guidance', () => {
       evidenceCount: 9,
       resources: {
         catalog: '/api/admin/research-intake',
+        screeningQueueBrief: '/api/admin/research-intake/screening/index.md',
         evidenceIndex: '/api/admin/research-intake/evidence/index',
         evidence: '/api/admin/research-intake/evidence',
         marketingReview: '/api/admin/research-intake/review',

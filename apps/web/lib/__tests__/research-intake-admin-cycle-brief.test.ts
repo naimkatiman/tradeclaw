@@ -65,8 +65,8 @@ describe('protected human-readable research cycle brief', () => {
 
     expect(replay).toBe(first);
     expect(fingerprint(first)).toEqual({
-      bytes: 2_724,
-      sha256: '4348e8a9789060cc7d2a8b377a624a76b44c79886b75b37e5f6e3f54e058f5ce',
+      bytes: 2_858,
+      sha256: '83e81396598d094d6549c92b05ce22e6b81839d5f8788c13e334c65a54521159',
     });
     expect(first.startsWith('# TradeClaw research cycle brief\n')).toBe(true);
     expect(first).toContain(`- Observed at: \`${AUDIT_AT}\``);
@@ -75,7 +75,7 @@ describe('protected human-readable research cycle brief', () => {
       'Review next draft packet: A high-turnover Bitcoin trend idea failed after realistic costs',
     );
     expect(first).toContain(
-      '- Open: `/api/admin/research-intake/review/TC-255/packet.md`',
+      '- Open: [Open next action](/api/admin/research-intake/review/TC-255/packet.md)',
     );
     expect(first).toContain('## Research cadence');
     expect(first).toContain('- Receipt gate: `wait-for-next-window`');
@@ -111,6 +111,9 @@ describe('protected human-readable research cycle brief', () => {
       '2026-08-29T15:00:00.000Z',
     );
     expect(open).toContain('Screen one candidate for the current UTC window');
+    expect(open).toContain(
+      '- Open: [Open next action](/api/admin/research-intake/screening/index.md)',
+    );
     expect(open).toContain('- Receipt gate: `open-for-one-receipt`');
     expect(open).toContain(
       '- Next manual receipt slot: Open now in `2026-08-29T15:00:00.000Z/PT3H`',
@@ -125,6 +128,9 @@ describe('protected human-readable research cycle brief', () => {
     );
     expect(conflict).toContain('- Receipt gate: `blocked-by-conflict`');
     expect(conflict).toContain('- Current receipts: 2 of 1');
+    expect(conflict).toContain(
+      '- Open: [Open next action](/api/admin/research-intake)',
+    );
     expect(conflict).toContain(
       '- Next manual receipt slot: None until the current-window conflict is reconciled',
     );

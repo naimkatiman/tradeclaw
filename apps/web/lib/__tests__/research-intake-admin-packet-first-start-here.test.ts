@@ -89,8 +89,8 @@ describe('protected packet-first startHere action', () => {
     expect(awaiting.marketingReview.summary.availableDrafts).toBe(4);
     expect(awaiting.startHere).toMatchObject({
       kind: 'screen-current-window',
-      href: '/api/admin/research-intake',
-      targetResource: 'catalog',
+      href: '/api/admin/research-intake/screening/index.md',
+      targetResource: 'screening-queue',
       automaticAction: false,
     });
   });

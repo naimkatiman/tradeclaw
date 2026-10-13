@@ -9,6 +9,7 @@ export type ResearchIntakeCurrentResource =
   | 'overview'
   | 'catalog'
   | 'candidate'
+  | 'screening-queue'
   | 'evidence-index'
   | 'evidence'
   | 'marketing-review'
@@ -16,6 +17,7 @@ export type ResearchIntakeCurrentResource =
 
 export type ResearchIntakeStartHereTargetResource =
   | 'catalog'
+  | 'screening-queue'
   | 'evidence-index'
   | 'evidence'
   | 'marketing-review'
@@ -55,6 +57,7 @@ export interface ResearchIntakeAdminStartHereInput {
   evidenceCount: number;
   resources: {
     catalog: string;
+    screeningQueueBrief: string;
     evidenceIndex: string;
     evidence: string;
     marketingReview: string;
@@ -134,10 +137,10 @@ export function buildResearchIntakeAdminStartHere(
       kind: 'screen-current-window',
       label: 'Screen one candidate for the current UTC window',
       reason:
-        `No receipt exists in ${input.currentWindowId}. Use the protected catalog manually and keep the frozen cost-first gate; this guidance creates no receipt.`,
-      href: input.resources.catalog,
-      targetResource: 'catalog',
-      targetIsCurrentResource: input.currentResource === 'catalog',
+        `No receipt exists in ${input.currentWindowId}. Use the protected human-readable manual screening queue and keep the frozen cost-first gate; this guidance creates no receipt or candidate selection.`,
+      href: input.resources.screeningQueueBrief,
+      targetResource: 'screening-queue',
+      targetIsCurrentResource: input.currentResource === 'screening-queue',
       itemCount: 1,
       ...FALSE_AUTHORITY,
     });

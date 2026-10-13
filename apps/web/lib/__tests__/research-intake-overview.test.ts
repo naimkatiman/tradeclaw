@@ -147,8 +147,8 @@ describe('compact research intake overview contract', () => {
     expect(overview).not.toHaveProperty('records');
     expect(overview).not.toHaveProperty('items');
     expect(fingerprint(overview)).toEqual({
-      bytes: 12_407,
-      sha256: 'd470970a2ed1ad0d475d5fd61a9c1d268b093acacf9c8e0489491622af768bd9',
+      bytes: 12_477,
+      sha256: 'be681f44aea06b09c4f23ca05f8fb2a597feeb1b5e24c7d8124d84316cc40904',
     });
   });
 
@@ -167,6 +167,7 @@ describe('compact research intake overview contract', () => {
       overview: '/api/admin/research-intake/overview',
       cycleBrief: '/api/admin/research-intake/brief.md',
       catalog: '/api/admin/research-intake',
+      screeningQueueBrief: '/api/admin/research-intake/screening/index.md',
       evidenceIndex: '/api/admin/research-intake/evidence/index',
       evidenceIndexBrief: '/api/admin/research-intake/evidence/index.md',
       evidence: '/api/admin/research-intake/evidence',
@@ -184,7 +185,7 @@ describe('compact research intake overview contract', () => {
       /ResearchIntakeCurrentResource\s*=\s*\|\s*'overview'[\s\S]*'marketing-review'\s*\|\s*'marketing-review-item';/,
     );
     expect(source).toMatch(
-      /ResearchIntakeStartHereTargetResource\s*=\s*\|\s*'catalog'\s*\|\s*'evidence-index'\s*\|\s*'evidence'\s*\|\s*'marketing-review'\s*\|\s*'marketing-review-item'\s*\|\s*'marketing-review-packet';/,
+      /ResearchIntakeStartHereTargetResource\s*=\s*\|\s*'catalog'\s*\|\s*'screening-queue'\s*\|\s*'evidence-index'\s*\|\s*'evidence'\s*\|\s*'marketing-review'\s*\|\s*'marketing-review-item'\s*\|\s*'marketing-review-packet';/,
     );
     expect(source).not.toContain('ResearchIntakeStartHereTargetResource = Exclude<');
   });

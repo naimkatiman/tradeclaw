@@ -1,5 +1,18 @@
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
-import { config } from "../middleware";
+
+let config: (typeof import("../middleware"))["config"];
+
+beforeAll(() => {
+  // Importing middleware starts its periodic rate-limit cleanup timer.
+  // Own that timer in this test so the Jest process can exit after the suite.
+  jest.useFakeTimers();
+  ({ config } = jest.requireActual<typeof import("../middleware")>("../middleware"));
+});
+
+afterAll(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
+});
 
 /**
  * Characterization test for the global middleware matcher.

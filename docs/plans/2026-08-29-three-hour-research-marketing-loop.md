@@ -107,6 +107,15 @@ complete JSON graph before acting. It does not create or authorize a receipt,
 complete a review, record an owner decision, publish, post, or trade. Every
 protected resource map advertises it; public JSON/OpenAPI and every CSV omit it.
 
+When the current UTC window has no receipt, `startHere` opens the protected
+human-readable manual screening queue at
+`/api/admin/research-intake/screening/index.md`. It shows all 47 untouched
+candidates in pinned upstream source order beside a shared cost-first checklist
+for rule reconstructibility, authorized immutable data, friction headroom,
+chronological falsification, and bounded implementation. It is not a priority
+ranking. The queue does not create or authorize a receipt. It does not select a candidate,
+calculate returns, change research state, publish, post, or trade.
+
 The protected human-readable examined-candidate index at
 `/api/admin/research-intake/evidence/index.md` continues the cycle brief's
 human journey without forcing an operator into JSON. One authenticated server

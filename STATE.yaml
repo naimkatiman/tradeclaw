@@ -1,11 +1,92 @@
 project: tradeclaw
-updated: 2026-08-31T00:59:22+08:00
+updated: 2026-10-14T04:04:45+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_manual_screening_queue_2026_08_31:
+  at: 2026-08-31T01:19:58+08:00
+  agent: TradeClaw PM agent
+  status: complete_receipt_neutral
+  resumed_at: 2026-10-14T03:54:54+08:00
+  completed_at: 2026-10-14T04:04:45+08:00
+  resume_reason: User requested continued TradeClaw improvement; finish the interrupted screening queue before starting another research slice.
+  scope: Replace the empty-window admin handoff to large catalog JSON with a protected human-readable cost-first screening queue for every untouched candidate
+  branch: agent/research-intake-desk-20260829
+  base_commit: aa5bb33b137b0f079b8fc46e58003d6c64f463c4
+  receipt_neutral: true
+  cycle_id: 2026-08-30T15:00:00.000Z/PT3H
+  new_research_receipt: false
+  resumed_gate_observed_at: 2026-10-13T20:03:01.201Z
+  resumed_gate_snapshot: Current 2026-10-13T18:00:00.000Z/PT3H window has zero receipts and is open for one manual source audit; this improvement creates no receipt.
+  gate_observed_at: 2026-08-30T17:06:57.632Z
+  gate_snapshot: >-
+    TC-268 is the sole current-window receipt, the current window is complete,
+    and another receipt is denied until exact 2026-08-30T18:00:00.000Z. The
+    ledger holds 13 receipts across 12 windows, with only the expected historical
+    2026-08-29T06:00:00.000Z/PT3H duplicate and no additional duplicate. Four
+    drafts remain human-review-only, zero are approved, and TC-255 remains next.
+  gap_evidence:
+    protected_start_here: /api/admin/research-intake
+    untouched_candidates: 47
+    journey_break: An empty receipt window sends the admin to a large machine catalog without one concise, shared, cost-first manual screen.
+  selected_improvement:
+    - Render all 47 untouched candidates in pinned upstream source order, never as a performance or priority ranking.
+    - Put rule reconstructibility, authorized immutable data, full-friction headroom, chronological falsification, and bounded implementation beside the queue.
+    - Make the queue the protected startHere target only when the receipt window is empty while retaining conflict and human-review priorities.
+    - Authenticate before the clock or research state; keep the route private, no-store, GET-only, query-independent, and authority-neutral.
+  shared_library_search: No manual research-intake screening queue, receipt-gate screening brief, or reusable three-hour queue pattern was found under the shared MemoryCore library.
+  red_contract:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-admin-screening-queue-brief.test.ts
+    result: expected_fail_5_of_5
+    missing_contracts:
+      - Deterministic source-ordered Markdown for all untouched candidates and the shared cost-first checklist.
+      - Closed, open, and conflicted receipt-gate guidance without automatic selection or receipt authority.
+      - Protected resource discovery and empty-window startHere navigation.
+      - Auth-first private GET-only Markdown route.
+      - README and loop-plan documentation while public and CSV bytes remain frozen.
+  implementation:
+    route: /api/admin/research-intake/screening/index.md
+    builder: apps/web/lib/research-intake-admin-screening-queue-brief.ts
+    discovery: Every protected JSON resource map advertises screeningQueueBrief; the cycle brief links the human queue.
+    content: All 47 untouched records render in pinned source order with asset-class counts, gross-upstream labels, exact protected candidate links, the frozen next action, and the shared manual cost-first screen.
+    start_here: Empty receipt windows now target screening-queue; conflicts still target the receipt ledger and completed windows still prefer the oldest exact human-review packet.
+    route_boundary: Authentication precedes the server clock and research observation; the response is private, no-store, inline Markdown, query-independent, GET-only, and has no CORS grant.
+    documentation: README.md and the three-hour-loop plan describe the queue and its no-receipt, no-selection boundary.
+    navigation_polish: The cycle brief now renders its do-now target as a clickable Markdown link in screening, review, and conflict states.
+    test_runner_cleanup: The existing middleware matcher suite now owns and clears its import-time cleanup timer; detectOpenHandles reproduced the timer at middleware.ts line 53 before the repair.
+  focused_verification:
+    command: npm test -- --runInBand --runTestsByPath apps/web/lib/__tests__/research-intake-admin-screening-queue-brief.test.ts apps/web/lib/__tests__/research-intake-admin-cycle-brief.test.ts apps/web/lib/__tests__/research-intake-start-here.test.ts apps/web/app/api/admin/research-intake/screening/index.md/__tests__/route.test.ts apps/web/app/api/admin/research-intake/screening/index.md/__tests__/auth-boundary.test.ts
+    result: pass_5_suites_23_tests
+  compatibility_verification:
+    status: pass_final_full_repository_suite
+    protected_json_movement: The advertised screeningQueueBrief property intentionally adds 70 bytes to each protected JSON resource map; only protected fingerprints and the empty-window startHere contract moved.
+    unchanged_receipts:
+      public_catalog_json: 140878_bytes_sha256_4c48acd73a18d967bbf039e7109188c136b0f76d011b4e6da5754cb37326d3ec
+      public_evidence_json: 82070_bytes_sha256_43d0257b89f0011979269732dd45e8fd8672c9f6aa35bb691255cd396f2076cf
+      public_catalog_csv: 37522_bytes_sha256_e6f1023e3adfa4672bfe285b9f206d91bb2704488270818a9ef3fee9b5d615cf
+      public_evidence_csv: 9820_bytes_sha256_091b91a4a5ccaf5278456964b29e3c77e889fa14278cc07f4ae6100f477ab31c
+      protected_evidence_csv: 20948_bytes_sha256_a7cc6415ba8f02802d6922d2e5088a0c7fed2abb9e8cc1b523fb1f170e085661
+      protected_review_csv: 7094_bytes_sha256_c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  final_verification:
+    full_jest: PASS - 351 suites / 2477 tests / 1 snapshot; 3 pre-existing skipped suites / 26 skipped tests; natural exit 0 without forceExit or open-handle warning.
+    web_typecheck: PASS
+    lint: PASS - 0 errors / 21 inherited warnings; touched middleware test separately linted after cleanup.
+    source_integrity: PASS - all 61 pinned candidates.
+    review_evidence: PASS - all 4 manifests / 12 files.
+    production_build: PASS - 333 of 333 static pages; new protected screening route included as dynamic.
+    http_smoke: PASS - anonymous and malformed-cookie 401; signed-cookie 200 with 47 candidates despite filtering query; overview and clickable cycle navigation; first exact candidate 200; POST/PUT/PATCH/DELETE 405; STATE bytes unchanged during smoke.
+    framework_headers: Next normalizes the explicit route Cache-Control to no-store on the built HTTP response; Cookie and Authorization remain in Vary and no CORS grant is present.
+    timer_cleanup: PASS - 14 middleware matcher assertions with detectOpenHandles, natural exit 0 and no retained timer; isolated pre-fix probe identified the exact existing interval.
+    deterministic_queue: 47778_bytes_sha256_57465f9a623c42d585ad7218a8cb6af4b6645ab05c1a1933607ae1d161bd7e28_at_2026-08-30T16:15:39.731Z
+    build_cycle_brief: 2858_bytes_sha256_83e81396598d094d6549c92b05ce22e6b81839d5f8788c13e334c65a54521159_at_2026-08-30T13:00:26.528Z
+    docker: CLI unavailable locally; no Docker, Compose, environment, migration, or dependency manifest changed and repository deployment contracts passed.
+  implementation_commit: pending
+  external_actions: none
+  safety_boundary: No candidate, source audit, return, receipt, research verdict, evidence artifact, marketing decision, publication, posting, billing, signal, allocation, broker, execution, or trading state changes.
 
 research_admin_marketing_review_queue_brief_2026_08_31:
   at: 2026-08-31T00:42:15+08:00
