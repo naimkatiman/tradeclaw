@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-10-14T04:11:00+08:00
+updated: 2026-10-14T04:40:04+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -9,7 +9,8 @@ description: >
 
 research_admin_screening_release_2026_10_14:
   at: 2026-10-14T04:11:00+08:00
-  status: awaiting_protected_ci
+  status: deployed_verified
+  completed_at: 2026-10-14T04:40:04+08:00
   authorization: User explicitly requested commit and deploy after reviewing the completed local improvement.
   source_branch: agent/research-intake-desk-20260829
   verified_source_commit: c71a2d0f0f41719f0c07fe9e3d51d76eac2258ea
@@ -21,6 +22,26 @@ research_admin_screening_release_2026_10_14:
   target_environment: production
   release_scope: Completed read-only research desk, its prior data/API/evidence prerequisites, factual research discoverability, and the test-runner cleanup. No signal, broker, billing, auth, migration, Docker, or service-configuration change.
   validation: Local 351 suites / 2477 tests and 333-page build passed; require protected GitHub checks before merge, exact-main Railway success and live health/navigation/authentication checks before completion.
+  pull_request: https://github.com/naimkatiman/tradeclaw/pull/232
+  merged_main: 9ecee0a049cfbaceb54fde635f7e8b08ead88caf
+  approved_source_tree: 26dbe76adeb555e9d0f3ece20987556cb5cf5060
+  pull_request_ci:
+    run: 38461010140
+    result: PASS - all six CI jobs plus welcome; all five required merge checks passed before merge.
+    browser_result: PASS - 243 tests / 10 existing skipped tests, desktop and mobile.
+    docker_smoke_on_main: PASS - workflow run 38462968329.
+  production:
+    deployment: 4ad51b66-63bb-4a69-b976-882fa0f07e58
+    status: SUCCESS
+    image_digest: sha256:0818ff0635a13b7690c88cf9905aa37f1e2b6cdd3e0d9246f291569224cc50d1
+    live_build: 3721cd62-727d-4fa5-96f8-9024ad911f39
+    verified_at: 2026-10-13T20:37:15.764Z
+    health: HTTP 200; database and required migration checks ok; all 56 migrations already applied, zero pending.
+    public_verification: Canonical 61-candidate JSON byte hash matched; 47 untouched / 14 examined records; overview and evidence index plus home/research/open-data/track-record/methodology all HTTP 200.
+    admin_verification: Signed-cookie queue returned all 47 records despite filtering parameters; cycle next action and first exact candidate resolved; anonymous/malformed cookies returned 401; POST/PUT/PATCH/DELETE returned 405; no-store and Cookie/Authorization Vary verified.
+  packaging: Uploaded a tracked commit snapshot matching the exact merged-main tree; the deployment-ignored Linux .venv symlinks were omitted from Windows extraction; no local .env or dependencies were uploaded.
+  auxiliary_ci_issue: Existing Auto-fix lockfile workflow again failed because it tries to push directly to protected main without the five required checks. Three earlier July runs failed as well; the rejected push did not change main and npm ci/build/tests passed. No branch-protection bypass was used.
+  release_record_scope: This closure is documentation only on the research source branch; deployed application files match merged main. Begin future product changes from current origin/main rather than replaying the squashed research history or publishing the dirty primary checkout.
 
 research_admin_manual_screening_queue_2026_08_31:
   at: 2026-08-31T01:19:58+08:00
