@@ -1,11 +1,26 @@
 project: tradeclaw
-updated: 2026-10-14T04:05:36+08:00
+updated: 2026-10-14T04:11:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_screening_release_2026_10_14:
+  at: 2026-10-14T04:11:00+08:00
+  status: awaiting_protected_ci
+  authorization: User explicitly requested commit and deploy after reviewing the completed local improvement.
+  source_branch: agent/research-intake-desk-20260829
+  verified_source_commit: c71a2d0f0f41719f0c07fe9e3d51d76eac2258ea
+  previous_main: 51f940815105cf095d9cc5ebd946acbcace46237
+  previous_production_deployment: 99a4ba51-eafc-475f-9816-07969b992bdc
+  previous_production_release: Redeploy of the existing Lighthouse accessibility and evidence-trust repair, confirmed by Railway deployment metadata.
+  target_project: 4265dacd-9431-446e-8d04-5e1ec8482530
+  target_service: b958acce-02e3-4aee-9e5f-c2f1f1897253
+  target_environment: production
+  release_scope: Completed read-only research desk, its prior data/API/evidence prerequisites, factual research discoverability, and the test-runner cleanup. No signal, broker, billing, auth, migration, Docker, or service-configuration change.
+  validation: Local 351 suites / 2477 tests and 333-page build passed; require protected GitHub checks before merge, exact-main Railway success and live health/navigation/authentication checks before completion.
 
 research_admin_manual_screening_queue_2026_08_31:
   at: 2026-08-31T01:19:58+08:00
