@@ -147,10 +147,10 @@ export function SupabaseClient() {
               Setup Guide
             </a>
             <Link
-              href="/fly"
+              href="/start"
               className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-6 py-3 text-sm font-medium text-[var(--text-secondary)] hover:text-white hover:border-[var(--foreground)] transition-colors"
             >
-              Fly.io Deploy
+              Self-host guide
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

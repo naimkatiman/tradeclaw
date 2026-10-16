@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Navbar } from '../components/navbar';
+import { EditorialHeroArt } from '../../components/editorial-hero-art';
+import openDataArt from '../../public/brand/editorial/tradeclaw-open-data-aperture-v1.webp';
 
 /**
  * /open-data — the developer front door.
@@ -319,34 +321,37 @@ export default function OpenDataPage() {
       <main className="pt-28 pb-24">
         <div className="mx-auto max-w-5xl px-4">
           {/* Intro */}
-          <header>
-            <Kicker>Public evidence archive</Kicker>
-            <h1 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
-              Every number here
-              <br />
-              is an endpoint
-              <br />
-              you can call.
-            </h1>
-            <p className="mt-6 max-w-prose text-base leading-relaxed text-[var(--text-secondary)]">
-              TradeClaw publishes the signal-study data: recorded signal rows,
-              OHLCV-resolved outcomes, modeled per-trade costs, and the sequential
-              equity simulation used by the public research charts. Backtest
-              artifacts are committed to the repo as JSON. These datasets are
-              public and untiered; call them, cache them, fork them, and audit the
-              assumptions.
-            </p>
-            <p className="mt-4 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
-              The full reference lives at{' '}
-              <a
-                href="/api-docs"
-                className="font-mono text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]"
-              >
-                /api-docs
-              </a>
-              . Everything below runs against{' '}
-              <code className="font-mono text-[var(--foreground)]">https://tradeclaw.win</code>.
-            </p>
+          <header className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div>
+              <Kicker>Public evidence archive</Kicker>
+              <h1 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
+                Every number here
+                <br />
+                is an endpoint
+                <br />
+                you can call.
+              </h1>
+              <p className="mt-6 max-w-prose text-base leading-relaxed text-[var(--text-secondary)]">
+                TradeClaw publishes the signal-study data: recorded signal rows,
+                OHLCV-resolved outcomes, modeled per-trade costs, and the sequential
+                equity simulation used by the public research charts. Backtest
+                artifacts are committed to the repo as JSON. These datasets are
+                public and untiered; call them, cache them, fork them, and audit the
+                assumptions.
+              </p>
+              <p className="mt-4 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
+                The full reference lives at{' '}
+                <a
+                  href="/api-docs"
+                  className="font-mono text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]"
+                >
+                  /api-docs
+                </a>
+                . Everything below runs against{' '}
+                <code className="font-mono text-[var(--foreground)]">https://tradeclaw.win</code>.
+              </p>
+            </div>
+            <EditorialHeroArt src={openDataArt} testId="open-data-hero-art" />
           </header>
 
           {/* Endpoints */}
@@ -383,6 +388,8 @@ export default function OpenDataPage() {
             <div className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)]">
               <a
                 href={`${REPO_ROOT_BLOB}/data/signal-log.json`}
+                data-evidence-event="artifact_downloaded"
+                data-evidence-target="data/signal-log.json"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-1 py-5"
@@ -407,6 +414,8 @@ export default function OpenDataPage() {
 
               <a
                 href={`${REPO_ROOT_BLOB}/data/SIGNAL-LOG.md`}
+                data-evidence-event="artifact_downloaded"
+                data-evidence-target="data/SIGNAL-LOG.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-1 py-5"
@@ -428,6 +437,8 @@ export default function OpenDataPage() {
 
               <a
                 href={`${REPO_BLOB}/REGISTRY.md`}
+                data-evidence-event="artifact_downloaded"
+                data-evidence-target="docs/research/experiments/REGISTRY.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-1 py-5"
@@ -451,6 +462,8 @@ export default function OpenDataPage() {
                 <a
                   key={a.file}
                   href={`${REPO_BLOB}/${a.file}`}
+                  data-evidence-event="artifact_downloaded"
+                  data-evidence-target={a.file}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col gap-1 py-5"
@@ -548,6 +561,7 @@ export default function OpenDataPage() {
             <div className="mt-5 flex flex-wrap gap-3">
               <a
                 href="/methodology"
+                data-evidence-event="methodology_viewed"
                 className="rounded-[var(--radius-pill)] border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--foreground)]"
               >
                 Methodology
@@ -560,6 +574,7 @@ export default function OpenDataPage() {
               </a>
               <a
                 href="/track-record"
+                data-evidence-event="record_inspected"
                 className="rounded-[var(--radius-pill)] border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--foreground)]"
               >
                 Signal study

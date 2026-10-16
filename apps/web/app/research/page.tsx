@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Navbar } from '../components/navbar';
+import { EditorialHeroArt } from '../../components/editorial-hero-art';
+import researchGateArt from '../../public/brand/editorial/tradeclaw-research-gate-v1.webp';
 
 export const revalidate = 3600;
 
@@ -348,37 +350,40 @@ export default function ResearchPage() {
       <main className="pt-28">
         <div className="mx-auto max-w-5xl px-4">
           {/* Intro */}
-          <header className="pb-14">
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-              Negative results, registered
-            </p>
-            <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
-              What we tested
-              <br />
-              and killed
-            </h1>
-            <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              Every hypothesis below was written down as a spec before it ran: a fixed universe, a fixed
-              cost model, and a fixed pass or fail gate, frozen in a design doc before any result was seen.
-              We then ran it on the same research pipeline used by the public signal study, and recorded
-              what the gate said. None passed. Across two final verdicts the standing conclusion is narrow
-              and blunt: no tested single-asset short-term timing candidate survived the published modeled
-              cost assumptions, and no candidate using the stated retail crypto cost structure cleared its gate.
-            </p>
-            <p className="mt-4 max-w-prose text-[13px] leading-relaxed text-[var(--text-secondary)]">
-              Each entry links its committed machine-readable artifact and the final verdict memo. The
-              registered experiment ledger is the{' '}
-              <ExternalLink href={REGISTRY_URL}>append-only experiment registry</ExternalLink>. The live
-              modeled-cost signal result is on the{' '}
-              <a href="/track-record" className="underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
-                track record
-              </a>
-              , and the per-trade cost dataset is served raw at{' '}
-              <a href="/api/research/cost-field" className="font-mono underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
-                /api/research/cost-field
-              </a>
-              .
-            </p>
+          <header className="grid items-center gap-8 pb-14 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+                Negative results, registered
+              </p>
+              <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
+                What we tested
+                <br />
+                and killed
+              </h1>
+              <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
+                Every hypothesis below was written down as a spec before it ran: a fixed universe, a fixed
+                cost model, and a fixed pass or fail gate, frozen in a design doc before any result was seen.
+                We then ran it on the same research pipeline used by the public signal study, and recorded
+                what the gate said. None passed. Across two final verdicts the standing conclusion is narrow
+                and blunt: no tested single-asset short-term timing candidate survived the published modeled
+                cost assumptions, and no candidate using the stated retail crypto cost structure cleared its gate.
+              </p>
+              <p className="mt-4 max-w-prose text-[13px] leading-relaxed text-[var(--text-secondary)]">
+                Each entry links its committed machine-readable artifact and the final verdict memo. The
+                registered experiment ledger is the{' '}
+                <ExternalLink href={REGISTRY_URL}>append-only experiment registry</ExternalLink>. The live
+                modeled-cost signal result is on the{' '}
+                <a href="/track-record" className="underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
+                  track record
+                </a>
+                , and the per-trade cost dataset is served raw at{' '}
+                <a href="/api/research/cost-field" className="font-mono underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
+                  /api/research/cost-field
+                </a>
+                .
+              </p>
+            </div>
+            <EditorialHeroArt src={researchGateArt} testId="research-hero-art" />
           </header>
 
           {/* Kill ledger */}

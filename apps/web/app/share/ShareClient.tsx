@@ -509,11 +509,11 @@ export function ShareClient() {
 
   // Fetch live GitHub star count
   useEffect(() => {
-    fetch('https://api.github.com/repos/naimkatiman/tradeclaw')
-      .then(r => r.json())
-      .then((data: { stargazers_count?: number }) => {
-        if (typeof data.stargazers_count === 'number') {
-          setStars(data.stargazers_count);
+    fetch('/api/github-stars')
+      .then(response => response.ok ? response.json() as Promise<{ stars?: unknown }> : null)
+      .then((data) => {
+        if (typeof data?.stars === 'number') {
+          setStars(data.stars);
         }
       })
       .catch(() => {

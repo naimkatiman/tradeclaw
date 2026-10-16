@@ -245,7 +245,7 @@ pnpm --filter scanner dev`}
           code={`curl http://localhost:3000/api/health
 
 # Expected response:
-# { "status": "ok", "version": "1.0.0", "uptime": 42, "node": "22.x" }`}
+# { "status": "ok", "checks": { "database": { "status": "ok" }, "migrations": { "status": "ok" } } }`}
         />
       </section>
 

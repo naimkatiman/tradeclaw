@@ -16,7 +16,15 @@ export const metadata: Metadata = {
 };
 
 export default async function ProvidersPage() {
-  const providers = await getProviders(50);
+  let providers: Awaited<ReturnType<typeof getProviders>> = [];
+  let directoryAvailable = true;
+
+  try {
+    providers = await getProviders(50);
+  } catch (error) {
+    directoryAvailable = false;
+    console.warn('[marketplace/providers] provider directory unavailable', error);
+  }
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -32,7 +40,12 @@ export default async function ProvidersPage() {
           </p>
         </div>
 
-        {providers.length === 0 ? (
+        {!directoryAvailable ? (
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-8 text-center">
+            <p className="text-amber-200">The provider directory is unavailable because this instance cannot reach its database.</p>
+            <p className="mt-2 text-sm text-zinc-500">Check DATABASE_URL and the migration status, then reload this page.</p>
+          </div>
+        ) : providers.length === 0 ? (
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-8 text-center">
             <p className="text-zinc-400">No provider records have been published by this instance.</p>
           </div>
