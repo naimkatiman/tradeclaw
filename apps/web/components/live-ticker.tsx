@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useLocale } from '../app/components/locale-provider';
 import type { PriceTick, PricesMap } from '../lib/hooks/use-price-stream';
+import { getDashboardLiveTranslations } from '../lib/product-i18n/dashboard-live';
 
 const SYMBOL_LABELS: Record<string, string> = {
   BTCUSD: 'BTC/USD',
@@ -49,7 +51,7 @@ function TickerItem({ pair, tick }: TickerItemProps) {
   const changeColor = tick.change24h >= 0 ? 'text-emerald-500' : 'text-rose-500';
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-mono shrink-0 select-none">
+    <span dir="ltr" className="inline-flex items-center gap-1.5 text-[11px] font-mono shrink-0 select-none">
       <span className="text-[var(--text-secondary)]">{SYMBOL_LABELS[pair] ?? pair}</span>
       <span className={`font-semibold tabular-nums transition-colors duration-300 ${priceColor}`}>
         {formatTickerPrice(pair, tick.price)}
@@ -67,6 +69,8 @@ interface LiveTickerProps {
 }
 
 export function LiveTicker({ prices, pairs }: LiveTickerProps) {
+  const { locale } = useLocale();
+  const t = getDashboardLiveTranslations(locale);
   const activePairs = pairs.filter(p => prices.has(p));
 
   if (activePairs.length === 0) {
@@ -74,7 +78,7 @@ export function LiveTicker({ prices, pairs }: LiveTickerProps) {
       <div className="bg-[var(--background)] border-b border-[var(--border)] h-10 flex items-center px-4">
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--border)] animate-pulse" />
-          <span className="text-[11px] text-[var(--text-secondary)] font-mono">Connecting to market data…</span>
+          <span className="text-[11px] text-[var(--text-secondary)] font-mono">{t.ticker.connecting}</span>
         </div>
       </div>
     );
@@ -86,16 +90,16 @@ export function LiveTicker({ prices, pairs }: LiveTickerProps) {
   return (
     <div className="bg-[var(--background)] border-b border-[var(--border)] h-10 overflow-hidden flex items-center">
       {/* LIVE badge */}
-      <div className="shrink-0 h-full flex items-center bg-emerald-500/10 border-r border-emerald-500/20 px-3 gap-1.5">
+      <div className="shrink-0 h-full flex items-center bg-emerald-500/10 border-e border-emerald-500/20 px-3 gap-1.5">
         <span className="relative flex h-1.5 w-1.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
         </span>
-        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">LIVE</span>
+        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">{t.common.live}</span>
       </div>
 
       {/* Scrolling items */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden" dir="ltr">
         <div
           className="flex items-center gap-8 px-4 whitespace-nowrap live-ticker-scroll"
           onMouseEnter={e => (e.currentTarget.style.animationPlayState = 'paused')}

@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { getStreak } from '../lib/visit-streak';
+import { useLocale } from '../app/components/locale-provider';
+import { formatMessage } from '../lib/product-i18n/format';
+import { getDashboardEvidenceTranslations } from '../lib/product-i18n/dashboard-evidence';
 
 const DISMISS_KEY = 'tc-reengagement-dismissed';
 
@@ -28,6 +31,8 @@ function computeReEngagement(): { visible: boolean; daysAway: number } {
 }
 
 export function ReEngagementBanner() {
+  const { locale } = useLocale();
+  const copy = getDashboardEvidenceTranslations(locale).reEngagement;
   const [state] = useState(computeReEngagement);
   const [visible, setVisible] = useState(state.visible);
   const daysAway = state.daysAway;
@@ -45,24 +50,26 @@ export function ReEngagementBanner() {
   return (
     <div className="border-b border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-emerald-400 text-sm font-semibold shrink-0">Welcome back!</span>
-          <span className="text-xs text-[var(--text-secondary)] truncate">
-            Signals resolved while you were away ({daysAway} days)
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <span className="text-emerald-400 text-sm font-semibold shrink-0">{copy.welcomeBack}</span>
+          <span className="text-xs text-[var(--text-secondary)]">
+            {formatMessage(copy.resolvedWhileAway, { count: daysAway })}
           </span>
           <Link
             href="/accuracy"
             className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors shrink-0"
           >
-            See Accuracy &rarr;
+            {copy.seeAccuracy}{' '}
+            <span aria-hidden="true">{locale === 'ar' ? '←' : '→'}</span>
           </Link>
         </div>
         <button
           onClick={handleDismiss}
           className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors shrink-0"
-          aria-label="Dismiss"
+          aria-label={copy.dismiss}
+          title={copy.dismiss}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
