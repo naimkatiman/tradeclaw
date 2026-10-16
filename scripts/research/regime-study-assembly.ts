@@ -443,14 +443,29 @@ export interface CliArgs {
 
 export function parseCliArgs(argv: string[]): CliArgs {
   const out: CliArgs = { days: null, minN: 300, jsonPath: null, help: false };
+  const seen = new Set<string>();
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--help' || a === '-h') { out.help = true; continue; }
-    if (a === '--days') { out.days = parsePositiveInt('--days', argv[++i]); continue; }
-    if (a === '--min-n') { out.minN = parsePositiveInt('--min-n', argv[++i]); continue; }
+    if (a === '--days') {
+      if (seen.has(a)) throw new CliInputError(`Duplicate argument: ${a}.`);
+      seen.add(a);
+      out.days = parsePositiveInt('--days', argv[++i]);
+      continue;
+    }
+    if (a === '--min-n') {
+      if (seen.has(a)) throw new CliInputError(`Duplicate argument: ${a}.`);
+      seen.add(a);
+      out.minN = parsePositiveInt('--min-n', argv[++i]);
+      continue;
+    }
     if (a === '--json') {
+      if (seen.has(a)) throw new CliInputError(`Duplicate argument: ${a}.`);
+      seen.add(a);
       const v = argv[++i];
       if (v === undefined) throw new CliInputError('Missing value for --json.');
+      if (v.startsWith('-')) throw new CliInputError('Missing value for --json.');
+      if (v.trim().length === 0) throw new CliInputError('Invalid --json: expected a non-empty path.');
       out.jsonPath = v;
       continue;
     }

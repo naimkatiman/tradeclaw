@@ -67,6 +67,32 @@ const LOOKBACK_BARS = 320;
 /** Pre-registered staleness rule: a signal is classifiable only if its selected D1 bar closed within this window before the signal. */
 const MAX_BAR_STALENESS_MS = 7 * DAY_MS;
 
+function validateJsonOutputPath(jsonPath: string | null): void {
+  if (!jsonPath) return;
+
+  const resolvedPath = path.resolve(process.cwd(), jsonPath);
+  const parentDir = path.dirname(resolvedPath);
+
+  let parentStat: fs.Stats;
+  try {
+    parentStat = fs.statSync(parentDir);
+  } catch {
+    throw new CliInputError(`Invalid --json: parent directory does not exist: ${parentDir}.`);
+  }
+
+  if (!parentStat.isDirectory()) {
+    throw new CliInputError(`Invalid --json: parent path is not a directory: ${parentDir}.`);
+  }
+
+  if (fs.existsSync(resolvedPath)) {
+    const outputStat = fs.statSync(resolvedPath);
+    if (outputStat.isDirectory()) {
+      throw new CliInputError(`Invalid --json: expected a file path, got an existing directory: ${resolvedPath}.`);
+    }
+    throw new CliInputError(`Invalid --json: output file already exists: ${resolvedPath}.`);
+  }
+}
+
 function fmt(x: number, d = 4): string {
   return (x >= 0 ? '+' : '') + x.toFixed(d);
 }
@@ -107,6 +133,7 @@ async function main() {
     console.log(USAGE);
     return;
   }
+  validateJsonOutputPath(args.jsonPath);
 
   const client = await connect();
   let rows: StudyRow[];

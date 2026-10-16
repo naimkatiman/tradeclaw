@@ -315,6 +315,19 @@ describe('parseCliArgs', () => {
     expect(() => parseCliArgs(['--days', '0'])).toThrow();
     expect(() => parseCliArgs(['--days', 'abc'])).toThrow();
   });
+  it.each([
+    ['--days', '30', '60'],
+    ['--min-n', '100', '200'],
+    ['--json', 'first.json', 'second.json'],
+  ])('rejects duplicate singleton flag %s before silently using the final value', (flag, first, second) => {
+    expect(() => parseCliArgs([flag, first, flag, second])).toThrow(`Duplicate argument: ${flag}.`);
+  });
+  it('rejects a blank --json artifact path before the CLI can silently skip output', () => {
+    expect(() => parseCliArgs(['--json', '   '])).toThrow('Invalid --json: expected a non-empty path.');
+  });
+  it('rejects an option-looking --json value before accepting a missing artifact path', () => {
+    expect(() => parseCliArgs(['--json', '--days'])).toThrow('Missing value for --json.');
+  });
   it('handles --help', () => {
     expect(parseCliArgs(['--help']).help).toBe(true);
   });
