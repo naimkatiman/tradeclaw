@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   buildDailyCheck,
   DAILY_FOLLOWS_COOKIE,
   DAILY_PREVIOUS_COOKIE,
   observationFromRecords,
-  parseFollowList,
-  parsePreviousObservation,
   serializeFollowList,
   setFollow,
+  syncShownCheck,
+  type CheckStorage,
   type DailyCheckResult,
   type PreviousObservation,
   type PublishedRecord,
@@ -17,6 +17,18 @@ import {
 
 function writeCookie(name: string, value: string) {
   document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=31536000; SameSite=Lax`;
+}
+
+function browserStorage(): CheckStorage {
+  return {
+    get(name) {
+      return window.localStorage.getItem(name);
+    },
+    set(name, value) {
+      window.localStorage.setItem(name, value);
+      writeCookie(name, value);
+    },
+  };
 }
 
 export function DailyCheckScreen({
@@ -30,32 +42,27 @@ export function DailyCheckScreen({
 }) {
   const [result, setResult] = useState(initialResult);
   const [finished, setFinished] = useState(false);
+  const comparedAgainst = useRef<PreviousObservation | null>(previous);
+  const ignoreStored = useRef(false);
 
   useEffect(() => {
-    const storedFollows = parseFollowList(window.localStorage.getItem(DAILY_FOLLOWS_COOKIE));
-    const storedPrevious = parsePreviousObservation(window.localStorage.getItem(DAILY_PREVIOUS_COOKIE));
-    const follows = storedFollows.length > 0 ? storedFollows : initialResult.followedIds;
-    const previousObs = storedPrevious ?? previous;
-    if (storedFollows.length > 0 || storedPrevious) {
-      setResult(buildDailyCheck({
-        records,
-        previous: previousObs,
-        follows,
-        status: records.length === 0 ? 'empty' : 'ready',
-      }));
-    }
-    if (follows.length > 0) {
-      const followValue = serializeFollowList(follows);
-      window.localStorage.setItem(DAILY_FOLLOWS_COOKIE, followValue);
-      writeCookie(DAILY_FOLLOWS_COOKIE, followValue);
-    }
-    const snapshot = JSON.stringify(observationFromRecords(records, new Date().toISOString()));
-    const persist = () => {
-      window.localStorage.setItem(DAILY_PREVIOUS_COOKIE, snapshot);
-      writeCookie(DAILY_PREVIOUS_COOKIE, snapshot);
+    const storage = browserStorage();
+    const synced = syncShownCheck({
+      records,
+      serverPrevious: previous,
+      follows: initialResult.followedIds,
+      storage,
+      now: new Date().toISOString(),
+      ignoreStored: ignoreStored.current,
+      status: records.length === 0 ? 'empty' : 'ready',
+    });
+    ignoreStored.current = false;
+    comparedAgainst.current = synced.previous;
+    setResult(synced.result);
+    return () => {
+      storage.set(DAILY_PREVIOUS_COOKIE, JSON.stringify(observationFromRecords(records, new Date().toISOString())));
+      ignoreStored.current = true;
     };
-    window.addEventListener('pagehide', persist);
-    return () => window.removeEventListener('pagehide', persist);
   }, [initialResult.followedIds, previous, records]);
 
   function toggleFollow(id: string) {
@@ -63,15 +70,22 @@ export function DailyCheckScreen({
       const row = current.rows.find((item) => item.id === id);
       const follows = setFollow(current.followedIds, id, row ? !row.followed : true);
       const followValue = serializeFollowList(follows);
-      window.localStorage.setItem(DAILY_FOLLOWS_COOKIE, followValue);
-      writeCookie(DAILY_FOLLOWS_COOKIE, followValue);
+      browserStorage().set(DAILY_FOLLOWS_COOKIE, followValue);
       return buildDailyCheck({
         records,
-        previous,
+        previous: comparedAgainst.current,
         follows,
         status: records.length === 0 ? 'empty' : 'ready',
       });
     });
+  }
+
+  function finishCheck() {
+    browserStorage().set(
+      DAILY_PREVIOUS_COOKIE,
+      JSON.stringify(observationFromRecords(records, new Date().toISOString())),
+    );
+    setFinished(true);
   }
 
   function showRecord(id: string) {
@@ -109,7 +123,7 @@ export function DailyCheckScreen({
             className="premium-button-primary"
             data-testid="daily-next-action"
             disabled={result.nextAction.kind === 'wait'}
-            onClick={() => setFinished(true)}
+            onClick={finishCheck}
           >
             {result.nextAction.label}
           </button>

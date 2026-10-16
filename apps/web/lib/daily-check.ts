@@ -334,6 +334,12 @@ function rowFor(record: PublishedRecord, previous: PreviousObservation | null, f
   };
 }
 
+function wasCompared(record: PublishedRecord, previous: PreviousObservation | null): boolean {
+  if (record.value === null || !Number.isFinite(record.value)) return false;
+  const prior = priorFor(previous, record.id);
+  return prior.known && prior.value !== null;
+}
+
 function finishedAction(condition: DailyCondition): DailyNextAction {
   if (condition === 'loading') return { label: 'Wait for this check to finish', kind: 'wait' };
   if (condition === 'error' || condition === 'empty') return { label: "Try today's check again", kind: 'retry' };
@@ -347,11 +353,12 @@ function shell(
   follows: readonly string[],
   rows: DailyRecordRow[] = [],
   nextLook = 'No freshness boundary is published.',
+  conditionLabel = CONDITION_LABEL[condition],
 ): DailyCheckResult {
   return {
     verdictClass,
     condition,
-    conditionLabel: CONDITION_LABEL[condition],
+    conditionLabel,
     headline,
     rows,
     nextLook,
@@ -386,6 +393,7 @@ export function buildDailyCheck(input: {
   const changed = rows.filter((row) => row.state === 'changed');
   const allUnavailable = rows.every((row) => row.state === 'unavailable');
   const anyStale = ordered.some((record) => record.stale === true);
+  const anyCompared = ordered.some((record) => wasCompared(record, input.previous));
 
   if (changed.length > 0) {
     return shell('changed', 'changed', changed.map((row) => row.plain).join(' '), follows, rows, nextLook);
@@ -399,6 +407,13 @@ export function buildDailyCheck(input: {
       rows,
       nextLook,
     );
+  }
+  if (!anyCompared) {
+    const headline = 'No earlier observation is saved, so nothing is reported as a change.';
+    if (anyStale) {
+      return shell('stale', 'unchanged', `This check is stale. ${headline}`, follows, rows, nextLook);
+    }
+    return shell('unchanged', 'unchanged', headline, follows, rows, nextLook, 'No earlier observation is saved.');
   }
   if (anyStale) {
     return shell(
@@ -418,4 +433,31 @@ export function buildDailyCheck(input: {
     rows,
     nextLook,
   );
+}
+
+export interface CheckStorage {
+  get(name: string): string | null;
+  set(name: string, value: string): void;
+}
+
+export function syncShownCheck(input: {
+  records: readonly PublishedRecord[];
+  serverPrevious: PreviousObservation | null;
+  follows: readonly string[];
+  storage: CheckStorage;
+  now: string;
+  ignoreStored: boolean;
+  status?: DailyCheckStatus;
+}): { result: DailyCheckResult; previous: PreviousObservation | null } {
+  const storedFollows = parseFollowList(input.storage.get(DAILY_FOLLOWS_COOKIE));
+  const storedPrevious = parsePreviousObservation(input.storage.get(DAILY_PREVIOUS_COOKIE));
+  const follows = storedFollows.length > 0 ? storedFollows : parseFollowList(input.follows.join(','));
+  const previous = input.ignoreStored ? input.serverPrevious : (storedPrevious ?? input.serverPrevious);
+  const status = input.status ?? (input.records.length === 0 ? 'empty' : 'ready');
+  const result = buildDailyCheck({ records: input.records, previous, follows, status });
+  input.storage.set(DAILY_PREVIOUS_COOKIE, JSON.stringify(observationFromRecords(input.records, input.now)));
+  if (follows.length > 0) {
+    input.storage.set(DAILY_FOLLOWS_COOKIE, serializeFollowList(follows));
+  }
+  return { result, previous };
 }
