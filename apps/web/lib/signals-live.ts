@@ -122,13 +122,13 @@ async function readLiveSignalsFromFile(): Promise<{
   stats?: LiveSignalsData['stats'];
 } | null> {
   const possiblePaths = [
-    join(process.cwd(), 'data', 'signals-live.json'),
-    join(process.cwd(), '..', '..', 'data', 'signals-live.json'),
+    join(/* turbopackIgnore: true */ process.cwd(), 'data', 'signals-live.json'),
+    join(/* turbopackIgnore: true */ process.cwd(), '..', '..', 'data', 'signals-live.json'),
   ];
 
   for (const filePath of possiblePaths) {
     try {
-      const content = await readFile(filePath, 'utf-8');
+      const content = await readFile(/* turbopackIgnore: true */ filePath, 'utf-8');
       const data: LiveSignalsData = JSON.parse(content);
 
       const signals = data.signals ?? data.confluence_signals ?? [];

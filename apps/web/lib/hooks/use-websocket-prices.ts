@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { PriceTick, ConnectionState, PricesMap } from './use-price-stream';
+import { getWebSocketEndpoint } from './websocket-config';
 
 interface NormalizedTick {
   symbol: string;
@@ -21,31 +22,21 @@ type WsServerMessage =
 const BACKOFF_DELAYS = [1000, 2000, 5000, 10000, 30000];
 
 /**
- * Resolves the WebSocket server URL.
- * Priority: NEXT_PUBLIC_WS_URL env → auto-detect from window.location → localhost default.
- */
-function getWsUrl(): string {
-  if (process.env.NEXT_PUBLIC_WS_URL) {
-    return process.env.NEXT_PUBLIC_WS_URL;
-  }
-  if (typeof window !== 'undefined') {
-    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${proto}//${window.location.hostname}:4000`;
-  }
-  return 'ws://localhost:4000';
-}
-
-/**
  * Connect to the TradeClaw ws-server for real-time price streaming.
  * Maps NormalizedTick (bid/ask/mid) → PriceTick (price/change24h/high24h/low24h)
  * by tracking session high/low/open client-side.
+ *
+ * Production browser connections remain disabled until the server has a
+ * browser-safe token issuer. usePriceStream automatically uses SSE instead.
  */
 export function useWebSocketPrices(pairs: string[]): {
   prices: PricesMap;
   state: ConnectionState;
 } {
   const [prices, setPrices] = useState<PricesMap>(new Map());
-  const [state, setState] = useState<ConnectionState>('connecting');
+  const [state, setState] = useState<ConnectionState>(
+    process.env.NODE_ENV === 'development' ? 'connecting' : 'disconnected',
+  );
   const pairsKey = [...pairs].sort().join(',');
 
   useEffect(() => {
@@ -61,8 +52,18 @@ export function useWebSocketPrices(pairs: string[]): {
       ws?.close();
       setState('connecting');
 
-      const baseUrl = getWsUrl();
-      ws = new WebSocket(`${baseUrl}/ws`);
+      const endpoint = getWebSocketEndpoint();
+      if (!endpoint) {
+        setState('disconnected');
+        return;
+      }
+
+      try {
+        ws = new WebSocket(endpoint);
+      } catch {
+        setState('disconnected');
+        return;
+      }
 
       ws.onopen = () => {
         if (!mounted) { ws?.close(); return; }

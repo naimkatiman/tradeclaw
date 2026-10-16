@@ -10,7 +10,12 @@ import posthog from 'posthog-js';
 export type AnalyticsEvent =
   | 'signal_viewed'
   | 'hero_viewed'
-  | 'activated';
+  | 'activated'
+  | 'artifact_downloaded'
+  | 'record_inspected'
+  | 'methodology_viewed'
+  | 'screener_scan_completed'
+  | 'backtest_completed';
 
 export function trackEvent(
   event: AnalyticsEvent,

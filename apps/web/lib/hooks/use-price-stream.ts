@@ -26,11 +26,11 @@ export type PricesMap = Map<string, PriceTick>;
 const BACKOFF_DELAYS = [1000, 2000, 5000, 10000, 30000];
 
 /**
- * Live price stream with automatic WebSocket → SSE fallback.
+ * Live price stream with production-safe WebSocket → SSE selection.
  *
- * 1. Tries the ws-server (port 4000) for sub-second updates
- * 2. If WS fails to connect within 5s, falls back to SSE polling
- * 3. If WS disconnects later, SSE takes over seamlessly
+ * 1. Local development can use the ws-server for sub-second updates.
+ * 2. Production immediately uses SSE until browser-safe WS tokens exist.
+ * 3. If a development WS disconnects, SSE takes over seamlessly.
  */
 export function usePriceStream(pairs: string[]): {
   prices: PricesMap;
@@ -39,7 +39,7 @@ export function usePriceStream(pairs: string[]): {
   const ws = useWebSocketPrices(pairs);
   const sse = useSsePriceStream(pairs);
 
-  // WS is primary — use it when connected or still attempting first connect
+  // WS is primary when the development-only relay is connected.
   if (ws.state === 'connected') {
     return ws;
   }
