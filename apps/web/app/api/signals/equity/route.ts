@@ -115,7 +115,7 @@ function computeRCap(resolved: SignalHistoryRecord[], multiplier: number): numbe
   return cap;
 }
 
-function computeEquityCurve(
+export function computeEquityCurve(
   resolved: SignalHistoryRecord[],
   rCap: number | null = null,
 ): {
