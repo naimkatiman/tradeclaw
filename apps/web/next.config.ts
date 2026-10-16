@@ -37,7 +37,6 @@ const retiredPublicRoutes = [
   { source: '/badges/readme', destination: '/open-data' },
   { source: '/card', destination: '/open-data' },
   { source: '/embed/live', destination: '/open-data' },
-  { source: '/today', destination: '/dashboard' },
   { source: '/live', destination: '/dashboard' },
   { source: '/performance', destination: '/track-record' },
   { source: '/proof', destination: '/track-record' },
