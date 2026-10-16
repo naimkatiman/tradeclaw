@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
+import { getTrackRecordTranslations } from '../../lib/product-i18n/track-record';
+import { getPreferredLocaleFromCookie } from '../../lib/product-i18n/server-locale';
 
 const TrackRecordClient = dynamic(
   () => import('./TrackRecordClient').then(m => ({ default: m.TrackRecordClient })),
@@ -14,23 +16,27 @@ const TrackRecordClient = dynamic(
 
 const ogImage = '/api/og/track-record';
 
-export const metadata: Metadata = {
-  title: 'OHLCV-Resolved Signal Record — TradeClaw',
-  description:
-    'Recorded TradeClaw signals with outcomes resolved against Binance/Yahoo OHLCV, plus modeled costs and a hypothetical sequential equity simulation.',
-  openGraph: {
-    title: 'OHLCV-Resolved Signal Record — TradeClaw',
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getPreferredLocaleFromCookie();
+  const title = getTrackRecordTranslations(locale).documentTitle;
+  return {
+    title,
     description:
-      'Observed OHLCV-resolved signal outcomes, modeled fee/slippage assumptions, and a sequential simulation — not broker fills or customer portfolio returns.',
-    images: [{ url: ogImage, width: 1200, height: 630, alt: 'TradeClaw Track Record' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'OHLCV-Resolved Signal Record — TradeClaw',
-    description: 'Recorded signals resolved against Binance/Yahoo OHLCV. Modeled costs and simulations are labeled; no broker fills are claimed.',
-    images: [ogImage],
-  },
-};
+      'Recorded TradeClaw signals with outcomes resolved against Binance/Yahoo OHLCV, plus modeled costs and a hypothetical sequential equity simulation.',
+    openGraph: {
+      title,
+      description:
+        'Observed OHLCV-resolved signal outcomes, modeled fee/slippage assumptions, and a sequential simulation — not broker fills or customer portfolio returns.',
+      images: [{ url: ogImage, width: 1200, height: 630, alt: 'TradeClaw Track Record' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: 'Recorded signals resolved against Binance/Yahoo OHLCV. Modeled costs and simulations are labeled; no broker fills are claimed.',
+      images: [ogImage],
+    },
+  };
+}
 
 export default function TrackRecordPage() {
   return <TrackRecordClient />;
