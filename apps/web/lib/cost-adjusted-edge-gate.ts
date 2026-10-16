@@ -9,7 +9,7 @@ const WINDOW_DAYS = 90;
 const MIN_USABLE_TRADES = 100;
 const MIN_ACTIVE_DAYS = 30;
 const MIN_COVERAGE = 0.9;
-const MAX_EVIDENCE_AGE_DAYS = 7;
+export const MAX_EVIDENCE_AGE_DAYS = 7;
 const DAILY_LCB_MULTIPLIER = 2.05;
 
 export type EdgeGateReason =
