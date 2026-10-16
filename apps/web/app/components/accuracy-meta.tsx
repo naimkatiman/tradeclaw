@@ -1,6 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLocale } from './locale-provider';
+import { formatMessage } from '../../lib/product-i18n/format';
+import {
+  getDashboardEvidenceTranslations,
+  type DashboardEvidenceTranslations,
+} from '../../lib/product-i18n/dashboard-evidence';
 
 interface AccuracyData {
   winRate: number;
@@ -15,16 +21,21 @@ interface AccuracyMetaProps {
   timeframe: string;
 }
 
-function formatAge(isoTs: string): string {
+function formatAge(
+  isoTs: string,
+  copy: DashboardEvidenceTranslations['accuracyMeta'],
+): string {
   const diff = Date.now() - new Date(isoTs).getTime();
   const hours = Math.floor(diff / 3_600_000);
-  if (hours < 1) return '<1h ago';
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 1) return copy.lessThanHourAgo;
+  if (hours < 24) return formatMessage(copy.hoursAgo, { count: hours });
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return formatMessage(copy.daysAgo, { count: days });
 }
 
 export function AccuracyMeta({ symbol, timeframe }: AccuracyMetaProps) {
+  const { locale } = useLocale();
+  const copy = getDashboardEvidenceTranslations(locale).accuracyMeta;
   const [data, setData] = useState<AccuracyData | null>(null);
 
   useEffect(() => {
@@ -44,14 +55,18 @@ export function AccuracyMeta({ symbol, timeframe }: AccuracyMetaProps) {
         : 'text-red-400';
 
   return (
-    <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
-      <span className={rateColor}>{data.winRate.toFixed(0)}% win</span>
-      <span className="text-zinc-700">|</span>
-      <span>n={data.sampleSize}</span>
-      <span className="text-zinc-700">|</span>
-      <span>{data.windowLabel}</span>
-      <span className="text-zinc-700">|</span>
-      <span>latest {formatAge(data.newestSampleTs)}</span>
+    <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono text-zinc-500">
+      <bdi dir="auto" className={rateColor}>
+        {formatMessage(copy.winRate, { rate: data.winRate.toFixed(0) })}
+      </bdi>
+      <span aria-hidden="true" className="text-zinc-700">|</span>
+      <bdi dir="ltr">n={data.sampleSize}</bdi>
+      <span aria-hidden="true" className="text-zinc-700">|</span>
+      <bdi dir="ltr">{data.windowLabel}</bdi>
+      <span aria-hidden="true" className="text-zinc-700">|</span>
+      <bdi dir="auto">
+        {formatMessage(copy.latest, { age: formatAge(data.newestSampleTs, copy) })}
+      </bdi>
     </div>
   );
 }

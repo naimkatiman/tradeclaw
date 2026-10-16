@@ -1,6 +1,10 @@
 'use client';
 
 import { AlertTriangle, TrendingUp } from 'lucide-react';
+import { formatMessage } from '../../lib/product-i18n/format';
+import { getDashboardLiveTranslations } from '../../lib/product-i18n/dashboard-live';
+import { getHtmlLanguage } from '../../lib/translations';
+import { useLocale } from './locale-provider';
 
 interface Props {
   /** Direction of the signal — determines what counts as favorable. */
@@ -20,6 +24,9 @@ interface Props {
  * favorable for the signal's direction. Hidden when |delta| <= threshold.
  */
 export function EntryStalenessNotice({ direction, entry, livePrice, thresholdPct = 0.3 }: Props) {
+  const { locale } = useLocale();
+  const t = getDashboardLiveTranslations(locale);
+
   if (typeof livePrice !== 'number' || !Number.isFinite(livePrice) || entry <= 0) {
     return null;
   }
@@ -30,14 +37,19 @@ export function EntryStalenessNotice({ direction, entry, livePrice, thresholdPct
   const unfavorable =
     (direction === 'BUY' && pct > 0) || (direction === 'SELL' && pct < 0);
 
-  const sign = pct > 0 ? '+' : '';
   const cls = unfavorable
     ? 'border-amber-500/30 bg-amber-500/5 text-amber-300'
     : 'border-emerald-500/25 bg-emerald-500/5 text-emerald-300';
   const Icon = unfavorable ? AlertTriangle : TrendingUp;
-  const label = unfavorable
-    ? `Price moved ${sign}${pct.toFixed(2)}% — entry may be stale`
-    : `Price now ${sign}${pct.toFixed(2)}% — better than entry`;
+  const change = new Intl.NumberFormat(getHtmlLanguage(locale), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    signDisplay: 'always',
+  }).format(pct);
+  const label = formatMessage(
+    unfavorable ? t.entryStaleness.unfavorable : t.entryStaleness.favorable,
+    { change },
+  );
 
   return (
     <div
@@ -46,7 +58,7 @@ export function EntryStalenessNotice({ direction, entry, livePrice, thresholdPct
       className={`mt-2 flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10.5px] font-medium ${cls}`}
     >
       <Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
-      <span>{label}</span>
+      <bdi dir="auto">{label}</bdi>
     </div>
   );
 }

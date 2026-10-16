@@ -5,6 +5,11 @@
 // only real-versus-synthetic quality, not the exact upstream provider.
 // ---------------------------------------------------------------------------
 
+import { useLocale } from './locale-provider';
+import { formatMessage } from '../../lib/product-i18n/format';
+import { getDashboardEvidenceTranslations } from '../../lib/product-i18n/dashboard-evidence';
+import { getHtmlLanguage, type Locale } from '../../lib/translations';
+
 type DataSource = 'Binance' | 'Swissquote' | 'Stooq' | 'TradingView' | 'CoinGecko' | 'TA Engine';
 
 interface DataSourceBadgeProps {
@@ -61,27 +66,40 @@ export function getDataSource(symbol: string): DataSource {
 
 /** Small non-intrusive badge showing the expected provider lane. */
 export function DataSourceBadge({ source }: DataSourceBadgeProps) {
+  const { locale } = useLocale();
+  const copy = getDashboardEvidenceTranslations(locale).dataSource;
   const cfg = SOURCE_CONFIG[source];
+  const tooltip = formatMessage(copy.tooltip, { source });
   return (
     <span
       className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono leading-none select-none"
       style={{ color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}` }}
-      title={`Expected provider lane: ${source}. Runtime fallbacks may differ; see the signal quality label and /data-freshness.`}
+      title={tooltip}
+      aria-label={tooltip}
     >
       <span
+        aria-hidden="true"
         className="h-1 w-1 rounded-full shrink-0"
         style={{ background: cfg.color }}
       />
-      {source}
+      <bdi dir="ltr">{source}</bdi>
     </span>
   );
 }
 
-/** Format a UTC timestamp for display on signal cards (e.g. "2026-03-29 14:32 UTC"). */
-export function formatSignalTimestamp(iso: string): string {
+/** Format a UTC timestamp for display on signal cards in the selected locale. */
+export function formatSignalTimestamp(iso: string, locale: Locale = 'en'): string {
   const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+  const formatted = new Intl.DateTimeFormat(getHtmlLanguage(locale), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'UTC',
+  }).format(d);
+  return `${formatted} UTC`;
 }
 
 /** Generate a short signal ID hash (e.g. "sig_a3f2") from a full signal ID. */

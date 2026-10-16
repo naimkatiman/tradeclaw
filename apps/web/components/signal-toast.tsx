@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useLocale } from '../app/components/locale-provider';
 import { useSignalStream, type StreamSignal } from '../lib/hooks/use-price-stream';
+import { getDashboardLiveTranslations } from '../lib/product-i18n/dashboard-live';
+import { formatMessage } from '../lib/product-i18n/format';
+import { getHtmlLanguage } from '../lib/translations';
 
 const MAX_TOASTS = 3;
 const AUTO_DISMISS_MS = 5000;
@@ -10,10 +14,12 @@ interface ToastItem extends StreamSignal {
   dismissing: boolean;
 }
 
-function formatPrice(price: number): string {
-  if (price >= 1000) return price.toFixed(2);
-  if (price >= 1) return price.toFixed(4);
-  return price.toFixed(5);
+function formatPrice(price: number, language: string): string {
+  const fractionDigits = price >= 1000 ? 2 : price >= 1 ? 4 : 5;
+  return new Intl.NumberFormat(language, {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(price);
 }
 
 interface ToastCardProps {
@@ -22,13 +28,22 @@ interface ToastCardProps {
 }
 
 function ToastCard({ toast, onDismiss }: ToastCardProps) {
+  const { locale } = useLocale();
+  const t = getDashboardLiveTranslations(locale);
+  const language = getHtmlLanguage(locale);
   const isBuy = toast.direction === 'BUY';
+  const ruleScore = formatMessage(t.toast.ruleScore, {
+    score: new Intl.NumberFormat(language, { maximumFractionDigits: 2 }).format(toast.confidence),
+  });
 
   return (
     <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
       className={`pointer-events-auto w-72 rounded-xl border bg-white dark:bg-[#0c0c0c] p-4 shadow-2xl transition-all duration-300 ${
         toast.dismissing
-          ? 'opacity-0 translate-x-3'
+          ? 'opacity-0 translate-x-3 rtl:-translate-x-3'
           : 'opacity-100 translate-x-0'
       } ${
         isBuy ? 'border-emerald-500/25' : 'border-rose-500/25'
@@ -46,14 +61,16 @@ function ToastCard({ toast, onDismiss }: ToastCardProps) {
               ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
               : 'bg-rose-500/15 text-rose-400 border border-rose-500/20'
           }`}>
-            {toast.direction}
+            {isBuy ? t.common.buy : t.common.sell}
           </span>
-          <span className="text-sm font-semibold font-mono text-gray-900 dark:text-white">{toast.pair}</span>
+          <span className="text-sm font-semibold font-mono text-gray-900 dark:text-white">
+            <bdi dir="ltr">{toast.pair}</bdi>
+          </span>
         </div>
         <button
           onClick={() => onDismiss(toast.id)}
           className="flex items-center justify-center w-5 h-5 text-gray-400 hover:text-gray-700 dark:text-zinc-600 dark:hover:text-zinc-300 transition-colors shrink-0"
-          aria-label="Dismiss"
+          aria-label={t.toast.dismiss}
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -62,17 +79,19 @@ function ToastCard({ toast, onDismiss }: ToastCardProps) {
       </div>
 
       {/* Reason */}
-      <p className="mt-2 text-[11px] text-gray-500 dark:text-zinc-500 leading-relaxed">{toast.reason}</p>
+      <p className="mt-2 text-[11px] text-gray-500 dark:text-zinc-500 leading-relaxed">
+        <bdi dir="auto">{toast.reason}</bdi>
+      </p>
 
       {/* Footer */}
       <div className="mt-3 flex items-center justify-between">
         <span className="text-[10px] font-mono text-gray-400 dark:text-zinc-600 tabular-nums">
-          @ {formatPrice(toast.entry)}
+          <bdi dir="ltr">@ {formatPrice(toast.entry, language)}</bdi>
         </span>
         <span className={`text-[10px] font-mono font-bold tabular-nums ${
           isBuy ? 'text-emerald-400' : 'text-rose-400'
         }`}>
-          {toast.confidence}% conf
+          <bdi dir="auto">{ruleScore}</bdi>
         </span>
       </div>
 
@@ -120,7 +139,7 @@ export function SignalToast() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+    <div className="fixed top-4 end-4 z-[100] flex flex-col gap-2 pointer-events-none">
       {toasts.map(toast => (
         <ToastCard key={toast.id} toast={toast} onDismiss={dismiss} />
       ))}

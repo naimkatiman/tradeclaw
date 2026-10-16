@@ -1,6 +1,7 @@
 'use client';
 
 import { CheckCircle, XCircle, Clock, ArrowRight } from 'lucide-react';
+import { isHighRuleScore } from '../../lib/signal-thresholds';
 
 export interface SignalOutcomeData {
   id: string;
@@ -192,19 +193,19 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
               ))}
             </div>
 
-            {/* Confidence */}
+            {/* Rule score */}
             <div className="mt-3 flex items-center gap-2">
-              <span className="text-[10px] text-zinc-600">Confidence:</span>
+              <span className="text-[10px] text-zinc-600">Rule score:</span>
               <span
                 className={`text-xs font-bold font-mono ${
-                  signal.confidence >= 80
+                  isHighRuleScore(signal.confidence)
                     ? 'text-emerald-400'
                     : signal.confidence >= 65
                       ? 'text-zinc-400'
                       : 'text-red-400'
                 }`}
               >
-                {signal.confidence}%
+                {signal.confidence}/100
               </span>
             </div>
           </div>

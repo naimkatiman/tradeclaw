@@ -4,7 +4,12 @@ import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { DataProvenanceBadge } from '@/components/data-provenance-badge';
 import { InfoHint } from '@/components/InfoHint';
-import { STAT_HINTS } from '@/lib/stat-hints';
+import { useLocale } from './locale-provider';
+import { formatMessage } from '@/lib/product-i18n/format';
+import {
+  getDashboardEvidenceTranslations,
+  type DashboardEvidenceTranslations,
+} from '@/lib/product-i18n/dashboard-evidence';
 
 
 interface AccuracyStats {
@@ -14,16 +19,16 @@ interface AccuracyStats {
   losses: number;
   winRate: number;
   totalPnlPct: number;
-  avgPnlPct: number;
+  avgPnlPct: number | null;
   avgConfidence: number;
-  bestSignal: { pair: string; pnlPct: number } | null;
-  streak: number;
+  bestSignal: { pair: string; value: number; metric: 'winRate' | 'return' } | null;
+  streak: number | null;
 }
 
-function formatStreak(streak: number): string {
+function formatStreak(streak: number, copy: DashboardEvidenceTranslations['accuracy']): string {
   if (streak === 0) return '0';
-  if (streak > 0) return `${streak}W`;
-  return `${Math.abs(streak)}L`;
+  if (streak > 0) return formatMessage(copy.streakWin, { count: streak });
+  return formatMessage(copy.streakLoss, { count: Math.abs(streak) });
 }
 
 function streakColor(streak: number): string {
@@ -38,6 +43,8 @@ interface AccuracyStatsBarProps {
 }
 
 export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
+  const { locale } = useLocale();
+  const copy = getDashboardEvidenceTranslations(locale).accuracy;
   const [stats, setStats] = useState<AccuracyStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true);
@@ -57,12 +64,12 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
               losses: (data.overall.total ?? 0) - (data.overall.wins ?? 0),
               winRate: data.overall.win_rate ?? 0,
               totalPnlPct: 0,
-              avgPnlPct: 0,
+              avgPnlPct: null,
               avgConfidence: 0,
               bestSignal: data.win_rates?.[0]
-                ? { pair: data.win_rates[0].symbol, pnlPct: data.win_rates[0].win_rate }
+                ? { pair: data.win_rates[0].symbol, value: data.win_rates[0].win_rate, metric: 'winRate' }
                 : null,
-              streak: 0,
+              streak: null,
             });
             return;
           }
@@ -71,7 +78,17 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
         const res2 = await fetch('/api/signals/history?limit=1');
         if (!res2.ok) return;
         const data2 = await res2.json();
-        setStats(data2.stats ?? null);
+        const legacyStats = data2.stats as (Omit<AccuracyStats, 'bestSignal'> & {
+          bestSignal?: { pair: string; pnlPct: number } | null;
+        }) | null | undefined;
+        setStats(legacyStats
+          ? {
+              ...legacyStats,
+              bestSignal: legacyStats.bestSignal
+                ? { pair: legacyStats.bestSignal.pair, value: legacyStats.bestSignal.pnlPct, metric: 'return' }
+                : null,
+            }
+          : null);
       } catch {
         // silent
       } finally {
@@ -93,7 +110,7 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
     return (
       <div className="bg-[#0a0a0a] border border-white/5 rounded-xl px-5 py-4">
         <p className="text-xs text-zinc-600 font-mono text-center">
-          No resolved signals yet — published 70%+ signals are checked against live market candles every hour.
+          {copy.noResolved}
         </p>
       </div>
     );
@@ -103,38 +120,42 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-px bg-white/[0.03]">
       {/* OHLCV-resolved count */}
       <div className="bg-[#0a0a0a] px-4 py-3 text-center">
-        <div className="text-lg font-bold font-mono tabular-nums text-white tracking-tight">
+        <bdi dir="ltr" className="text-lg font-bold font-mono tabular-nums text-white tracking-tight">
           {stats.resolved}
-        </div>
-        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
-          OHLCV Resolved
-          <InfoHint text={STAT_HINTS.resolved} label="What OHLCV resolved means" />
+        </bdi>
+        <div className="text-[10px] text-zinc-600 uppercase tracking-wider rtl:normal-case rtl:tracking-normal mt-0.5 inline-flex items-center justify-center gap-1">
+          {copy.resolved}
+          <InfoHint text={copy.hints.resolved} label={copy.aria.resolvedHint} />
         </div>
       </div>
 
       {/* Win Rate */}
       <div className="bg-[#0a0a0a] px-4 py-3 text-center">
-        <div className={`text-lg font-bold font-mono tabular-nums tracking-tight ${
+        <bdi dir="ltr" className={`text-lg font-bold font-mono tabular-nums tracking-tight ${
           stats.winRate >= 55 ? 'text-emerald-400' : stats.winRate >= 45 ? 'text-zinc-400' : 'text-red-400'
         }`}>
           {stats.winRate}%
-        </div>
-        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
-          Win Rate
-          <InfoHint text={STAT_HINTS.winRate24h} label="What win rate means" />
+        </bdi>
+        <div className="text-[10px] text-zinc-600 uppercase tracking-wider rtl:normal-case rtl:tracking-normal mt-0.5 inline-flex items-center justify-center gap-1">
+          {copy.winRate}
+          <InfoHint text={copy.hints.winRate} label={copy.aria.winRateHint} />
         </div>
       </div>
 
       {/* Avg Return */}
       <div className="bg-[#0a0a0a] px-4 py-3 text-center">
-        <div className={`text-lg font-bold font-mono tabular-nums tracking-tight ${
-          stats.avgPnlPct >= 0 ? 'text-emerald-400' : 'text-red-400'
-        }`}>
-          {stats.avgPnlPct >= 0 ? '+' : ''}{stats.avgPnlPct}%
-        </div>
-        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
-          Avg Return
-          <InfoHint text={STAT_HINTS.avgPnl} label="What avg return means" />
+        {stats.avgPnlPct == null ? (
+          <div className="text-lg font-bold font-mono text-zinc-500 tracking-tight">—</div>
+        ) : (
+          <bdi dir="ltr" className={`text-lg font-bold font-mono tabular-nums tracking-tight ${
+            stats.avgPnlPct >= 0 ? 'text-emerald-400' : 'text-red-400'
+          }`}>
+            {stats.avgPnlPct >= 0 ? '+' : ''}{stats.avgPnlPct}%
+          </bdi>
+        )}
+        <div className="text-[10px] text-zinc-600 uppercase tracking-wider rtl:normal-case rtl:tracking-normal mt-0.5 inline-flex items-center justify-center gap-1">
+          {copy.averageReturn}
+          <InfoHint text={copy.hints.averageReturn} label={copy.aria.averageReturnHint} />
         </div>
       </div>
 
@@ -142,29 +163,46 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
       <div className="bg-[#0a0a0a] px-4 py-3 text-center">
         {stats.bestSignal ? (
           <>
-            <div className="text-lg font-bold font-mono tabular-nums text-emerald-400 tracking-tight">
-              {stats.bestSignal.pnlPct >= 0 ? '+' : ''}{stats.bestSignal.pnlPct}%
-            </div>
-            <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">
-              Best · {stats.bestSignal.pair}
-            </div>
+            <bdi dir="ltr" className={`text-lg font-bold font-mono tabular-nums tracking-tight ${
+              stats.bestSignal.metric === 'winRate'
+                ? stats.bestSignal.value >= 55
+                  ? 'text-emerald-400'
+                  : stats.bestSignal.value >= 45
+                    ? 'text-zinc-400'
+                    : 'text-red-400'
+                : stats.bestSignal.value >= 0
+                  ? 'text-emerald-400'
+                  : 'text-red-400'
+            }`}>
+              {stats.bestSignal.metric === 'return' && stats.bestSignal.value >= 0 ? '+' : ''}{stats.bestSignal.value}%
+            </bdi>
+            <bdi dir="auto" className="text-[10px] text-zinc-600 uppercase tracking-wider rtl:normal-case rtl:tracking-normal mt-0.5">
+              {formatMessage(
+                stats.bestSignal.metric === 'winRate' ? copy.bestWinRate : copy.bestReturn,
+                { pair: stats.bestSignal.pair },
+              )}
+            </bdi>
           </>
         ) : (
           <>
             <div className="text-lg font-bold font-mono tabular-nums text-zinc-500 tracking-tight">—</div>
-            <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">Best Signal</div>
+            <div className="text-[10px] text-zinc-600 uppercase tracking-wider rtl:normal-case rtl:tracking-normal mt-0.5">{copy.bestSignal}</div>
           </>
         )}
       </div>
 
       {/* Streak */}
       <div className="bg-[#0a0a0a] px-4 py-3 text-center">
-        <div className={`text-lg font-bold font-mono tabular-nums tracking-tight ${streakColor(stats.streak)}`}>
-          {formatStreak(stats.streak)}
-        </div>
-        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
-          Streak
-          <InfoHint text={STAT_HINTS.streak} label="What streak means" />
+        {stats.streak == null ? (
+          <div className="text-lg font-bold font-mono text-zinc-500 tracking-tight">—</div>
+        ) : (
+          <bdi dir="auto" className={`text-lg font-bold font-mono tabular-nums tracking-tight ${streakColor(stats.streak)}`}>
+            {formatStreak(stats.streak, copy)}
+          </bdi>
+        )}
+        <div className="text-[10px] text-zinc-600 uppercase tracking-wider rtl:normal-case rtl:tracking-normal mt-0.5 inline-flex items-center justify-center gap-1">
+          {copy.streak}
+          <InfoHint text={copy.hints.streak} label={copy.aria.streakHint} />
         </div>
       </div>
     </div>
@@ -185,16 +223,18 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
     <section className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/[0.02] transition-colors"
+        aria-expanded={expanded}
+        aria-label={expanded ? copy.aria.collapse : copy.aria.expand}
+        className="w-full flex items-center justify-between px-5 py-3 text-start hover:bg-white/[0.02] transition-colors"
       >
-        <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono font-medium flex items-center gap-2">
-          Accuracy Stats
+        <span className="text-[10px] text-zinc-500 uppercase tracking-wider rtl:normal-case rtl:tracking-normal font-mono font-medium flex items-center gap-2">
+          {copy.title}
           <DataProvenanceBadge source="win-rates" />
         </span>
         {expanded ? (
-          <ChevronUp className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+          <ChevronUp aria-hidden="true" className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
         ) : (
-          <ChevronDown className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+          <ChevronDown aria-hidden="true" className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
         )}
       </button>
       {expanded && content}
