@@ -10,34 +10,34 @@ interface Destination {
 
 const DESTINATIONS: Destination[] = [
   {
-    href: '/dashboard',
-    eyebrow: '01 · Product',
-    title: 'Live app',
-    desc: 'Signals, screener, charts, and transparent engine state.',
+    href: '/track-record',
+    eyebrow: '01 · Finding',
+    title: 'See the record',
+    desc: 'Start with the cost-adjusted result, including the result that failed.',
   },
   {
-    href: '/how-it-works',
-    eyebrow: '02 · System',
-    title: 'How it works',
-    desc: 'The scoring algorithm, risk model, and real implementation.',
+    href: '/why-long-term',
+    eyebrow: '02 · Costs',
+    title: 'Understand the drag',
+    desc: 'See how fees, slippage, and turnover change the apparent edge.',
   },
   {
-    href: '/research',
+    href: '/track-record/study',
     eyebrow: '03 · Evidence',
-    title: 'Research',
-    desc: 'What survived testing, what failed, and why it was removed.',
+    title: 'Inspect the studies',
+    desc: 'Compare observed records with separately labeled modeled research.',
   },
   {
-    href: '/methodology',
-    eyebrow: '04 · Proof',
-    title: 'Methodology',
-    desc: 'How every public performance number is reproduced.',
+    href: '/backtest',
+    eyebrow: '04 · Test',
+    title: 'Test an idea',
+    desc: 'Change the market, range, and method before reading the metrics.',
   },
   {
-    href: '/open-data',
-    eyebrow: '05 · API',
-    title: 'Open data',
-    desc: 'The endpoints behind the dashboard, ledger, and charts.',
+    href: '/start',
+    eyebrow: '05 · Reproduce',
+    title: 'Self-host the lab',
+    desc: 'Run the same code, database, and evidence trail on your own machine.',
   },
 ];
 
@@ -50,15 +50,15 @@ export function ExploreStrip() {
       <div className="mb-6 flex flex-col gap-3 border-b border-[var(--border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
-            Explore the stack
+            Follow the evidence
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.035em] sm:text-3xl">
-            From signal to source code.
+            From finding to reproduction.
           </h2>
         </div>
         <p className="max-w-md text-sm leading-6 text-[var(--text-secondary)]">
-          TradeClaw is built like an open terminal: every layer is inspectable,
-          reproducible, and one click away.
+          Start with what happened, understand the cost assumptions, test a variation,
+          then reproduce the work yourself.
         </p>
       </div>
 

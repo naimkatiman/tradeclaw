@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { parseGitHubStarCount } from "../../lib/github-star-count";
 import { AnimatedChartHero } from "../animated-chart-hero";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
@@ -24,18 +25,9 @@ export function AnimatedHero() {
   const [stars, setStars] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("https://api.github.com/repos/naimkatiman/tradeclaw")
-      .then((r) => r.json())
-      .then((d: unknown) => {
-        if (
-          d &&
-          typeof d === "object" &&
-          "stargazers_count" in d &&
-          typeof (d as Record<string, unknown>).stargazers_count === "number"
-        ) {
-          setStars((d as { stargazers_count: number }).stargazers_count);
-        }
-      })
+    fetch("/api/github-stars")
+      .then((response) => response.ok ? response.json() as Promise<unknown> : null)
+      .then((data) => setStars(parseGitHubStarCount(data)))
       .catch(() => {});
   }, []);
 

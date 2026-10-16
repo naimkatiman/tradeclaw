@@ -19,6 +19,7 @@ export function HeroBrandArt() {
             alt=""
             className="hero-brand-art__image"
             sizes="(min-width: 1280px) 560px, (min-width: 1024px) 46vw, 1px"
+            loading="eager"
           />
         </div>
         <span className="hero-brand-art__scan" />
