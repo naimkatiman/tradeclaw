@@ -2,7 +2,7 @@
 
 'use strict';
 
-const { execSync, spawn } = require('child_process');
+const { execSync, spawn, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -29,11 +29,12 @@ function ask(question) {
   });
 }
 
-function hasCommand(cmd) {
-  try {
-    execSync(`command -v ${cmd}`, { stdio: 'ignore' });
-    return true;
-  } catch { return false; }
+function hasCommand(cmd, platform = process.platform, run = spawnSync) {
+  const probe = platform === 'win32'
+    ? run('where', [cmd], { stdio: 'ignore' })
+    : run('sh', ['-c', 'command -v "$1"', 'sh', cmd], { stdio: 'ignore' });
+
+  return probe.status === 0;
 }
 
 function step(msg) {
@@ -47,6 +48,33 @@ function warn(msg) {
 function fail(msg) {
   process.stderr.write(`\n  ${fmt.red('x')} ${msg}\n\n`);
   process.exit(1);
+}
+
+function replaceEnvValue(envContent, key, value) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const assignment = new RegExp(`^${escapedKey}=[^\\r\\n]*$`, 'm');
+
+  if (!assignment.test(envContent)) {
+    throw new Error(`Required environment variable ${key} is missing from .env.example`);
+  }
+
+  return envContent.replace(assignment, `${key}=${value}`);
+}
+
+function injectRequiredSecrets(envContent, randomBytes = crypto.randomBytes) {
+  const secrets = {
+    DB_PASSWORD: randomBytes(16).toString('hex'),
+    USER_SESSION_SECRET: randomBytes(32).toString('hex'),
+    ADMIN_SECRET: randomBytes(32).toString('hex'),
+    AUTH_SECRET: randomBytes(32).toString('hex'),
+  };
+
+  const populatedEnv = Object.entries(secrets).reduce(
+    (content, [key, value]) => replaceEnvValue(content, key, value),
+    envContent,
+  );
+
+  return { envContent: populatedEnv, secrets };
 }
 
 // ── Parse args ──────────────────────────────────────────────────────
@@ -177,23 +205,11 @@ async function main() {
   const envFile = path.join(targetPath, '.env');
 
   if (fs.existsSync(envExample)) {
-    let envContent = fs.readFileSync(envExample, 'utf-8');
-
-    // Auto-generate secrets
-    const dbPassword = crypto.randomBytes(16).toString('hex');
-    const authSecret = crypto.randomBytes(32).toString('hex');
-
-    envContent = envContent.replace(
-      /^DB_PASSWORD=\s*$/m,
-      `DB_PASSWORD=${dbPassword}`
-    );
-    envContent = envContent.replace(
-      /^AUTH_SECRET=\s*$/m,
-      `AUTH_SECRET=${authSecret}`
-    );
+    const template = fs.readFileSync(envExample, 'utf-8');
+    const { envContent } = injectRequiredSecrets(template);
 
     fs.writeFileSync(envFile, envContent);
-    console.log(fmt.dim('    DB_PASSWORD and AUTH_SECRET auto-generated'));
+    console.log(fmt.dim('    DB_PASSWORD, USER_SESSION_SECRET, ADMIN_SECRET, and AUTH_SECRET auto-generated'));
   }
 
   // 6. Install
@@ -293,6 +309,10 @@ async function main() {
   console.log('');
 }
 
-main().catch((err) => {
-  fail(err.message || String(err));
-});
+if (require.main === module) {
+  main().catch((err) => {
+    fail(err.message || String(err));
+  });
+}
+
+module.exports = { hasCommand, injectRequiredSecrets, replaceEnvValue };
