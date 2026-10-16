@@ -7,6 +7,15 @@ import { SYMBOLS } from '../lib/symbol-config';
 import { SparklineChart } from '../components/charts';
 import { PageNavBar } from '../../components/PageNavBar';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
+import { useLocale } from '../components/locale-provider';
+import { formatMessage } from '../../lib/product-i18n/format';
+import {
+  getScreenerTranslations,
+  type ScreenerTranslations,
+} from '../../lib/product-i18n/screener';
+import { getHtmlLanguage } from '../../lib/translations';
+import { isHighRuleScore } from '../../lib/signal-thresholds';
+import { trackEvent } from '../../lib/analytics';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -29,21 +38,22 @@ interface Filters {
 
 // ─── Helpers ──────────────────────────────────────────────────
 
-function fmtPrice(n: number): string {
-  if (n >= 10000) return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (n >= 1000) return n.toFixed(2);
-  if (n >= 1) return n.toFixed(4);
-  return n.toFixed(5);
+function fmtPrice(n: number, language: string): string {
+  const fractionDigits = n >= 1000 ? 2 : n >= 1 ? 4 : 5;
+  return new Intl.NumberFormat(language, {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(n);
 }
 
 function confColor(v: number): string {
-  if (v >= 75) return 'from-emerald-500 to-emerald-400';
+  if (isHighRuleScore(v)) return 'from-emerald-500 to-emerald-400';
   if (v >= 60) return 'from-zinc-500 to-zinc-400';
   return 'from-rose-500 to-rose-400';
 }
 
 function confTextColor(v: number): string {
-  if (v >= 75) return 'text-emerald-400';
+  if (isHighRuleScore(v)) return 'text-emerald-400';
   if (v >= 60) return 'text-zinc-400';
   return 'text-rose-400';
 }
@@ -54,7 +64,7 @@ function confTextColor(v: number): string {
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
-    <span className={`ml-1 text-[10px] inline-block ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
+    <span aria-hidden="true" className={`ms-1 text-[10px] inline-block ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
       {active ? (dir === 'asc' ? '▲' : '▼') : '⬍'}
     </span>
   );
@@ -73,21 +83,75 @@ function MACDBar({ value }: { value: number }) {
           style={{ width: `${abs}%` }}
         />
       </div>
-      <span className={`text-[10px] font-mono tabular-nums ${value > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+      <bdi dir="ltr" className={`text-[10px] font-mono tabular-nums ${value > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
         {value >= 0 ? '+' : ''}{value.toFixed(4)}
-      </span>
+      </bdi>
     </div>
+  );
+}
+
+const STARTER_FILTERS: Filters = {
+  rsiMin: 0,
+  rsiMax: 100,
+  macdFilter: 'any',
+  emaFilter: 'any',
+  minConfidence: 0,
+  timeframe: 'H1',
+  direction: 'all',
+};
+
+function SortableHeader({
+  label,
+  value,
+  activeValue,
+  direction,
+  onSort,
+  align = 'start',
+  className = '',
+}: {
+  label: string;
+  value: SortKey;
+  activeValue: SortKey;
+  direction: SortDir;
+  onSort: (value: SortKey) => void;
+  align?: 'start' | 'end';
+  className?: string;
+}) {
+  const active = activeValue === value;
+  return (
+    <th
+      scope="col"
+      aria-sort={active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+      className={`px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal font-medium ${className}`}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(value)}
+        className={`inline-flex w-full items-center hover:text-[var(--foreground)] ${align === 'end' ? 'justify-end' : 'justify-start'}`}
+      >
+        {label}
+        <SortIcon active={active} dir={direction} />
+      </button>
+    </th>
   );
 }
 
 // ─── Confidence Bar ───────────────────────────────────────────
 
-function ConfidenceBar({ value, showExplainer = false }: { value: number; showExplainer?: boolean }) {
-  const explainer = value >= 75
-    ? 'High rule score — broad indicator agreement'
+function ConfidenceBar({
+  value,
+  copy,
+  showExplainer = false,
+}: {
+  value: number;
+  copy: ScreenerTranslations['score'];
+  showExplainer?: boolean;
+}) {
+  const explainer = isHighRuleScore(value)
+    ? copy.high
     : value >= 60
-      ? 'Mid rule score — partial indicator agreement'
-      : 'Low rule score — limited indicator agreement';
+      ? copy.mid
+      : copy.low;
   return (
     <div>
       <div className="flex items-center gap-2 min-w-[90px]">
@@ -97,9 +161,9 @@ function ConfidenceBar({ value, showExplainer = false }: { value: number; showEx
             style={{ width: `${value}%` }}
           />
         </div>
-        <span className={`text-[11px] font-mono font-semibold tabular-nums w-12 text-right ${confTextColor(value)}`}>
+        <bdi dir="ltr" className={`text-[11px] font-mono font-semibold tabular-nums w-12 text-end ${confTextColor(value)}`}>
           {value}/100
-        </span>
+        </bdi>
       </div>
       {showExplainer && (
         <p className="text-[9px] text-[var(--text-secondary)] mt-1 font-mono">{explainer}</p>
@@ -110,17 +174,25 @@ function ConfidenceBar({ value, showExplainer = false }: { value: number; showEx
 
 // ─── Signal Badge ─────────────────────────────────────────────
 
-function SignalBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
+function DirectionCaseBadge({
+  direction,
+  copy,
+}: {
+  direction: 'BUY' | 'SELL';
+  copy: Pick<ScreenerTranslations['options'], 'bullish' | 'bearish'>;
+}) {
   if (direction === 'BUY') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold shadow-[0_0_8px_rgba(16,185,129,0.2)]">
-        ▲ BUY
+        <span aria-hidden="true">▲</span>
+        <span>{copy.bullish}</span>
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-400 text-[10px] font-bold shadow-[0_0_8px_rgba(244,63,94,0.2)]">
-      ▼ SELL
+      <span aria-hidden="true">▼</span>
+      <span>{copy.bearish}</span>
     </span>
   );
 }
@@ -130,9 +202,9 @@ function SignalBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
 function StatCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
     <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
-      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">{label}</div>
-      <div className={`text-base font-bold font-mono tabular-nums ${color ?? 'text-[var(--foreground)]'}`}>{value}</div>
-      {sub && <div className="text-[10px] text-[var(--text-secondary)]">{sub}</div>}
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{label}</div>
+      <bdi dir="auto" className={`text-base font-bold font-mono tabular-nums ${color ?? 'text-[var(--foreground)]'}`}>{value}</bdi>
+      {sub && <bdi dir="auto" className="text-[10px] text-[var(--text-secondary)]">{sub}</bdi>}
     </div>
   );
 }
@@ -140,25 +212,28 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
 // ─── Slider ──────────────────────────────────────────────────
 
 function RangeSlider({
-  label, min, max, valueMin, valueMax, onChangeMin, onChangeMax,
+  label, minAriaLabel, maxAriaLabel, min, max, valueMin, valueMax, onChangeMin, onChangeMax,
 }: {
-  label: string; min: number; max: number; valueMin: number; valueMax: number;
+  label: string; minAriaLabel: string; maxAriaLabel: string;
+  min: number; max: number; valueMin: number; valueMax: number;
   onChangeMin: (v: number) => void; onChangeMax: (v: number) => void;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">{label}</span>
-        <span className="text-[10px] font-mono text-[var(--text-secondary)]">{valueMin}–{valueMax}</span>
+        <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{label}</span>
+        <bdi dir="ltr" className="text-[10px] font-mono text-[var(--text-secondary)]">{valueMin}–{valueMax}</bdi>
       </div>
       <div className="flex items-center gap-2">
         <input
           type="range" min={min} max={max} value={valueMin}
+          aria-label={minAriaLabel}
           onChange={e => onChangeMin(parseInt(e.target.value))}
           className="flex-1 accent-emerald-500 h-1"
         />
         <input
           type="range" min={min} max={max} value={valueMax}
+          aria-label={maxAriaLabel}
           onChange={e => onChangeMax(parseInt(e.target.value))}
           className="flex-1 accent-emerald-500 h-1"
         />
@@ -170,12 +245,12 @@ function RangeSlider({
 // ─── Filter Pill ─────────────────────────────────────────────
 
 function FilterPill<T extends string>({
-  value, options, onChange,
+  value, options, onChange, ariaLabel,
 }: {
-  value: T; options: { value: T; label: string }[]; onChange: (v: T) => void;
+  value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; ariaLabel: string;
 }) {
   return (
-    <div className="flex gap-1 bg-white/[0.03] rounded-lg p-1 border border-[var(--border)]">
+    <div role="group" aria-label={ariaLabel} className="flex flex-wrap gap-1 bg-white/[0.03] rounded-lg p-1 border border-[var(--border)]">
       {options.map(o => (
         <button
           key={o.value}
@@ -195,20 +270,49 @@ function FilterPill<T extends string>({
 
 // ─── Mobile Screener Card ────────────────────────────────────
 
-function ScreenerCard({ r, watchlist, toggleWatchlist }: { r: ScreenerResult; watchlist: Set<string>; toggleWatchlist: (s: string) => void }) {
+function translateEmaStatus(status: string, copy: ScreenerTranslations['emaStatus']): string {
+  switch (status) {
+    case 'Golden Cross': return copy.goldenCross;
+    case 'Death Cross': return copy.deathCross;
+    case 'Above EMA20': return copy.aboveEma20;
+    case 'Below EMA20': return copy.belowEma20;
+    default: return copy.mixed;
+  }
+}
+
+function ScreenerCard({
+  r,
+  watchlist,
+  toggleWatchlist,
+  copy,
+  language,
+}: {
+  r: ScreenerResult;
+  watchlist: Set<string>;
+  toggleWatchlist: (s: string) => void;
+  copy: ScreenerTranslations;
+  language: string;
+}) {
+  const watchlistLabel = formatMessage(
+    watchlist.has(r.symbol) ? copy.aria.removeSymbolFromWatchlist : copy.aria.addSymbolToWatchlist,
+    { symbol: r.symbol },
+  );
+
   return (
     <div className="glass-card rounded-xl p-4">
       {/* Row 1: Symbol + Signal + Watchlist */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div>
-            <span className="text-sm font-mono font-bold text-[var(--foreground)]">{r.symbol}</span>
-            <span className="text-[10px] text-[var(--text-secondary)] ml-1.5">{r.name}</span>
+            <bdi dir="ltr" className="text-sm font-mono font-bold text-[var(--foreground)]">{r.symbol}</bdi>
+            <bdi dir="auto" className="text-[10px] text-[var(--text-secondary)] ms-1.5">{r.name}</bdi>
           </div>
-          <SignalBadge direction={r.direction} />
+          <DirectionCaseBadge direction={r.direction} copy={copy.options} />
         </div>
         <button
           onClick={() => toggleWatchlist(r.symbol)}
+          aria-label={watchlistLabel}
+          title={watchlistLabel}
           className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
             watchlist.has(r.symbol) ? 'text-zinc-400 bg-zinc-500/10' : 'text-[var(--text-secondary)]'
           }`}
@@ -221,28 +325,28 @@ function ScreenerCard({ r, watchlist, toggleWatchlist }: { r: ScreenerResult; wa
 
       {/* Row 2: Price + Timeframe */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-lg font-mono font-bold text-[var(--foreground)] tabular-nums">{fmtPrice(r.price)}</span>
-        <span className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--glass-bg)] px-2 py-1 rounded">{r.timeframe}</span>
+        <bdi dir="ltr" className="text-lg font-mono font-bold text-[var(--foreground)] tabular-nums">{fmtPrice(r.price, language)}</bdi>
+        <bdi dir="ltr" className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--glass-bg)] px-2 py-1 rounded">{r.timeframe}</bdi>
       </div>
 
       {/* Row 3: Confidence bar */}
       <div className="mb-3">
-        <ConfidenceBar value={r.confidence} showExplainer />
+        <ConfidenceBar value={r.confidence} copy={copy.score} showExplainer />
       </div>
 
       {/* Row 4: Indicators grid */}
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="bg-white/[0.02] rounded-lg py-1.5 px-2 text-center">
           <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">RSI</div>
-          <span className={`text-xs font-mono tabular-nums font-semibold ${
+          <bdi dir="ltr" className={`text-xs font-mono tabular-nums font-semibold ${
             r.rsi < 30 ? 'text-emerald-400' : r.rsi > 70 ? 'text-rose-400' : 'text-[var(--text-secondary)]'
-          }`}>{r.rsi.toFixed(1)}</span>
+          }`}>{r.rsi.toFixed(1)}</bdi>
         </div>
         <div className="bg-white/[0.02] rounded-lg py-1.5 px-2 text-center">
           <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">MACD</div>
-          <span className={`text-xs font-mono tabular-nums font-semibold ${r.macdHistogram > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          <bdi dir="ltr" className={`text-xs font-mono tabular-nums font-semibold ${r.macdHistogram > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {r.macdHistogram >= 0 ? '+' : ''}{r.macdHistogram.toFixed(4)}
-          </span>
+          </bdi>
         </div>
         <div className="bg-white/[0.02] rounded-lg py-1.5 px-2 text-center">
           <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">EMA</div>
@@ -251,28 +355,26 @@ function ScreenerCard({ r, watchlist, toggleWatchlist }: { r: ScreenerResult; wa
             r.emaStatus === 'Death Cross' ? 'text-rose-400' :
             r.emaStatus === 'Above EMA20' ? 'text-sky-400' :
             'text-[var(--text-secondary)]'
-          }`}>{r.emaStatus}</span>
+          }`}><bdi dir="auto">{translateEmaStatus(r.emaStatus, copy.emaStatus)}</bdi></span>
         </div>
       </div>
 
       {/* Row 5: Sparkline */}
       <div className="mb-3">
-        <SparklineChart prices={r.sparkline} direction={r.direction} />
+        <div role="img" aria-label={formatMessage(copy.aria.priceChartFor, { symbol: r.symbol })}>
+          <SparklineChart prices={r.sparkline} direction={r.direction} />
+        </div>
       </div>
 
       {/* Row 6: Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Link
-          href={`/signal/${r.signalId}`}
+          href={`/track-record?symbol=${encodeURIComponent(r.symbol)}`}
+          data-evidence-event="record_inspected"
+          data-evidence-target={r.symbol}
           className="flex-1 text-center px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold transition-colors hover:bg-emerald-500/20"
         >
-          View Signal
-        </Link>
-        <Link
-          href={`/alerts?symbol=${r.symbol}`}
-          className="px-3 py-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] text-xs font-medium transition-colors hover:text-[var(--foreground)]"
-        >
-          Alert
+          {copy.actions.view}
         </Link>
       </div>
     </div>
@@ -298,15 +400,15 @@ function SkeletonRow() {
 // ─── Main Component ───────────────────────────────────────────
 
 export default function ScreenerClient() {
-  const [filters, setFilters] = useState<Filters>({
-    rsiMin: 20,
-    rsiMax: 80,
-    macdFilter: 'any',
-    emaFilter: 'any',
-    minConfidence: 70,
-    timeframe: 'H1',
-    direction: 'all',
-  });
+  const { locale } = useLocale();
+  const copy = getScreenerTranslations(locale);
+  const language = getHtmlLanguage(locale);
+  const numberFormatter = new Intl.NumberFormat(language);
+  const [filters, setFilters] = useState<Filters>(STARTER_FILTERS);
+
+  useEffect(() => {
+    document.title = copy.documentTitle;
+  }, [copy.documentTitle]);
 
   const [results, setResults] = useState<ScreenerResult[]>([]);
   const [meta, setMeta] = useState<ScreenerMeta | null>(null);
@@ -385,6 +487,13 @@ export default function ScreenerClient() {
       setResults(data.results);
       setMeta(data.meta);
       setScanError(false);
+      trackEvent('screener_scan_completed', {
+        result_count: data.results.length,
+        universe_count: data.meta.totalAssets,
+        provider_backed_count: data.meta.providerBackedAssets ?? 0,
+        timeframe: filters.timeframe,
+        minimum_rule_score: filters.minConfidence,
+      });
     } catch {
       if (seq === scanSeqRef.current) {
         // A failed scan is a server problem, not a filter problem — clear the
@@ -413,10 +522,15 @@ export default function ScreenerClient() {
 
   function exportCSV() {
     if (sorted.length === 0) return;
+    trackEvent('artifact_downloaded', {
+      artifact: 'screener_csv',
+      row_count: sorted.length,
+      timeframe: filters.timeframe,
+    });
     const headers = [
       'Symbol',
       'Name',
-      'Direction',
+      'Directional case',
       'Rule score (0-100)',
       'Price',
       'RSI',
@@ -426,7 +540,7 @@ export default function ScreenerClient() {
       'EMA50',
       'EMA Status',
       'Timeframe',
-      'Signal ID',
+      'Candidate ID',
     ];
     const escape = (v: string | number) => {
       const s = String(v);
@@ -476,6 +590,13 @@ export default function ScreenerClient() {
       return sortDir === 'asc' ? va - vb : vb - va;
     });
 
+  function getWatchlistLabel(symbol: string): string {
+    return formatMessage(
+      watchlist.has(symbol) ? copy.aria.removeSymbolFromWatchlist : copy.aria.addSymbolToWatchlist,
+      { symbol },
+    );
+  }
+
   return (
     <div className="premium-product-shell relative isolate min-h-[100dvh] text-[var(--foreground)]">
       <BackgroundDecor variant="dashboard" />
@@ -483,7 +604,9 @@ export default function ScreenerClient() {
 
       <div className="relative max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-8">
         <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-300">
-          <strong>Observed-data scan</strong> - generated fallback candles are excluded from public signals. The scan time appears below; upstream availability and freshness can vary.
+          <strong>{copy.provenance.title}</strong>
+          <span aria-hidden="true"> — </span>
+          <span>{copy.provenance.detail}</span>
         </div>
 
         {/* Header */}
@@ -493,10 +616,10 @@ export default function ScreenerClient() {
               <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               <polyline points="16 7 22 7 22 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <h1 className="text-xl font-bold tracking-tight">Asset Screener</h1>
+            <h1 className="text-xl font-bold tracking-tight">{copy.title}</h1>
           </div>
           <p className="text-xs text-[var(--text-secondary)]">
-            Scan {SYMBOLS.length} configured assets for indicator conditions. These are analytical outputs, not trade recommendations.
+            {formatMessage(copy.subtitle, { count: numberFormatter.format(SYMBOLS.length) })}
           </p>
         </div>
 
@@ -505,7 +628,9 @@ export default function ScreenerClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {/* RSI Range */}
             <RangeSlider
-              label="RSI Range"
+              label={copy.filters.rsiRange}
+              minAriaLabel={copy.aria.rsiMinimum}
+              maxAriaLabel={copy.aria.rsiMaximum}
               min={0} max={100}
               valueMin={filters.rsiMin}
               valueMax={filters.rsiMax}
@@ -516,11 +641,12 @@ export default function ScreenerClient() {
             {/* Confidence Threshold */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Min Rule Score</span>
-                <span className="text-[10px] font-mono text-[var(--text-secondary)]">{filters.minConfidence}/100</span>
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{copy.filters.minRuleScore}</span>
+                <bdi dir="ltr" className="text-[10px] font-mono text-[var(--text-secondary)]">{filters.minConfidence}/100</bdi>
               </div>
               <input
                 type="range" min={0} max={100} value={filters.minConfidence}
+                aria-label={copy.aria.minimumRuleScore}
                 onChange={e => patchFilter('minConfidence', parseInt(e.target.value))}
                 className="w-full accent-emerald-500 h-1"
               />
@@ -528,9 +654,10 @@ export default function ScreenerClient() {
 
             {/* Timeframe */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Timeframe</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{copy.filters.timeframe}</span>
               <FilterPill<Timeframe>
                 value={filters.timeframe}
+                ariaLabel={copy.filters.timeframe}
                 options={[
                   { value: 'H1', label: 'H1' },
                   { value: 'H4', label: 'H4' },
@@ -542,13 +669,14 @@ export default function ScreenerClient() {
 
             {/* MACD Filter */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">MACD</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{copy.filters.macd}</span>
               <FilterPill<MACDFilter>
                 value={filters.macdFilter}
+                ariaLabel={copy.filters.macd}
                 options={[
-                  { value: 'any', label: 'Any' },
-                  { value: 'bullish', label: 'Bullish' },
-                  { value: 'bearish', label: 'Bearish' },
+                  { value: 'any', label: copy.options.any },
+                  { value: 'bullish', label: copy.options.bullish },
+                  { value: 'bearish', label: copy.options.bearish },
                 ]}
                 onChange={v => patchFilter('macdFilter', v)}
               />
@@ -556,14 +684,15 @@ export default function ScreenerClient() {
 
             {/* EMA Filter */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">EMA Position</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{copy.filters.emaPosition}</span>
               <FilterPill<EMAFilter>
                 value={filters.emaFilter}
+                ariaLabel={copy.filters.emaPosition}
                 options={[
-                  { value: 'any', label: 'Any' },
-                  { value: 'above_ema20', label: '> EMA20' },
-                  { value: 'below_ema20', label: '< EMA20' },
-                  { value: 'golden_cross', label: 'Golden ✕' },
+                  { value: 'any', label: copy.options.any },
+                  { value: 'above_ema20', label: copy.options.aboveEma20 },
+                  { value: 'below_ema20', label: copy.options.belowEma20 },
+                  { value: 'golden_cross', label: copy.options.goldenCross },
                 ]}
                 onChange={v => patchFilter('emaFilter', v)}
               />
@@ -571,13 +700,14 @@ export default function ScreenerClient() {
 
             {/* Direction Filter */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Direction</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{copy.filters.direction}</span>
               <FilterPill<DirectionFilter>
                 value={filters.direction}
+                ariaLabel={copy.filters.direction}
                 options={[
-                  { value: 'all', label: 'All' },
-                  { value: 'BUY', label: 'BUY' },
-                  { value: 'SELL', label: 'SELL' },
+                  { value: 'all', label: copy.options.all },
+                  { value: 'BUY', label: copy.options.bullish },
+                  { value: 'SELL', label: copy.options.bearish },
                 ]}
                 onChange={v => patchFilter('direction', v)}
               />
@@ -598,14 +728,16 @@ export default function ScreenerClient() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill={watchlistOnly ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
-                Watchlist Only
-                {watchlist.size > 0 && <span className="px-1.5 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 text-[9px] font-bold">{watchlist.size}</span>}
+                {copy.actions.watchlistOnly}
+                {watchlist.size > 0 && <span className="px-1.5 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 text-[9px] font-bold">{numberFormatter.format(watchlist.size)}</span>}
               </button>
 
               <button
                 onClick={exportCSV}
                 disabled={sorted.length === 0}
-                title={sorted.length === 0 ? 'No results to export' : `Export ${sorted.length} rows to CSV`}
+                title={sorted.length === 0
+                  ? copy.actions.noResultsToExport
+                  : formatMessage(copy.actions.exportRows, { count: numberFormatter.format(sorted.length) })}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium border bg-white/[0.03] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -613,7 +745,7 @@ export default function ScreenerClient() {
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                Export CSV
+                {copy.actions.exportCsv}
               </button>
             </div>
 
@@ -627,7 +759,7 @@ export default function ScreenerClient() {
                   <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   </svg>
-                  Scanning…
+                  {copy.actions.scanning}
                 </>
               ) : (
                 <>
@@ -635,7 +767,7 @@ export default function ScreenerClient() {
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
-                  Scan Now
+                  {copy.actions.scanNow}
                 </>
               )}
             </button>
@@ -645,27 +777,36 @@ export default function ScreenerClient() {
         {/* Stats Summary */}
         {meta && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <StatCard label="Total Scanned" value={meta.totalAssets.toString()} sub="assets tracked" />
             <StatCard
-              label="Matching Filters"
-              value={meta.matching.toString()}
-              sub={`of ${meta.totalAssets} assets`}
+              label={copy.stats.totalScanned}
+              value={`${numberFormatter.format(meta.providerBackedAssets ?? 0)} / ${numberFormatter.format(meta.totalAssets)}`}
+              sub={copy.stats.assetsTracked}
+            />
+            <StatCard
+              label={copy.stats.matchingFilters}
+              value={numberFormatter.format(meta.matching)}
+              sub={formatMessage(copy.stats.ofAssets, { count: numberFormatter.format(meta.totalAssets) })}
               color="text-emerald-400"
             />
             <StatCard
-              label="Strongest Signal"
+              label={copy.stats.strongestSignal}
               value={meta.strongest ? `${meta.strongest.symbol}` : '—'}
-              sub={meta.strongest ? `${meta.strongest.direction} · rule score ${meta.strongest.confidence}/100` : 'no signals'}
+              sub={meta.strongest
+                ? formatMessage(copy.stats.strongestDetail, {
+                    direction: meta.strongest.direction === 'BUY' ? copy.options.bullish : copy.options.bearish,
+                    score: numberFormatter.format(meta.strongest.confidence),
+                  })
+                : copy.stats.noSignals}
               color={meta.strongest?.direction === 'BUY' ? 'text-emerald-400' : meta.strongest?.direction === 'SELL' ? 'text-rose-400' : 'text-[var(--text-secondary)]'}
             />
             <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
-              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Bias</div>
+              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{copy.stats.bias}</div>
               <div className="flex items-center gap-2 mt-0.5">
                 {meta.mostBullish && (
-                  <span className="text-[10px] text-emerald-400 font-mono">▲ {meta.mostBullish}</span>
+                  <bdi dir="ltr" className="text-[10px] text-emerald-400 font-mono">▲ {meta.mostBullish}</bdi>
                 )}
                 {meta.mostBearish && (
-                  <span className="text-[10px] text-rose-400 font-mono">▼ {meta.mostBearish}</span>
+                  <bdi dir="ltr" className="text-[10px] text-rose-400 font-mono">▼ {meta.mostBearish}</bdi>
                 )}
                 {!meta.mostBullish && !meta.mostBearish && (
                   <span className="text-[10px] text-[var(--text-secondary)]">—</span>
@@ -682,22 +823,23 @@ export default function ScreenerClient() {
               <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.5" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Set your filters and tap Scan Now</p>
-            <p className="text-zinc-800 text-xs mt-1">Scans {SYMBOLS.length} assets across forex, crypto & metals</p>
+            <p className="text-[var(--text-secondary)] text-sm font-medium">{copy.initial.title}</p>
+            <p className="text-zinc-800 text-xs mt-1">{formatMessage(copy.initial.detail, { count: numberFormatter.format(SYMBOLS.length) })}</p>
           </div>
         ) : (
           <>
             {/* Mobile sort dropdown */}
             <div className="md:hidden mb-3 flex items-center gap-2">
-              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Sort by</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal">{copy.sort.label}</span>
               <select
                 value={sortKey}
+                aria-label={copy.sort.label}
                 onChange={e => { setSortKey(e.target.value as SortKey); setSortDir('desc'); }}
                 className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs font-mono text-[var(--foreground)] appearance-none"
               >
-                <option value="confidence">Rule score</option>
-                <option value="symbol">Symbol</option>
-                <option value="price">Price</option>
+                <option value="confidence">{copy.sort.ruleScore}</option>
+                <option value="symbol">{copy.sort.symbol}</option>
+                <option value="price">{copy.sort.price}</option>
                 <option value="rsi">RSI</option>
                 <option value="macdHistogram">MACD</option>
               </select>
@@ -705,7 +847,8 @@ export default function ScreenerClient() {
                 onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
                 className="px-2 py-1.5 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-xs font-mono text-[var(--text-secondary)]"
               >
-                {sortDir === 'desc' ? '▼ High' : '▲ Low'}
+                <span aria-hidden="true">{sortDir === 'desc' ? '▼' : '▲'}</span>{' '}
+                {sortDir === 'desc' ? copy.sort.high : copy.sort.low}
               </button>
             </div>
 
@@ -736,42 +879,36 @@ export default function ScreenerClient() {
                   </div>
                   {scanError ? (
                     <>
-                      <p className="text-sm font-medium text-[var(--foreground)] mb-1">Scan failed</p>
+                      <p className="text-sm font-medium text-[var(--foreground)] mb-1">{copy.empty.scanFailed}</p>
                       <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-sm mx-auto">
-                        Market data didn’t load — this wasn’t your filters.
+                        {copy.empty.scanFailedDetail}
                       </p>
                       <button
                         onClick={() => void scan()}
                         className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
                       >
-                        Retry scan
+                        {copy.actions.retryScan}
                       </button>
                     </>
                   ) : (
                     <>
-                      <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
+                      <p className="text-sm font-medium text-[var(--foreground)] mb-1">{copy.empty.noMatches}</p>
                       <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-sm mx-auto">
-                        Your current criteria are too restrictive. Try one of these:
+                        {copy.empty.tooRestrictive}
                       </p>
                       <div className="flex flex-wrap justify-center gap-2">
                         <button
-                          onClick={() => patchFilter('minConfidence', 50)}
-                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                        >
-                          Lower rule score to 50/100
-                        </button>
-                        <button
-                          onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
-                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                        >
-                          Widen RSI range
-                        </button>
-                        <button
-                          onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
+                          onClick={() => setFilters({ ...STARTER_FILTERS })}
                           className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                         >
-                          Reset all filters
+                          {copy.empty.resetFilters}
                         </button>
+                        <Link href="/track-record" data-evidence-event="record_inspected" className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors">
+                          Track record
+                        </Link>
+                        <Link href="/methodology" data-evidence-event="methodology_viewed" className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors">
+                          Methodology
+                        </Link>
                       </div>
                     </>
                   )}
@@ -780,7 +917,14 @@ export default function ScreenerClient() {
               {!loading && sorted.length > 0 && (
                 <div className="grid grid-cols-1 gap-3">
                   {sorted.map(r => (
-                    <ScreenerCard key={`${r.symbol}-${r.signalId}`} r={r} watchlist={watchlist} toggleWatchlist={toggleWatchlist} />
+                    <ScreenerCard
+                      key={`${r.symbol}-${r.signalId}`}
+                      r={r}
+                      watchlist={watchlist}
+                      toggleWatchlist={toggleWatchlist}
+                      copy={copy}
+                      language={language}
+                    />
                   ))}
                 </div>
               )}
@@ -788,45 +932,22 @@ export default function ScreenerClient() {
 
             {/* Desktop table view */}
           <div className="hidden md:block glass-card rounded-2xl overflow-x-auto border border-[var(--border)]">
-            <table className="w-full min-w-[900px]">
+            <table className="w-full min-w-[960px]">
               <thead>
                 <tr className="border-b border-[var(--border)]">
-                  <th className="px-4 py-3 text-left w-8" />
-                  <th
-                    className="px-4 py-3 text-left text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
-                    onClick={() => handleSort('symbol')}
-                  >
-                    Symbol<SortIcon active={sortKey === 'symbol'} dir={sortDir} />
+                  <th scope="col" className="px-4 py-3 text-start w-8">
+                    <span className="sr-only">{copy.columns.watchlist}</span>
                   </th>
-                  <th
-                    className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
-                    onClick={() => handleSort('price')}
-                  >
-                    Price<SortIcon active={sortKey === 'price'} dir={sortDir} />
-                  </th>
-                  <th className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Signal</th>
-                  <th
-                    className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none min-w-[120px]"
-                    onClick={() => handleSort('confidence')}
-                  >
-                    Rule score<SortIcon active={sortKey === 'confidence'} dir={sortDir} />
-                  </th>
-                  <th
-                    className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
-                    onClick={() => handleSort('rsi')}
-                  >
-                    RSI<SortIcon active={sortKey === 'rsi'} dir={sortDir} />
-                  </th>
-                  <th
-                    className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
-                    onClick={() => handleSort('macdHistogram')}
-                  >
-                    MACD<SortIcon active={sortKey === 'macdHistogram'} dir={sortDir} />
-                  </th>
-                  <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">EMA Status</th>
-                  <th className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Chart</th>
-                  <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">TF</th>
-                  <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Actions</th>
+                  <SortableHeader label={copy.columns.symbol} value="symbol" activeValue={sortKey} direction={sortDir} onSort={handleSort} />
+                  <SortableHeader label={copy.columns.price} value="price" activeValue={sortKey} direction={sortDir} onSort={handleSort} align="end" />
+                  <th scope="col" className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal font-medium">{copy.columns.signal}</th>
+                  <SortableHeader label={copy.columns.ruleScore} value="confidence" activeValue={sortKey} direction={sortDir} onSort={handleSort} className="min-w-[120px]" />
+                  <SortableHeader label="RSI" value="rsi" activeValue={sortKey} direction={sortDir} onSort={handleSort} align="end" />
+                  <SortableHeader label="MACD" value="macdHistogram" activeValue={sortKey} direction={sortDir} onSort={handleSort} />
+                  <th scope="col" className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal font-medium">{copy.columns.emaStatus}</th>
+                  <th scope="col" className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal font-medium">{copy.columns.chart}</th>
+                  <th scope="col" className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal font-medium">{copy.columns.timeframe}</th>
+                  <th scope="col" className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider rtl:normal-case rtl:tracking-normal font-medium">{copy.columns.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -842,10 +963,11 @@ export default function ScreenerClient() {
                     <td className="px-4 py-3">
                       <button
                         onClick={() => toggleWatchlist(r.symbol)}
+                        aria-label={getWatchlistLabel(r.symbol)}
                         className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
                           watchlist.has(r.symbol) ? 'text-zinc-400' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'
                         }`}
-                        title={watchlist.has(r.symbol) ? 'Remove from watchlist' : 'Add to watchlist'}
+                        title={getWatchlistLabel(r.symbol)}
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill={watchlist.has(r.symbol) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -856,33 +978,33 @@ export default function ScreenerClient() {
                     {/* Symbol */}
                     <td className="px-4 py-3">
                       <div className="flex flex-col">
-                        <span className="text-sm font-mono font-bold text-[var(--foreground)]">{r.symbol}</span>
-                        <span className="text-[10px] text-[var(--text-secondary)]">{r.name}</span>
+                        <bdi dir="ltr" className="text-sm font-mono font-bold text-[var(--foreground)]">{r.symbol}</bdi>
+                        <bdi dir="auto" className="text-[10px] text-[var(--text-secondary)]">{r.name}</bdi>
                       </div>
                     </td>
 
                     {/* Price */}
-                    <td className="px-4 py-3 text-right font-mono text-sm text-[var(--foreground)] tabular-nums">
-                      {fmtPrice(r.price)}
+                    <td className="px-4 py-3 text-end font-mono text-sm text-[var(--foreground)] tabular-nums">
+                      <bdi dir="ltr">{fmtPrice(r.price, language)}</bdi>
                     </td>
 
                     {/* Signal */}
                     <td className="px-4 py-3 text-center">
-                      <SignalBadge direction={r.direction} />
+                      <DirectionCaseBadge direction={r.direction} copy={copy.options} />
                     </td>
 
                     {/* Confidence */}
                     <td className="px-4 py-3">
-                      <ConfidenceBar value={r.confidence} />
+                      <ConfidenceBar value={r.confidence} copy={copy.score} />
                     </td>
 
                     {/* RSI */}
-                    <td className="px-4 py-3 text-right">
-                      <span className={`text-xs font-mono tabular-nums ${
+                    <td className="px-4 py-3 text-end">
+                      <bdi dir="ltr" className={`text-xs font-mono tabular-nums ${
                         r.rsi < 30 ? 'text-emerald-400' : r.rsi > 70 ? 'text-rose-400' : 'text-[var(--text-secondary)]'
                       }`}>
                         {r.rsi.toFixed(1)}
-                      </span>
+                      </bdi>
                     </td>
 
                     {/* MACD */}
@@ -898,46 +1020,47 @@ export default function ScreenerClient() {
                         r.emaStatus === 'Above EMA20' ? 'text-sky-400 bg-sky-500/10' :
                         'text-[var(--text-secondary)] bg-[var(--glass-bg)]'
                       }`}>
-                        {r.emaStatus}
+                        <bdi dir="auto">{translateEmaStatus(r.emaStatus, copy.emaStatus)}</bdi>
                       </span>
                     </td>
 
                     {/* Sparkline */}
                     <td className="px-4 py-3">
-                      <SparklineChart prices={r.sparkline} direction={r.direction} />
+                      <div role="img" aria-label={formatMessage(copy.aria.priceChartFor, { symbol: r.symbol })}>
+                        <SparklineChart prices={r.sparkline} direction={r.direction} />
+                      </div>
                     </td>
 
                     {/* Timeframe */}
                     <td className="px-4 py-3">
-                      <span className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--glass-bg)] px-1.5 py-0.5 rounded">
+                      <bdi dir="ltr" className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--glass-bg)] px-1.5 py-0.5 rounded">
                         {r.timeframe}
-                      </span>
+                      </bdi>
                     </td>
 
                     {/* Actions */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <Link
-                          href={`/signal/${r.signalId}`}
+                          href={`/track-record?symbol=${encodeURIComponent(r.symbol)}`}
+                          data-evidence-event="record_inspected"
+                          data-evidence-target={r.symbol}
                           className="px-2 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border)] transition-colors whitespace-nowrap"
                         >
-                          View
-                        </Link>
-                        <Link
-                          href={`/alerts?symbol=${r.symbol}`}
-                          className="px-2 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border)] transition-colors whitespace-nowrap"
-                        >
-                          Alert
+                          {copy.actions.view}
                         </Link>
                         <button
                           onClick={() => toggleWatchlist(r.symbol)}
+                          aria-label={getWatchlistLabel(r.symbol)}
+                          title={getWatchlistLabel(r.symbol)}
                           className={`px-2 py-1 rounded-lg border text-[10px] transition-colors whitespace-nowrap ${
                             watchlist.has(r.symbol)
                               ? 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
                               : 'bg-[var(--glass-bg)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border)]'
                           }`}
                         >
-                          {watchlist.has(r.symbol) ? '★ Watch' : '☆ Watch'}
+                          <span aria-hidden="true">{watchlist.has(r.symbol) ? '★' : '☆'}</span>{' '}
+                          {copy.actions.watch}
                         </button>
                       </div>
                     </td>
@@ -953,38 +1076,32 @@ export default function ScreenerClient() {
                       </div>
                       {scanError ? (
                         <>
-                          <p className="text-sm font-medium text-[var(--foreground)] mb-1">Scan failed</p>
-                          <p className="text-xs text-[var(--text-secondary)] mb-3">Market data didn’t load — this wasn’t your filters.</p>
+                          <p className="text-sm font-medium text-[var(--foreground)] mb-1">{copy.empty.scanFailed}</p>
+                          <p className="text-xs text-[var(--text-secondary)] mb-3">{copy.empty.scanFailedDetail}</p>
                           <button
                             onClick={() => void scan()}
                             className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
                           >
-                            Retry scan
+                            {copy.actions.retryScan}
                           </button>
                         </>
                       ) : (
                         <>
-                          <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
-                          <p className="text-xs text-[var(--text-secondary)] mb-3">Try lowering the rule score threshold, widening RSI, or resetting filters.</p>
+                          <p className="text-sm font-medium text-[var(--foreground)] mb-1">{copy.empty.noMatches}</p>
+                          <p className="text-xs text-[var(--text-secondary)] mb-3">{copy.empty.adjustHint}</p>
                           <div className="flex justify-center gap-2">
                             <button
-                              onClick={() => patchFilter('minConfidence', 50)}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                            >
-                              Lower rule score to 50/100
-                            </button>
-                            <button
-                              onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                            >
-                              Widen RSI range
-                            </button>
-                            <button
-                              onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
+                              onClick={() => setFilters({ ...STARTER_FILTERS })}
                               className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                             >
-                              Reset all filters
+                              {copy.empty.resetFilters}
                             </button>
+                            <Link href="/track-record" data-evidence-event="record_inspected" className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors">
+                              Track record
+                            </Link>
+                            <Link href="/methodology" data-evidence-event="methodology_viewed" className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors">
+                              Methodology
+                            </Link>
                           </div>
                         </>
                       )}
@@ -1000,8 +1117,17 @@ export default function ScreenerClient() {
         {/* Footer hint */}
         {hasScanned && !loading && (
           <p className="mt-4 text-[10px] text-zinc-800 text-center">
-            {meta && `Scanned at ${new Date(meta.scannedAt).toLocaleTimeString()} · `}
-            Click column headers to sort · ★ to add to watchlist
+            {meta && (
+              <>
+                {formatMessage(copy.footer.scannedAt, {
+                  time: new Date(meta.scannedAt).toLocaleTimeString(language),
+                })}
+                <span aria-hidden="true"> · </span>
+              </>
+            )}
+            {copy.footer.sortHint}
+            <span aria-hidden="true"> · </span>
+            {copy.footer.watchHint}
           </p>
         )}
       </div>

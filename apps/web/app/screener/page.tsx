@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
+import { getScreenerTranslations } from '../../lib/product-i18n/screener';
+import { getPreferredLocaleFromCookie } from '../../lib/product-i18n/server-locale';
 
 const ScreenerClient = dynamic(() => import('./ScreenerClient'), {
   loading: () => (
@@ -9,10 +11,13 @@ const ScreenerClient = dynamic(() => import('./ScreenerClient'), {
   ),
 });
 
-export const metadata: Metadata = {
-  title: 'Asset Screener — TradeClaw',
-  description: 'Scan all forex, crypto, and metals assets for setups matching your custom RSI, MACD, EMA, and confidence criteria.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getPreferredLocaleFromCookie();
+  return {
+    title: getScreenerTranslations(locale).documentTitle,
+    description: 'Scan all forex, crypto, and metals assets for setups matching your custom RSI, MACD, EMA, and rule-score criteria.',
+  };
+}
 
 export default function ScreenerPage() {
   return <ScreenerClient />;
