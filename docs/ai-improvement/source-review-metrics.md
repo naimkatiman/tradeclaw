@@ -1,19 +1,55 @@
 # TradeClaw Source Review Metrics Packet
 
-Date: 2026-07-12 23:37 MPST (+0800)
+Date: 2026-08-08 17:54 MPST (+0800)
 Agent: CEO Zaky recurring Product + Engineering repository improvement agent
 
 ## Purpose
 
-This packet is now a historical source-review baseline plus an active pointer to the latest recost CLI source/test hardening run. The current run did **not** recompute the full repository metrics packet; it only updated this header/status note so reviewers do not mistake the older 2026-06-22 branch posture below for the active checkout. Current active evidence lives in `docs/ai-improvement/implementation-log.md`, `docs/ai-improvement/uncommitted-source-verification-handoff.md`, and `docs/ai-improvement/verification-command-matrix.md`.
+This packet remains a historical source-review baseline plus an active pointer to the current regime-expectancy `--json` path preflight source gate. The current run did **not** recompute the old 2026-06-22 full historical packet below; it updated this header/status note and focused source/test/config metric table so reviewers do not mistake earlier recost/slow-gate/regime checkpoints for the active checkout. Current active evidence lives in `docs/ai-improvement/implementation-log.md`, `docs/ai-improvement/uncommitted-source-verification-handoff.md`, and `docs/ai-improvement/verification-command-matrix.md`.
 
-Latest source/test lane: detached `HEAD` was corrected to `origin/main` `40a599bc`; the pre-tracking source diff was `2 files changed, 59 insertions(+)` across `scripts/research/recost-segment.ts` and `scripts/research/__tests__/recost-segment-cli.test.ts`; focused `pygount` for those two files reported 2 TypeScript files / 378 code / 60 comments. Code changes stayed limited to the local read-only research CLI and its Jest contract; the new guard validates `--json` missing-parent and existing-directory paths before DB connection.
+Latest source-work gate: Latest Max quota-burst run stayed inside the existing regime-expectancy research lane and hardened the read-only `scripts/research/regime-expectancy-study.ts` CLI artifact boundary. The new `validateJsonOutputPath(...)` preflight now validates `--json` output paths after `--help` and before `connect()`, rejecting missing parent directories, parent-as-file paths, and existing-directory targets before any Postgres credential path or local artifact write. New `scripts/research/__tests__/regime-expectancy-study-cli.test.ts` locks help/no-DB behavior plus invalid/valid local artifact boundaries. Branch `feat/premium-ui-overhaul` is synced with upstream at `f6ddc185`, `origin/main=58eee2b9`, merge-base `524fc44a`, `HEAD...upstream=0/0`, `HEAD...origin/main=37/61`, `origin_main_paths=203`, `local_head_paths=39`, branch path overlap `15`, dirty/`origin-main` overlap `140`, dirty inventory `168` rows (`103` tracked modified + `3` tracked deleted + `62` untracked). Fresh evidence passed: focused regime-expectancy CLI Jest `1` suite / `5` tests / `1.817s`; adjacent regime lane Jest `5` suites / `101` tests / `54.397s`; scoped TypeScript exit `0`; full root Jest `219` passed and `3` skipped suites / `1,868` passed and `26` skipped tests / `1,894` total / `93.517s`; websocket auth Vitest `4/4` / `944ms`; web typecheck exit `0`; lint exit `0` with `23` warnings; root build exit `0` with Next `16.2.6`, compile `14.9s`, and `324/324` static pages; focused two-file pygount `2` files / `297` code / `41` comments; focused source/test/config pygount `1,523` files / `146,396` code / `15,086` comments; dashboard quick-tunnel DNS returned `curl_exit=6`; local Hermes telemetry reported `1,071` sessions / `1,863,642,754` total tokens with provider weekly quota percentage unavailable; independent delegated verifier PASS on live files, focused Jest, scoped TypeScript, and target diff-check.
 
-Historical full-packet note: the branch/dirty-lane posture and broad metrics below remain preserved as history from the previous source-review packet and should be refreshed before being used for a new branch-disposition decision.
+## Source/test/config pygount scope
 
-## Current git / review posture
+Command used:
 
-| Item | Current evidence |
+```bash
+uvx --from pygount pygount --format=summary \
+  --folders-to-skip='.git,node_modules,dist,build,.next,.cache,coverage,.turbo,public,tmp' \
+  apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+```
+
+Summary from this source/test/config scope:
+
+| Language | Files | Code | Comment |
+|---|---:|---:|---:|
+| TypeScript | 811 | 68,513 | 9,729 |
+| TSX | 486 | 67,860 | 3,176 |
+| JSON | 48 | 2,245 | 0 |
+| Python | 8 | 1,757 | 389 |
+| JavaScript | 34 | 1,730 | 154 |
+| JavaScript+Genshi Text | 16 | 1,613 | 139 |
+| Transact-SQL | 55 | 916 | 544 |
+| CSS+Lasso | 2 | 755 | 79 |
+| Bash | 8 | 510 | 128 |
+| YAML | 3 | 289 | 16 |
+| HTML | 2 | 97 | 0 |
+| XML | 1 | 48 | 0 |
+| HTML+Genshi | 1 | 36 | 35 |
+| Docker | 1 | 27 | 12 |
+| Markdown | 21 | 0 | 681 |
+| Text only | 3 | 0 | 4 |
+| __unknown__ | 15 | 0 | 0 |
+| __generated__ | 1 | 0 | 0 |
+| __duplicate__ | 2 | 0 | 0 |
+| __binary__ | 5 | 0 | 0 |
+| **Sum** | **1,523** | **146,396** | **15,086** |
+
+This scope intentionally excludes dependency/build output, docs, data, public static assets, and local agent artifacts so Markdown tracking churn and generated assets do not distort source-size metrics.
+
+## Historical git / review posture (2026-06-22 baseline)
+
+| Item | Historical evidence |
 |---|---|
 | Branch | `fix/track-record-compliance-copy` |
 | HEAD | `528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer` |
@@ -125,7 +161,7 @@ docs/ai-improvement/uncommitted-source-verification-handoff.md
 docs/ai-improvement/verification-command-matrix.md
 ```
 
-This packet remains a fifth AI tracking/status artifact. These documents should be reviewed together with the branch posture so they do not undercount or misclassify the dirty tree.
+This packet remains a historical source-review baseline plus an active pointer to the current recost-report JSON stats/cell guard. The current run did **not** recompute the old 2026-06-22 full historical packet below; it updated this header/status note and focused source/test/config metric table so reviewers do not mistake earlier same-day recost/slow-gate checkpoints for the active checkout. Current active evidence lives in `docs/ai-improvement/implementation-log.md`, `docs/ai-improvement/uncommitted-source-verification-handoff.md`, and `docs/ai-improvement/verification-command-matrix.md`.
 
 ## Source/test/config pygount scope
 
@@ -133,7 +169,7 @@ Command used:
 
 ```bash
 uvx --from pygount pygount --format=summary \
-  --folders-to-skip='.git,node_modules,venv,.venv,__pycache__,.cache,dist,build,.next,.tox,.eggs,*.egg-info,coverage,docs,data,public' \
+  --folders-to-skip='.git,node_modules,venv,.venv,__pycache__,.cache,dist,build,.next,.tox,.eggs,*.egg-info,coverage,docs,data,public,.codex,.playwright-cli,output,tmp' \
   apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
 ```
 
@@ -141,79 +177,108 @@ Summary from this source/test/config scope:
 
 | Language | Files | Code | Comment |
 |---|---:|---:|---:|
-| TSX | 501 | 73,962 | 3,527 |
-| TypeScript | 723 | 62,469 | 10,427 |
+| TypeScript | 797 | 67,391 | 9,627 |
+| TSX | 465 | 64,855 | 3,041 |
 | Python | 8 | 1,757 | 389 |
-| JavaScript+Genshi Text | 17 | 1,608 | 171 |
-| JSON | 34 | 1,301 | 0 |
-| Transact-SQL | 54 | 896 | 519 |
-| JavaScript | 21 | 731 | 184 |
-| Bash | 8 | 500 | 125 |
-| CSS+Lasso | 2 | 500 | 37 |
-| YAML | 3 | 265 | 16 |
+| JavaScript | 34 | 1,730 | 154 |
+| JavaScript+Genshi Text | 16 | 1,613 | 139 |
+| JSON | 38 | 1,416 | 0 |
+| Transact-SQL | 55 | 916 | 544 |
+| CSS+Lasso | 2 | 755 | 79 |
+| Bash | 8 | 510 | 128 |
+| YAML | 3 | 289 | 16 |
 | HTML | 2 | 97 | 0 |
+| XML | 1 | 48 | 0 |
+| HTML+Genshi | 1 | 36 | 35 |
 | Docker | 1 | 27 | 12 |
-| Markdown | 24 | 0 | 674 |
-| Other / unknown / generated / duplicate / binary | 21 | 0 | 4 |
-| **Sum** | **1,419** | **144,113** | **16,085** |
+| Markdown | 21 | 0 | 681 |
+| Text only | 3 | 0 | 4 |
+| __unknown__ | 15 | 0 | 0 |
+| __generated__ | 1 | 0 | 0 |
+| __duplicate__ | 1 | 0 | 0 |
+| __binary__ | 5 | 0 | 0 |
+| **Sum** | **1,477** | **141,440** | **14,849** |
 
-This scope intentionally excludes dependency/build output, docs, data, and public static assets so Markdown tracking churn and generated assets do not distort source-size metrics.
+This scope intentionally excludes dependency/build output, docs, data, public static assets, and local agent artifacts so Markdown tracking churn and generated assets do not distort source-size metrics.
 
 ## Verification snapshot for this checkpoint
 
-Commands run from `C:/Ai/tradeclaw` before updating the tracking artifacts:
+Commands run from `C:/Ai/tradeclaw` before updating the final tracking artifacts:
 
 ```text
 git fetch --prune
 → exit 0
 
 branch/upstream probe
-→ current branch: fix/track-record-compliance-copy
-→ HEAD: 528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer
-→ upstream: origin/fix/track-record-compliance-copy
-→ ahead/behind vs upstream: 0 / 0
-→ local main: da2afa06 [origin/main: ahead 1]
-→ merge-base with origin/main: 004190974821f789b8b56979680de03fd77ebcad
-→ remote_paths=0; dirty_paths=13; overlap_paths=0
+→ current branch: feat/premium-ui-overhaul
+→ HEAD: a721b15c
+→ upstream: origin/feat/premium-ui-overhaul at a721b15c
+→ origin/main: 705c5268
+→ merge-base with origin/main: 524fc44a8999bf69b6c56f0c44caf25efa5bedd0
+→ HEAD...upstream: 0 / 0
+→ HEAD...origin/main: 20 / 58
+→ origin_main_paths=196; local_head_paths=30; branch_overlap=10; dirty/origin-main overlap=137; status rows=160
 
-npm run lint --workspace=apps/web -- app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
-→ exit 0; targeted ESLint printed no warnings.
+RED npm test -- --runTestsByPath scripts/research/__tests__/recost-report.test.ts --runInBand --forceExit -t "duplicate asset-class/band cell key"
+→ exit 1 before final source patch
+→ Failure class: duplicate crypto/all cells were accepted by the old report builder boundary.
 
-npm run typecheck:web
-→ exit 0; ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`.
+npm test -- --runTestsByPath scripts/research/__tests__/recost-report.test.ts --runInBand --forceExit -t "duplicate asset-class/band cell key"
+→ exit 0
+→ 1 passed, 39 skipped, 40 total
+→ Runtime: 0.577s
 
-npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
-→ exit 0; 2 suites passed, 22 tests passed in 1.76s; Jest still prints the known force-exit/open-handle notice.
+npm test -- --runTestsByPath scripts/research/__tests__/recost-report.test.ts --runInBand --forceExit
+→ exit 0
+→ Test Suites: 1 passed, 1 total
+→ Tests: 40 passed, 40 total
+→ Runtime: 0.58s
 
-npm run build --workspace=apps/web
-→ exit 0; Next.js 16.2.6 compiled successfully in 14.4s and generated 332/332 static pages in 5.4s.
-→ known warnings remained: workspace-root inference from multiple lockfiles, middleware-to-proxy convention warning, unexpected NFT trace from `apps/web/next.config.ts` import path, `url.parse()` deprecation notices, and edge runtime disabling static generation on affected pages.
-→ build still reports `Skipping validation of types`; `npm run typecheck:web` above is the separate web TypeScript contract.
+npm test -- --runTestsByPath scripts/research/__tests__/recost-report.test.ts scripts/research/__tests__/recost-segment-cli.test.ts --runInBand --forceExit
+→ exit 0
+→ Test Suites: 2 passed, 2 total
+→ Tests: 65 passed, 65 total
+→ Runtime: 10.921s
 
-sh -n docker-entrypoint.sh
+npx tsc --noEmit --target ES2022 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --types node,jest scripts/research/recost-segment.ts scripts/research/recost-report.ts scripts/research/__tests__/recost-report.test.ts scripts/research/__tests__/recost-segment-cli.test.ts
 → exit 0
 
-sh docker-entrypoint.sh --help + marker/package probe
-→ `DATABASE_URL`, `Docker Compose recommended`, and `docs/self-host-smoke-checklist.md` markers were present.
-→ package_json_parse_ok
-→ temp verification script removed successfully.
+npx tsx scripts/research/recost-segment.ts --help / invalid --days / --json without DB
+→ help_exit=0; invalid_days_exit=1 before DB; json_no_db_exit=1 with artifact_exists=no
+
+npm test -- --runInBand --forceExit
+→ exit 0
+→ Test Suites: 217 passed, 3 skipped, 220 total
+→ Tests: 1,819 passed, 26 skipped, 1,845 total
+→ Runtime: 119.861s
+
+npm run ws:test -- src/__tests__/auth.test.ts
+→ exit 0
+→ Test Files: 1 passed (1)
+→ Tests: 4 passed (4)
+→ Duration: 502ms
+
+npm run typecheck:web
+→ exit 0
+→ ran packages/signals build plus `tsc --noEmit --project apps/web/tsconfig.json`
+
+npm run lint
+→ exit 0
+→ 0 errors, 23 warnings
+
+npm run build
+→ exit 0
+
+uvx --from pygount pygount --format=summary --folders-to-skip=... apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+→ exit 0
+→ Sum: 1,477 files / 141,440 code / 14,849 comments
+
+curl -I --max-time 10 https://arizona-poison-combined-recommend.trycloudflare.com/
+→ curl exit 6 / Could not resolve host
+
+hermes insights --days 7
+→ exit 0
+→ local telemetry only: 1,315 sessions / 2,812,410,387 total tokens; gpt-5.5 578 sessions / 1,680,878,552 tokens; provider quota percentage unavailable
 ```
 
-## Anti-scope
-
-This checkpoint does not approve or perform:
-
-- source edits, runtime behavior changes, test changes, dependency changes, lockfile changes, broad formatting, commits, pushes, rebases, resets, branch renames, or deploys;
-- trading/business-rule changes, stronger public performance claims, tier/auth/billing/payment changes, DB/schema migrations, data mutations, broker execution changes, production env var changes, secret/credential changes, Docker Compose topology changes, cron behavior changes, deploy target changes, or provider calls;
-- accepting the current branch or dirty working tree as merge-ready solely because targeted checks pass.
-
-## Recommended review sequence
-
-1. Decide the remote-aligned feature branch posture for `fix/track-record-compliance-copy` at `528cd3c8`: PR/merge, amend, squash, cherry-pick, or reset.
-2. Decide the local `main` / `da2afa06` posture separately so branch and local-main histories stop drifting.
-3. Review the public trust/legal copy now committed on the branch: `apps/web/app/track-record/TrackRecordClient.tsx` and `apps/web/app/pricing/page.tsx`.
-4. Split the public/operator docs + tooling lane (`CONTRIBUTING.md`, `README.md`, `docs/QUICKSTART.md`, `docker-entrypoint.sh`, `package.json`) into keep/revert/commit decisions.
-5. Split the test/static/state lane (`apps/web/app/api/signals/__tests__/route.test.ts`, `apps/web/public/readme-banner.svg`, `STATE.yaml`) into keep/revert/commit decisions.
-6. Keep AI tracking/status docs, this metrics packet, implementation log, and central board consistent with whichever branch/diff posture is selected.
-7. Rerun `docs/ai-improvement/verification-command-matrix.md` after the tree is intentionally arranged.
-8. Only after stabilization, continue a separate approved/safe increment such as a single build-warning or middleware/proxy migration step.
+Secondary verifier PASS: independent delegated source/test verifier inspected the live source/test files, confirmed the exact duplicate-cell guard/test, reran focused duplicate-cell Jest with exit `0`, reran the full recost-report Jest file with exit `0`, reran scoped recost TypeScript with exit `0`, and modified no files. Runtime metadata reported `gpt-5.4-mini`; the parent did not select or pin the child tier per call.

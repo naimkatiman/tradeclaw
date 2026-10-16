@@ -1,78 +1,102 @@
 # Uncommitted Source Verification Handoff
 
-Date: 2026-07-12 23:37 MPST (+0800)
+Date: 2026-08-08 17:54 MPST (+0800)
 Agent: CEO Zaky recurring Product + Engineering repository improvement agent
+Current checkpoint: regime-expectancy `--json` path preflight source guard inside the existing read-only research lane; `HEAD...origin/main=37/61`.
 
 ## Why this exists
 
-The source-work checkout began detached one commit behind `origin/main` (`bd93f60f` vs release-state `40a599bc`), so this run first moved to detached `origin/main` and then added one narrow source/test lane: validating `scripts/research/recost-segment.ts --json` output paths before any Postgres connection opens. The lane protects the read-only cost-reality probe from spending a real DB query and only then failing to write a selected artifact path.
+The live checkout remains a broad shared dirty tree on `feat/premium-ui-overhaul`, and `origin/main` is `58eee2b9`, preserving current branch/default and dirty/default overlap that blocks unrelated runtime/product work. The inherited regime-expectancy helper lane had a low-risk local artifact boundary worth hardening: invalid `--json` paths could reach the DB credential/client path before failing. This run adds controlled fail-fast behavior for local JSON output paths inside `scripts/research/regime-expectancy-study.ts` while preserving `--help`, parser defaults, valid local file paths, and the existing no-credentials fail-closed boundary. No web runtime behavior, production trading rule, DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or live research activation changed.
 
-Current source inventory immediately after the source/test patch and before tracking docs/board refresh:
+## Branch/base posture
+
+```text
+git fetch --prune
+→ exit 0
+
+current branch: feat/premium-ui-overhaul
+upstream: origin/feat/premium-ui-overhaul
+HEAD: f6ddc185
+upstream tip: f6ddc185
+origin/main: 58eee2b9
+HEAD...upstream: 0/0
+HEAD...origin/main: 37/61
+merge-base: 524fc44a
+origin_main_paths since merge-base: 203
+local_head_paths since merge-base: 39
+remote/local changed-path overlap: 15 paths
+dirty/origin-main overlap: 140 paths
+```
+
+## Current dirty inventory
 
 ```text
 git status --short --branch --ahead-behind --untracked-files=all
-→ ## HEAD (no branch)
-→  M scripts/research/__tests__/recost-segment-cli.test.ts
-→  M scripts/research/recost-segment.ts
+→ ## feat/premium-ui-overhaul...origin/feat/premium-ui-overhaul
+→ total non-branch rows: 168
+→ tracked modified: 103; tracked deleted: 3; untracked: 62
+→ target rows: M scripts/research/regime-expectancy-study.ts; ?? scripts/research/__tests__/regime-expectancy-study-cli.test.ts
+→ note: central board and MemoryCore are outside repo status
 ```
 
-Branch/base posture:
+Primary lane categories remain: PM full-sweep localization/Docker/health/WebSocket/create-tradeclaw lane; existing recost helper/test lane; regime-expectancy study lane; slow-gate research CLI/test lane; local brand-art/UI commit lane; standup/support/release artifacts; and AI tracking/status lane. This run touched only the regime-expectancy helper lane plus tracking surfaces.
 
-```text
-HEAD=40a599bc
-origin/main=40a599bc
-merge_base=40a599bce58185801f72249d7b7960c7ca820ee8
-origin_main_paths=0
-local_head_paths=0
-upstream=<none; detached HEAD>
-```
-
-The final working tree also includes AI tracking/docs updates from this same recurring run (`docs/ai-improvement/*`, `STATE.yaml`, and the external central board row). Review the source/test lane separately from those required tracking surfaces.
-
-## Source diff inventory
-
-| Surface | Current files | Review implication |
-|---|---|---|
-| Read-only recost research CLI `--json` path preflight | `scripts/research/recost-segment.ts`; `scripts/research/__tests__/recost-segment-cli.test.ts` | `--json` now rejects missing parent directories and existing directory targets before `connString()` / `Pool` construction, while valid file paths under an existing parent still hit the fail-closed no-credentials boundary and create no artifact when DB env is absent. |
-
-No dependency installation artifact, package/lockfile mutation, DB/schema migration, auth/authorization/payment change, trading-rule change, production env var change, Docker Compose topology change, deployment target change, cron edit, branch push/rebase/reset, or secret/credential change is included in the source lane.
+No DB/schema migration, auth/authorization/payment change, production env var change, dependency/lockfile mutation, cron edit, branch push/rebase/reset, deployment, Docker runtime operation, or secret/credential change was made by this scheduled run.
 
 ## Verification snapshot
 
-Commands run from the repository root during this handoff:
+Commands run from the repository root during the package/source capture:
 
 ```text
-npm test -- --runTestsByPath scripts/research/__tests__/recost-segment-cli.test.ts --runInBand --forceExit
-→ RED before implementation: 2 new --json output-path tests failed because the old script reached the missing-DB guard.
-→ GREEN after implementation: PASS scripts/research/__tests__/recost-segment-cli.test.ts
-→ Test Suites: 1 passed, 1 total
-→ Tests: 23 passed, 23 total
-→ Time: 9.606 s
+npm test -- --runTestsByPath scripts/research/__tests__/regime-expectancy-study-cli.test.ts --runInBand --forceExit -t "missing parent"
+→ RED exit 1 before the source patch; old CLI reached the credential path instead of controlled local JSON path preflight
 
-npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node,jest --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts scripts/research/__tests__/recost-segment-cli.test.ts
+npm test -- --runTestsByPath scripts/research/__tests__/regime-expectancy-study-cli.test.ts --runInBand --forceExit
+→ exit 0; 1 suite; 5/5 tests; 1.817s
+
+npm test -- --runTestsByPath scripts/research/__tests__/regime-expectancy-study-cli.test.ts scripts/research/__tests__/regime-study-assembly.test.ts scripts/research/__tests__/regime-backtest-cli.test.ts scripts/research/__tests__/daily-momentum-validation.test.ts scripts/research/__tests__/carry-assembly.test.ts --runInBand --forceExit
+→ exit 0; 5 suites; 101/101 tests; 54.397s
+
+npx tsc --noEmit --target ES2022 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --types node,jest scripts/research/regime-expectancy-study.ts scripts/research/__tests__/regime-expectancy-study-cli.test.ts scripts/research/regime-study-assembly.ts scripts/research/__tests__/regime-study-assembly.test.ts
 → exit 0
 
-DATABASE_PUBLIC_URL= DATABASE_URL= npx tsx scripts/research/recost-segment.ts --json C:/Users/User/AppData/Local/Temp/tradeclaw-recost-native-dir-<pid>
-→ exit 1
-→ Invalid --json: expected a file path, got an existing directory: C:\Users\User\AppData\Local\Temp\tradeclaw-recost-native-dir-<pid>.
+git diff --check -- scripts/research/regime-expectancy-study.ts scripts/research/__tests__/regime-expectancy-study-cli.test.ts
+→ exit 0 for tracked file; no-index new-test check expected exit 1 with LF/CRLF warning only; no whitespace-error lines
+
+npm test -- --runInBand --forceExit
+→ exit 0; 219 passed and 3 skipped suites; 1,868 passed and 26 skipped tests; 1,894 total; 93.517s
+
+npm run ws:test -- src/__tests__/auth.test.ts
+→ exit 0; 4/4 tests; 944ms
+
+npm run typecheck:web
+→ exit 0
+
+npm run lint
+→ exit 0; 0 errors / 23 warnings
 
 npm run build
-→ exit 0
-→ Next 16.2.6 compiled successfully
-→ static pages generated: 325/325
-→ known warnings remained: middleware-to-proxy convention, Big Shoulders font fallback, NFT tracing, edge-runtime static generation, and Node url.parse deprecations
+→ exit 0; Next 16.2.6; compiled successfully in 14.9s; 324/324 static pages
 
-uvx --from pygount pygount --format=summary ... scripts/research/recost-segment.ts scripts/research/__tests__/recost-segment-cli.test.ts
-→ TypeScript: 2 files / 378 code / 60 comments
+uvx --from pygount pygount --format=summary --folders-to-skip=".git,node_modules,dist,build,.next,.cache,coverage,.turbo,public,tmp" apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+→ exit 0; Sum 1,523 files / 146,396 code / 15,086 comments
+
+uvx --from pygount pygount --format=summary --folders-to-skip=".git,node_modules,dist,build,.next,.cache,coverage,.turbo,public,tmp" scripts/research/regime-expectancy-study.ts scripts/research/__tests__/regime-expectancy-study-cli.test.ts
+→ exit 0; Sum 2 files / 297 code / 41 comments
+
+curl -I --max-time 10 https://arizona-poison-combined-recommend.trycloudflare.com/
+→ curl: (6) Could not resolve host; curl_exit=6
+
+hermes insights --days 7
+→ local telemetry only: 1,071 sessions / 1,863,642,754 total tokens; gpt-5.5 394 sessions / 1,106,968,460 tokens; provider weekly quota percentage unavailable
 ```
 
-## Guardrails for the next run
+Known non-blocking package output: ts-jest `globals` deprecation; Jest force-exit notice; expected fallback-test console warnings/errors; existing lint warnings; Next middleware-to-proxy, Turbopack/NFT/static-generation, and `url.parse()` deprecation warnings.
 
-- Keep the script read-only; do not add DB writes, schema changes, auth/tier changes, trading-rule changes, deploy changes, or credentials in the same increment.
-- Do not treat the missing-DB boundary as a failure; valid research invocations without DB credentials should still fail closed and create no JSON artifact.
-- If adding JSON payload/report-shape coverage next, prefer a pure helper seam or mocked DB boundary so secrets and live connection strings are never printed.
-- Publish or deploy only after owner/Fatin approval and normal release gates; this run did not push, deploy, edit cron jobs, or retier models.
+## Secondary verification
 
-## Recommended next move
+Secondary verifier PASS: independent delegated verifier inspected the live source/test diff, confirmed `validateJsonOutputPath(...)` runs after help and before `connect()`, confirmed the new `--help`, missing-parent, parent-file, existing-directory, and valid no-credentials tests, reran focused regime-expectancy CLI Jest (exit `0`, `1` suite / `5` tests), reran scoped TypeScript (exit `0`), ran target diff-check/no-index check with LF/CRLF warnings only and no whitespace errors, captured target `git status`, and modified no files. Runtime metadata reported `gpt-5.4-mini`; the parent did not select or pin the child tier per call.
 
-The next safe autonomous follow-up is source-adjacent JSON payload/report-shape coverage for the same read-only CLI. Live Postgres execution remains credential-gated and must avoid printing connection strings or secrets.
+## Recommended next action
+
+Owner/Fatin should split/commit/revert the broad full-sweep runtime/config/docs/tests, recost helper/test, regime-expectancy study, slow-gate research, standup/support/release, generated-image/localization, and AI tracking/STATE lanes intentionally before more runtime/product scope. If this regime helper lane is accepted, keep it on a deliberate branch/PR or port it to a clean `origin/main` worktree after branch disposition. Do not add DB writes, schema changes, trading-rule changes, auth/tier changes, deployment changes, credentials, cron edits, dependency changes, or lockfile changes in the same lane.
