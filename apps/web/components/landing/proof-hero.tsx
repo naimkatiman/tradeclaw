@@ -185,8 +185,8 @@ export async function ProofHero() {
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <a href="/track-record" className="premium-button-primary group">
-              Explore the evidence
+            <a href="/today" className="premium-button-primary group">
+              Open today's check
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </a>
             <a

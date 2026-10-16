@@ -51,7 +51,6 @@ describe('truthful public claim surfaces', () => {
     const publicCopy = [
       'alert/[id]/AlertDetailClient.tsx',
       'card/CardClient.tsx',
-      'today/TodayClient.tsx',
       'feed.json/route.ts',
       'atom.xml/route.ts',
       'components/share-signal.tsx',
@@ -73,5 +72,36 @@ describe('truthful public claim surfaces', () => {
     expect(publicCopy).not.toContain('Free AI signal');
     expect(publicCopy).not.toContain('Show your edge');
     expect(publicCopy).not.toContain('exact confidence %');
+  });
+
+  it('points the homepage primary action at the daily check', () => {
+    const hero = source('../components/landing/proof-hero.tsx');
+    const primary = hero.match(/<a href="([^"]+)" className="premium-button-primary[\s\S]*?<\/a>/);
+    expect(primary?.[1]).toBe('/today');
+    expect(hero.match(/premium-button-primary/g)).toHaveLength(1);
+  });
+
+  it('keeps trade instructions, gamification, and paid calls off the daily check', () => {
+    const surface = [
+      'today/page.tsx',
+      'today/DailyCheckScreen.tsx',
+      'today/loading.tsx',
+      'today/error.tsx',
+      'today/TodayClient.tsx',
+      '../lib/daily-check.ts',
+      '../lib/daily-check-evidence.ts',
+    ].map(source).join('\n');
+    const lowered = surface.toLowerCase();
+
+    expect(lowered).not.toContain('stop-loss');
+    expect(lowered).not.toContain('stop loss');
+    expect(lowered).not.toContain('take-profit');
+    expect(lowered).not.toContain('take profit');
+    expect(lowered).not.toContain('takeprofit');
+    expect(lowered).not.toMatch(/\bentry\b/);
+    expect(lowered).not.toContain('streak');
+    expect(lowered).not.toContain('badge');
+    expect(lowered).not.toMatch(/star[ -]?progress|\bstar this\b|\bstars\b/);
+    expect(lowered).not.toMatch(/paid tier|upgrade to pro|\bsubscribe\b/);
   });
 });

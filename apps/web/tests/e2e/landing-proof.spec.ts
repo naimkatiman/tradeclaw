@@ -14,7 +14,7 @@ test.describe('landing proof hero', () => {
         name: /Test trading ideas\. See where they fail after costs\./i,
       }),
     ).toBeVisible();
-    await expect(hero.getByRole('link', { name: /Explore the evidence/i })).toBeVisible();
+    await expect(hero.getByRole('link', { name: /Open today's check/i })).toBeVisible();
     await expect(hero.getByRole('link', { name: /Self-host TradeClaw/i })).toBeVisible();
     await expect(hero).toContainText(/TradeClaw is an open trading research lab/i);
     await expect(hero).not.toContainText(/win rate vs break-even/i);
@@ -49,7 +49,7 @@ test.describe('landing proof hero', () => {
       await page.setViewportSize(viewport);
       await page.goto('/');
       const hero = page.getByTestId('proof-hero');
-      const cta = hero.getByRole('link', { name: /Explore the evidence/i });
+      const cta = hero.getByRole('link', { name: /Open today's check/i });
       await expect(cta).toBeVisible();
       const box = await cta.boundingBox();
       expect(box).not.toBeNull();
