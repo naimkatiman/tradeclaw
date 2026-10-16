@@ -2,8 +2,10 @@
 
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-
-const themes = ['dark', 'light', 'system'] as const;
+import { useLocale } from './locale-provider';
+import { formatMessage } from '../../lib/product-i18n/format';
+import { getAppShellTranslations } from '../../lib/product-i18n/app-shell';
+import { normalizeTheme, THEMES } from '../../lib/product-i18n/theme-state';
 
 function SunIcon() {
   return (
@@ -40,10 +42,10 @@ function MonitorIcon() {
 }
 
 const icons = { dark: MoonIcon, light: SunIcon, system: MonitorIcon };
-const labels = { dark: 'Dark', light: 'Light', system: 'System' };
-
 export function ThemeToggle({ className = '' }: { className?: string }) {
   const { theme, setTheme } = useTheme();
+  const { locale } = useLocale();
+  const copy = getAppShellTranslations(locale).theme;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setTimeout(() => setMounted(true), 0); }, []);
@@ -52,24 +54,26 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
     return (
       <button
         className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${className}`}
-        aria-label="Toggle theme"
+        aria-label={copy.toggle}
       >
         <MoonIcon />
       </button>
     );
   }
 
-  const current = (theme as typeof themes[number]) ?? 'dark';
-  const currentIndex = themes.indexOf(current);
-  const next = themes[(currentIndex + 1) % themes.length];
+  const current = normalizeTheme(theme);
+  const currentIndex = THEMES.indexOf(current);
+  const next = THEMES[(currentIndex + 1) % THEMES.length];
   const Icon = icons[current];
+  const currentLabel = copy.labels[current];
+  const nextLabel = copy.labels[next];
 
   return (
     <button
       onClick={() => setTheme(next)}
       className={`w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 hover:scale-110 active:scale-95 ${className}`}
-      aria-label={`Switch to ${next} theme (currently ${labels[current]})`}
-      title={`${labels[current]} mode — click for ${labels[next]}`}
+      aria-label={formatMessage(copy.switchTo, { next: nextLabel, current: currentLabel })}
+      title={formatMessage(copy.modeTitle, { current: currentLabel, next: nextLabel })}
     >
       <Icon />
     </button>
