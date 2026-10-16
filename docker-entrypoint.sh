@@ -18,9 +18,10 @@ ENVIRONMENT VARIABLES
   DATABASE_URL         PostgreSQL connection string for DB-backed routes
   REDIS_URL            Redis connection string (optional cache/relay support)
   USER_SESSION_SECRET  Required for web sessions, OAuth state, and link tokens
+  ADMIN_SECRET         Required for admin login and admin API access
+  ADMIN_EMAILS         Optional comma-separated admin OAuth email allowlist
   AUTH_SECRET          Required by the websocket relay when using Compose
   APP_URL              Public base URL for this deploy
-  NEXT_PUBLIC_WS_URL   Browser websocket relay URL (optional)
   TELEGRAM_BOT_TOKEN   Token for Telegram alerts (optional)
   TELEGRAM_FREE_CHANNEL_ID / TELEGRAM_PRO_GROUP_ID  Telegram destinations (optional)
 

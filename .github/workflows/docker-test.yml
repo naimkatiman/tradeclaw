@@ -44,6 +44,8 @@ jobs:
             echo "DB_NAME=tradeclaw"
             echo "AUTH_SECRET=ci_test_auth_secret_32_chars_min_x"
             echo "USER_SESSION_SECRET=ci_test_user_session_secret_32_chars"
+            echo "ADMIN_SECRET=ci_test_admin_secret_32_chars_min_x"
+            echo "ADMIN_EMAILS=admin@example.com"
             echo "APP_URL=http://localhost:3000"
             echo "NEXT_PUBLIC_APP_URL=http://localhost:3000"
             echo "NODE_ENV=production"
@@ -59,6 +61,8 @@ jobs:
           DB_NAME: tradeclaw
           AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
           USER_SESSION_SECRET: ci_test_user_session_secret_32_chars
+          ADMIN_SECRET: ci_test_admin_secret_32_chars_min_x
+          ADMIN_EMAILS: admin@example.com
           APP_URL: http://localhost:3000
 
       - name: Wait for health endpoint
@@ -81,6 +85,8 @@ jobs:
           DB_NAME: tradeclaw
           AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
           USER_SESSION_SECRET: ci_test_user_session_secret_32_chars
+          ADMIN_SECRET: ci_test_admin_secret_32_chars_min_x
+          ADMIN_EMAILS: admin@example.com
           APP_URL: http://localhost:3000
 
       - name: Teardown
@@ -92,4 +98,6 @@ jobs:
           DB_NAME: tradeclaw
           AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
           USER_SESSION_SECRET: ci_test_user_session_secret_32_chars
+          ADMIN_SECRET: ci_test_admin_secret_32_chars_min_x
+          ADMIN_EMAILS: admin@example.com
           APP_URL: http://localhost:3000

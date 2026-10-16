@@ -1,5 +1,8 @@
-run = "npm install && npm run dev --workspace=apps/web"
-language = "nodejs"
+# Development preview only. This is not a production deployment configuration.
+# Database-backed development requires the setup in docs/REPLIT.md.
+run = "npm run dev --workspace=apps/web -- --hostname 0.0.0.0"
+onBoot = "npm ci && npm run build:signals"
+language = "javascript"
 entrypoint = "apps/web/app/page.tsx"
 
 [nix]
@@ -10,5 +13,4 @@ localPort = 3000
 externalPort = 80
 
 [env]
-NEXT_PUBLIC_APP_URL = "https://$REPL_SLUG.$REPL_OWNER.repl.co"
 NEXT_TELEMETRY_DISABLED = "1"

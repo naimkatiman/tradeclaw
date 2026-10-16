@@ -26,9 +26,14 @@ Edit `.env` before starting the stack. Required local values:
 ```bash
 DB_PASSWORD=<generate with: openssl rand -hex 16>
 USER_SESSION_SECRET=<generate with: openssl rand -hex 32>
+ADMIN_SECRET=<generate with: openssl rand -hex 32>
 AUTH_SECRET=<generate with: openssl rand -hex 32>
 APP_URL=http://localhost:3000
 ```
+
+To grant admin access through a configured OAuth sign-in, also set
+`ADMIN_EMAILS` to a comma-separated allowlist. `ADMIN_SECRET` enables the
+password-based admin login and admin API authentication.
 
 Then validate and start Compose:
 
@@ -45,10 +50,14 @@ Open [http://localhost:3000](http://localhost:3000). After startup, run the [sel
 |---|---:|---|
 | `app` | 3000 | Next.js standalone server: dashboard, pages, and REST API routes such as `/api/health`, `/api/signals`, `/api/metrics` |
 | `ws-server` | 4000 | Fastify websocket / market-data relay with `/health` |
-| `db` | internal 5432 | Timescale/PostgreSQL for signal history, users, subscriptions, telemetry, and migrations |
+| `db` | internal 5432 | Timescale/PostgreSQL for signal history, users, telemetry, and tracked migrations |
 | `redis` | internal 6379 | Cache used by the web app and websocket relay |
-| `migrate` | one-shot | Applies `apps/web/migrations/*.sql` in filename order |
 | `prometheus` / `grafana` | 9090 / 3001 | Optional monitoring profile started with `docker compose --profile monitoring up -d` |
+
+On a new database, `scripts/init-db.sh` enables the required PostgreSQL
+extensions only. Before serving traffic, the app entrypoint runs
+`scripts/run-migrations.mjs`, which records each applied SQL filename in
+`_migrations`; restarts skip files already recorded.
 
 ### Health checks
 
@@ -60,7 +69,9 @@ curl -fsS http://localhost:4000/health
 
 Expected result:
 
-- `/api/health` returns JSON containing `"status":"ok"`.
+- `/api/health` returns JSON containing `"status":"ok"` and reports both
+  `checks.database.status` and `checks.migrations.status` as `"ok"`. It returns
+  HTTP `503` until PostgreSQL and the required schema migration are ready.
 - `/api/v1/health` returns JSON containing `"ok":true` and `"status":"healthy"`.
 - `/health` on port `4000` returns websocket-relay status. It can be `degraded` when upstream providers are disconnected; that is different from the process being down.
 
@@ -76,6 +87,8 @@ For the full checklist, including migrations, Redis, metrics, monitoring, troubl
 bash scripts/test-docker.sh
 # or keep containers after the run:
 CLEANUP=false bash scripts/test-docker.sh
+# destructive: also delete database/cache/monitoring volumes after the run:
+DESTROY_VOLUMES=true bash scripts/test-docker.sh
 ```
 
 ## Option 2: Single Docker image
@@ -86,6 +99,7 @@ The single image is useful when you already have PostgreSQL available elsewhere.
 docker run -p 3000:3000 \
   -e DATABASE_URL='postgres://user:password@host:5432/tradeclaw' \
   -e USER_SESSION_SECRET='<generate with openssl rand -hex 32>' \
+  -e ADMIN_SECRET='<generate with openssl rand -hex 32>' \
   ghcr.io/naimkatiman/tradeclaw:latest
 ```
 
@@ -100,7 +114,7 @@ git clone https://github.com/naimkatiman/tradeclaw.git
 cd tradeclaw
 npm install
 cp .env.example .env
-# set DATABASE_URL, USER_SESSION_SECRET, AUTH_SECRET, and any optional tokens you need
+# set DATABASE_URL, USER_SESSION_SECRET, ADMIN_SECRET, and any optional tokens you need
 npm run build:signals
 npm run dev
 ```
@@ -127,6 +141,7 @@ Edit `.env` from `.env.example`. Do not paste real production secrets into issue
 |---|---|
 | Compose database | `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 | Web app URL/session | `APP_PORT`, `APP_URL`, `USER_SESSION_SECRET` |
+| Admin access | `ADMIN_SECRET`, optional comma-separated `ADMIN_EMAILS` |
 | Websocket relay | `WS_SERVER_PORT`, `NEXT_PUBLIC_WS_URL`, `AUTH_SECRET` |
 | Postgres connection | `DATABASE_URL` for non-Compose/local external DB paths |
 | Redis | `REDIS_URL` |

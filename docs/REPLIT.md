@@ -1,80 +1,29 @@
-# Running TradeClaw on Replit
+# Replit development preview
 
-[![Run on Replit](https://replit.com/badge/github/naimkatiman/tradeclaw)](https://replit.com/github/naimkatiman/tradeclaw)
+Replit is not a supported TradeClaw production target. The checked-in `.replit` file starts the Next.js development server for code exploration; the public `/replit` route redirects to `/start`.
 
-Run a full TradeClaw instance directly in your browser — no local install required.
+## Open the development preview
 
----
+1. Import `https://github.com/naimkatiman/tradeclaw` into a Replit App.
+2. Let the `onBoot` task install the locked dependencies and build the shared signals package.
+3. Select **Run** and use the URL shown in Replit's webview. Replit exposes the editor URL through `REPLIT_DEV_DOMAIN`; do not construct a legacy hostname.
 
-## Quick Start
+Without PostgreSQL, database-backed routes and persistence are unavailable. This preview has not been verified for availability, backups, scheduled jobs, webhooks, or production traffic.
 
-1. **Fork on Replit**
-   Click the badge above or visit: https://replit.com/github/naimkatiman/tradeclaw
+## Optional database-backed development
 
-2. **Set environment variables** (optional — works in demo mode without them)
-   In the Replit Secrets panel, add:
+For local development inside Replit only:
+
+1. Add a Replit SQL database or another PostgreSQL provider. Confirm that the Secrets tool exposes its connection string as `DATABASE_URL`.
+2. Add strong `USER_SESSION_SECRET` and `ADMIN_SECRET` values in the Secrets tool. Do not commit them.
+3. Apply the schema before starting the app:
+
+   ```bash
+   npm run migrate --workspace=apps/web
    ```
-   NEXT_PUBLIC_APP_URL=https://<your-repl-slug>.<your-username>.repl.co
-   NEXT_TELEMETRY_DISABLED=1
-   ```
 
-3. **Run**
-   Click the ▶ Run button. Replit installs dependencies and starts the dev server.
-   Your TradeClaw instance is live at the URL shown in the Replit webview.
+4. Select **Run** to start the development server.
 
----
+Re-run migrations after pulling a revision that adds migration files. Replit's predefined development domain differs from a published deployment domain; consult the current [Replit environment-variable documentation](https://docs.replit.com/core-concepts/project-editor/app-setup/secrets) when configuring callbacks.
 
-## What Works on Replit
-
-| Feature | Status |
-|---------|--------|
-| Live signal dashboard | ✅ Full |
-| Signal screener | ✅ Full |
-| Backtest engine | ✅ Full |
-| Strategy builder | ✅ Full |
-| Paper trading | ✅ Full |
-| API endpoints | ✅ Full |
-| Signal sharing / OG cards | ✅ Full |
-| SSE price stream | ✅ Full |
-| Demo mode | ✅ Enabled automatically |
-
-## Limitations on Free Replit Tier
-
-| Limitation | Notes |
-|------------|-------|
-| **Ephemeral file storage** | File-based JSON data (alerts, webhooks, signals) resets on each restart. Use the export feature to back up your data. |
-| **Sleep after inactivity** | Free Replit instances sleep after ~5 minutes idle. Paid Replit keeps them always-on. |
-| **No persistent Telegram bot** | The Telegram webhook requires a stable public URL — not guaranteed on free tier. |
-| **No custom domain** | You get a `.repl.co` subdomain. Use Docker self-hosting for a custom domain. |
-
----
-
-## For Production Use
-
-Replit is great for demos and development. For a production self-hosted instance:
-
-- **Docker** (recommended): See [/hub](../apps/web/app/hub/) — one command deploy
-- **Railway**: One-click deploy button in README
-- **Vercel**: Frontend deploy in one click (API routes included)
-
----
-
-## Troubleshooting
-
-**Build takes too long on Replit?**
-The first run installs all dependencies and compiles 200+ Next.js pages. This can take 3–5 minutes. Subsequent runs are cached and much faster.
-
-**Port not showing in webview?**
-Make sure port 3000 is configured in the `.replit` file (already done). If you see a blank page, wait a few seconds for Next.js to finish compiling.
-
-**Environment variable errors?**
-TradeClaw runs in demo mode with synthetic data when env vars are missing. No external APIs are required to get started.
-
----
-
-## Links
-
-- [Live demo](https://tradeclaw.win)
-- [GitHub repo](https://github.com/naimkatiman/tradeclaw)
-- [Docker self-hosting guide](/hub)
-- [API documentation](/api-docs)
+For a maintained production-oriented workflow, use [TradeClaw's start guide](https://tradeclaw.win/start).

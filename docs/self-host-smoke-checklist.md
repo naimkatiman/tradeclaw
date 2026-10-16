@@ -8,8 +8,7 @@ A healthy self-host stack should have:
 
 - `db` — Timescale/PostgreSQL with the configured `DB_NAME`, `DB_USER`, and `DB_PASSWORD`.
 - `redis` — cache used by the web app and websocket relay.
-- `migrate` — one-shot SQL migration service that applies `apps/web/migrations/*.sql` in filename order.
-- `app` — Next.js standalone server on `${APP_PORT:-3000}`, with `/api/health` and `/api/metrics` reachable.
+- `app` — Next.js standalone server on `${APP_PORT:-3000}`; its entrypoint applies tracked migrations before `/api/health` and `/api/metrics` become reachable.
 - `ws-server` — Fastify websocket/market-data relay on `${WS_SERVER_PORT:-4000}`, with `/health` reachable.
 - Optional `monitoring` profile — Prometheus on `${PROMETHEUS_PORT:-9090}` and Grafana on `${GRAFANA_PORT:-3001}`.
 
@@ -23,6 +22,7 @@ Before starting Compose, set these required values in `.env`:
 
 - `DB_PASSWORD` — generate a fresh local database password.
 - `USER_SESSION_SECRET` — web app session/OAuth/link-token signing secret.
+- `ADMIN_SECRET` — admin login and admin API authentication secret.
 - `AUTH_SECRET` — websocket-server auth secret.
 - `APP_URL` — keep `http://localhost:3000` locally; set your public HTTPS URL in production.
 
@@ -55,29 +55,26 @@ docker compose ps
 Expected result:
 
 - `db`, `redis`, `app`, and `ws-server` are `running` / `healthy` after their healthcheck windows.
-- `migrate` exits successfully after printing `Migrations complete`.
+- `app` reports that database migrations completed before starting the server.
 
 Helpful logs:
 
 ```bash
-docker compose logs --tail=80 migrate
 docker compose logs --tail=80 app
 docker compose logs --tail=80 ws-server
 ```
 
 ## 3. Verify migrations and storage
 
-The one-shot `migrate` container applies raw SQL files, while the app entrypoint also runs `scripts/run-migrations.mjs` idempotently before starting the Next.js server. Verify both paths stayed healthy:
+The app entrypoint is the single migration owner. It runs `scripts/run-migrations.mjs` before starting Next.js and records applied filenames in `_migrations`:
 
 ```bash
-docker compose logs migrate | tail -40
 docker compose logs app | tail -80
 ```
 
 Expected result:
 
-- `migrate` shows SQL files being applied and finishes with `Migrations complete`.
-- `app` either reports no pending migrations or applies the remaining idempotent queue without failure.
+- `app` reports no pending migrations or applies the pending queue without failure.
 
 Optional direct database check:
 
@@ -110,7 +107,11 @@ curl -fsS "$TRADECLAW_URL/api/health"
 curl -fsS "$TRADECLAW_URL/api/v1/health"
 ```
 
-Expected result: both return JSON. `/api/health` should include `"status":"ok"`; `/api/v1/health` should include `"ok":true` and `"status":"healthy"`.
+Expected result: both return JSON. `/api/health` should include
+`"status":"ok"`, `"checks":{"database":{"status":"ok"}` and a migration
+check with `"status":"ok"`; it returns HTTP `503` until PostgreSQL and the
+required schema migration are ready. `/api/v1/health` should include
+`"ok":true` and `"status":"healthy"`.
 
 Public pages:
 
@@ -180,21 +181,30 @@ For a full local smoke run, the repository also ships:
 bash scripts/test-docker.sh
 ```
 
-Important: by default this script cleans up containers and volumes at the end. Use `CLEANUP=false` if you want to keep the stack running after a successful smoke test:
+By default this script removes its containers but preserves named volumes. Use `CLEANUP=false` if you want to keep the stack running after a successful smoke test:
 
 ```bash
 CLEANUP=false bash scripts/test-docker.sh
 ```
 
-The script verifies Docker availability, starts Compose, polls `/api/health`, checks `/api/signals`, checks `/api/v1/health`, and confirms the homepage/dashboard return HTTP 200.
+Delete the database, cache, and monitoring volumes only when you explicitly
+want a clean slate:
+
+```bash
+DESTROY_VOLUMES=true bash scripts/test-docker.sh
+```
+
+The script verifies Docker availability, starts Compose, polls `/api/health`,
+confirms the tracked migration runner reports `pending: 0`, checks
+`/api/signals` and `/api/v1/health`, and confirms the homepage/dashboard
+return HTTP 200.
 
 ## 8. Troubleshooting quick map
 
 | Symptom | Likely cause | First safe check |
 |---|---|---|
-| `docker compose config --quiet` fails | Missing required `.env` value | Fill `DB_PASSWORD`, `USER_SESSION_SECRET`, and `AUTH_SECRET` in `.env` |
+| `docker compose config --quiet` fails | Missing required `.env` value | Fill `DB_PASSWORD`, `USER_SESSION_SECRET`, `ADMIN_SECRET`, and `AUTH_SECRET` in `.env` |
 | `db` is unhealthy | Postgres init/password/volume issue | `docker compose logs --tail=100 db` |
-| `migrate` exits non-zero | SQL migration failed | `docker compose logs migrate`; do not edit migrations without a plan and approval |
 | `app` refuses to start | Required env missing or migrations failed | `docker compose logs --tail=120 app` |
 | `/api/health` works but `/api/signals` fails | DB, market data, or signal generation path degraded | `docker compose logs --tail=120 app` and check `DATABASE_URL` |
 | `ws-server` health is degraded | Provider connection or Redis issue | `curl http://localhost:${WS_SERVER_PORT:-4000}/health` and `docker compose logs --tail=120 ws-server` |

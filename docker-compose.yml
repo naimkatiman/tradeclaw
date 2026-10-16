@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/00-extensions.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tradeclaw}"]
       interval: 5s
@@ -25,26 +25,6 @@ services:
       interval: 5s
     restart: unless-stopped
 
-  migrate:
-    image: timescale/timescaledb:latest-pg16
-    environment:
-      PGHOST: db
-      PGPORT: "5432"
-      PGUSER: ${DB_USER:-tradeclaw}
-      PGPASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
-      PGDATABASE: ${DB_NAME:-tradeclaw}
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - ./apps/web/migrations:/migrations:ro
-    entrypoint: >
-      sh -c 'for f in /migrations/*.sql; do
-        echo "Running $$f ...";
-        psql -v ON_ERROR_STOP=1 -f "$$f";
-      done && echo "Migrations complete"'
-    restart: "no"
-
   app:
     build:
       context: .
@@ -57,9 +37,10 @@ services:
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
       # Web app session/OAuth/link-token signing. Required — the app fails fast
-      # (and every sign-in 500s) without it. The ws-server uses AUTH_SECRET instead.
+      # (and every sign-in 500s) without it.
       USER_SESSION_SECRET: ${USER_SESSION_SECRET:?Set USER_SESSION_SECRET in .env}
-      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
+      ADMIN_SECRET: ${ADMIN_SECRET:?Set ADMIN_SECRET in .env}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       APP_URL: ${APP_URL:-http://localhost:3000}
       NEXT_PUBLIC_BASE_URL: ${APP_URL:-http://localhost:3000}
       MARKET_DATA_HUB_URL: ${MARKET_DATA_HUB_URL:-}
@@ -108,8 +89,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 10s
