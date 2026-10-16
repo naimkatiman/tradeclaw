@@ -125,6 +125,27 @@ describe('recost-segment CLI parser - no-DB guard boundaries', () => {
     }
   });
 
+  it('rejects --json paths whose parent is an existing file before opening the database path', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tradeclaw-recost-json-parent-file-'));
+    const parentFile = path.join(tmpDir, 'not-a-directory');
+    fs.writeFileSync(parentFile, 'not a directory');
+    const jsonPath = path.join(parentFile, 'recost.json');
+
+    try {
+      const result = runRecost(['--json', jsonPath]);
+      const output = outputOf(result);
+
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(1);
+      expect(output).toMatch(/Invalid --json: parent path is not a directory:/);
+      expect(output).not.toMatch(/No DATABASE_PUBLIC_URL or DATABASE_URL set/);
+      expect(output).not.toMatch(/\n\s+at\s/);
+      expect(fs.existsSync(jsonPath)).toBe(false);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
   it('rejects --json paths that point at an existing directory before opening the database path', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tradeclaw-recost-json-dir-'));
 
@@ -158,6 +179,29 @@ describe('recost-segment CLI parser - no-DB guard boundaries', () => {
       expect(output).not.toMatch(/Invalid --/);
       expect(output).not.toMatch(/\n\s+at\s/);
       expect(fs.existsSync(jsonPath)).toBe(false);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('does not overwrite an existing --json artifact when credentials are absent', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tradeclaw-recost-json-existing-'));
+    const jsonPath = path.join(tmpDir, 'recost.json');
+    const originalArtifact = '{"status":"keep-me"}\n';
+    fs.writeFileSync(jsonPath, originalArtifact);
+
+    try {
+      const result = runRecost(['--json', jsonPath]);
+      const output = outputOf(result);
+
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(1);
+      expect(output).toMatch(/No DATABASE_PUBLIC_URL or DATABASE_URL set/);
+      expect(output).not.toMatch(/Missing value for/);
+      expect(output).not.toMatch(/Unknown argument/);
+      expect(output).not.toMatch(/Invalid --/);
+      expect(output).not.toMatch(/\n\s+at\s/);
+      expect(fs.readFileSync(jsonPath, 'utf8')).toBe(originalArtifact);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

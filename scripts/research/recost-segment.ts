@@ -2,13 +2,12 @@
  * Read-only edge experiment: re-cost the track record at the REAL per-row cost
  * and segment net expectancy by asset class x band.
  *
- * WHY: the live equity curve (apps/web/app/api/signals/equity/route.ts:31,192)
- * deducts a FLAT 0.02% per trade. The repo already records each row's real
- * round-trip cost (`cost_estimate_pct`, migration 051) which is ~0.40% on
- * crypto, ~0.10% on metals, ~0.04% on FX. The flat constant undercharges
- * crypto ~20x, so the published -42.5% curve is the OPTIMISTIC version. This
- * script answers the only question that matters before any strategy bet:
- * at the real cost, does ANY asset-class x band subset clear its own cost?
+ * WHY: the public equity route now deducts each row's real round-trip cost
+ * (`cost_estimate_pct`, migration 051) and falls back to asset-class defaults
+ * for legacy rows. This probe keeps the same math available as a local,
+ * credential-gated operator report, then segments by asset class x confidence
+ * band so the owner can decide whether any representative subset clears its
+ * own cost before making another strategy bet.
  *
  * It mutates no database state. It only reads signal_history; `--json` writes
  * (and can overwrite) the operator-selected local artifact path.
@@ -28,6 +27,7 @@ import fs from 'fs';
 import path from 'path';
 import { config as loadEnv } from 'dotenv';
 import { Pool } from 'pg';
+import { buildRecostJsonReport, formatRecostCostRealityLines, formatRecostVerdictLines } from './recost-report';
 
 // Load env from the usual local spots (first hit wins per key). Prefer the
 // PUBLIC Railway URL — the internal DATABASE_URL hostname only resolves inside
@@ -46,8 +46,8 @@ const RISK_PER_TRADE_PCT = 1.0;
 const HARD_R_CAP = 8;
 /** equity/route.ts:11 — starting paper equity. */
 const STARTING_EQUITY = 10_000;
-/** equity/route.ts:31 — the FLAT cost the public curve uses today (% equity). */
-const PUBLISHED_FLAT_COST_PCT = 0.02;
+/** Legacy flat cost once used by the public curve; retained only as a comparator. */
+const LEGACY_FLAT_COST_PCT = 0.02;
 /** Historical >=85 analysis band retained for reproducibility; not a current product tier. */
 const PRO_PREMIUM_MIN_CONFIDENCE = 85;
 /** Keep the interval inside PostgreSQL's practical range and the probe's research horizon. */
@@ -375,20 +375,16 @@ async function main() {
   const classes: AssetClass[] = ['crypto', 'metals', 'fx', 'stocks/cmdty'];
   const bands: Band[] = ['all', 'standard', 'premium'];
 
-  // Headline: all-symbols re-costed vs published flat-2bps, to quantify the undercharge.
+  // Headline: all-symbols re-costed vs the legacy flat-2bps baseline, to quantify the old undercharge.
   const allCell = computeCell(trades, minN);
-  const publishedEquivCostR = PUBLISHED_FLAT_COST_PCT / RISK_PER_TRADE_PCT; // 0.02R
-  const realAvgCostR = allCell.avgCostR;
 
   console.log('\n=== RE-COST + SEGMENT (read-only) ===');
   console.log(`rows fetched: ${rows.length} | counted trades: ${trades.length} | dropped (not counted): ${droppedNotCounted} | dropped (no SL / unsized): ${droppedNoSl}`);
   console.log(`window: ${days ? days + ' days' : 'all history'} | conclusive threshold: n >= ${minN}`);
-  console.log(`\nCost reality check (ALL symbols, ALL band):`);
-  console.log(`  published flat cost  : ${publishedEquivCostR.toFixed(4)} R/trade  (0.02% equity)`);
-  console.log(`  REAL avg cost        : ${realAvgCostR.toFixed(4)} R/trade  (${(realAvgCostR / publishedEquivCostR).toFixed(1)}x the published charge)`);
-  console.log(`  gross expectancy     : ${allCell.grossExpectancyR.toFixed(4)} R/trade`);
-  console.log(`  NET expectancy       : ${allCell.netExpectancyR.toFixed(4)} R/trade  ${allCell.netExpectancyR > 0 ? 'POSITIVE' : 'negative'}`);
-  console.log(`  net return / maxDD   : ${allCell.netReturnPct}% / -${allCell.maxDrawdownPct}%`);
+  console.log('\n' + formatRecostCostRealityLines(allCell, {
+    legacyFlatCostPct: LEGACY_FLAT_COST_PCT,
+    riskPerTradePct: RISK_PER_TRADE_PCT,
+  }).join('\n'));
 
   console.log(`\nPer asset-class x band (net expectancy R after REAL cost):`);
   const header = ['class', 'band', 'n', 'win%', 'grossR', 'NETr', 'costR', 'netRet%', 'maxDD%', 'flag'];
@@ -416,20 +412,13 @@ async function main() {
     }
   }
 
-  const survivors = results.filter(r => r.conclusive && r.netExpectancyR > 0);
   console.log(`\n=== VERDICT ===`);
-  if (survivors.length === 0) {
-    console.log('No asset-class x band cell clears its own cost at n >= ' + minN + '.');
-    console.log('Selectivity does not rescue net edge at real cost — escalate to a different edge source.');
-  } else {
-    console.log('Subsets that CLEAR their real cost (net-positive, n >= ' + minN + '):');
-    for (const s of survivors.sort((a, b) => b.netExpectancyR - a.netExpectancyR)) {
-      console.log(`  ${s.assetClass}/${s.band}: net ${s.netExpectancyR.toFixed(4)} R/trade, n=${s.n}, win ${s.winRatePct}%, netRet ${s.netReturnPct}%`);
-    }
+  for (const line of formatRecostVerdictLines(results, minN)) {
+    console.log(line);
   }
 
   if (jsonPath) {
-    fs.writeFileSync(jsonPath, JSON.stringify({ window: days, minN, all: allCell, cells: results }, null, 2));
+    fs.writeFileSync(jsonPath, JSON.stringify(buildRecostJsonReport({ window: days, minN, all: allCell, cells: results }), null, 2));
     console.log(`\nWrote ${jsonPath}`);
   }
 }
