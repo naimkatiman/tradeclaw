@@ -1,29 +1,40 @@
 import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
-
-const TodayClient = dynamic(
-  () => import('./TodayClient').then(m => ({ default: m.TodayClient })),
-  {
-    loading: () => (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    ),
-  },
-);
+import { cookies } from 'next/headers';
+import { Navbar } from '../components/navbar';
+import { DailyCheckScreen } from './DailyCheckScreen';
+import { loadPublishedRecords } from '../../lib/daily-check-evidence';
+import {
+  buildDailyCheck,
+  DAILY_FOLLOWS_COOKIE,
+  DAILY_PREVIOUS_COOKIE,
+  parseFollowList,
+  parsePreviousObservation,
+} from '../../lib/daily-check';
 
 export const metadata: Metadata = {
-  title: "Today's Signal — TradeClaw",
-  description:
-    "The highest rule score among the latest available provider-backed signal candidates. It is not a calibrated probability or trade recommendation.",
-  openGraph: {
-    title: "Signal of the Day — TradeClaw",
-    description:
-      "The latest candidate with the highest mechanical rule score, with its indicator inputs and evidence boundary.",
-    type: 'website',
-  },
+  title: "Today's check — TradeClaw",
+  description: 'What changed in the published cost-adjusted record since the last look on this device.',
 };
 
-export default function TodayPage() {
-  return <TodayClient />;
+export default async function TodayPage() {
+  const jar = await cookies();
+  const follows = parseFollowList(jar.get(DAILY_FOLLOWS_COOKIE)?.value);
+  const previous = parsePreviousObservation(jar.get(DAILY_PREVIOUS_COOKIE)?.value);
+  let records = [] as Awaited<ReturnType<typeof loadPublishedRecords>>;
+  let status: 'ready' | 'empty' | 'error' = 'ready';
+  try {
+    records = await loadPublishedRecords();
+    status = records.length === 0 ? 'empty' : 'ready';
+  } catch {
+    status = 'error';
+    records = [];
+  }
+  const result = buildDailyCheck({ records, previous, follows, status });
+
+  return (
+    <>
+      <Navbar variant="minimal" />
+      <DailyCheckScreen records={records} previous={previous} initialResult={result} />
+    </>
+  );
 }
