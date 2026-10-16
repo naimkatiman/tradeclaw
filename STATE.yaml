@@ -1,11 +1,1938 @@
 project: tradeclaw
-updated: 2026-07-15T14:31:11+08:00
+updated: 2026-08-29T12:16:19+08:00
+
+github_social_preview_2026_08_29:
+  at: 2026-08-29T12:14:15+08:00
+  checkpoint: "2026-08-29 12:14 MPST (+0800)"
+  agent: TradeClaw PM agent
+  status: done
+  verified_at: 2026-08-29T12:16:19+08:00
+  scope: GitHub repository social-preview settings update
+  asset: docs/assets/social-preview.png
+  asset_bytes: 348960
+  asset_dimensions: 1280x640
+  asset_sha256: 90295225dcd215ece4d61d78b825d1a08155d10a3aec128704bd59d738009290
+  github_repository: https://github.com/naimkatiman/tradeclaw
+  github_open_graph_image_url: https://repository-images.githubusercontent.com/1187676985/7a5013a5-7334-407e-88c4-5e941286df17
+  notes: >
+    Owner approved the GitHub settings upload. The existing evidence-instrument
+    card now represents TradeClaw when the repository URL is shared. The About
+    description, homepage, topics, source tree, application, Docker flow,
+    database, auth, trading rules, and production deployment were unchanged.
+    The broad dirty feat/premium-ui-overhaul checkout was not published.
+  verification: >
+    GitHub accepted the PNG through repository Settings after Chrome file access
+    was enabled. An authenticated GraphQL read-back reports
+    usesCustomOpenGraphImage=true and returns the repository image URL above.
+    A fresh public repository-page read returns the same URL in its og:image
+    metadata, confirming the share surface is active.
+    Local ffprobe confirms 1280x640; the uploaded source is 348,960 bytes with
+    the exact SHA-256 recorded above. No commit, push, PR, CI run, application
+    build, or deployment was performed.
+
+evidence_first_product_release_2026_08_29:
+  at: 2026-08-29T02:43:37+08:00
+  checkpoint: "2026-08-29 02:43 MPST (+0800)"
+  agent: TradeClaw PM agent
+  status: deployed
+  scope: Clean GitHub release and exact-merge Railway deployment of the verified evidence-first public-product slice
+  base_commit: 6342eb8c718d27ec5aa1b9246ac2714a90e1da0f
+  implementation_pull_request: 221
+  implementation_merge_commit: 2e5fbd77b9a1bcbd34e8f836e243962d65fa038b
+  state_pull_request: 222
+  final_main_commit: ca926f91c298c92fd0643f52adf6c02f23971d70
+  deployment_id: 8b8e2a9b-abba-4ea3-8c20-9641b8c9693d
+  image_digest: sha256:be5760d463357ab12a3d88241c6bfe85d2c8495b33994a227b7420b366303a28
+  application_build_id: 8b2f19be-a194-4ed4-aa26-05de2956d5e0
+  current_step: Complete; protected PRs #221 and #222 are merged and exact final main is deployed and live-verified on Railway production
+  notes: >
+    Owner explicitly authorized commit, push, merge, and deployment. The broad
+    dirty feat/premium-ui-overhaul checkout remains excluded from publication.
+    The published release contains only STATE.yaml and apps/web paths from the
+    verified Evidence/Lab/Build product slice. The dashboard is now a failed-
+    gate research-candidate feed without Telegram or trading-action controls;
+    public navigation, localized positioning, screener/backtest defaults,
+    evidence analytics, read-only candidate provenance, redirects, and the
+    25-URL sitemap follow the inspect-test-reproduce journey. Existing observed,
+    retrospective modeled-study, and append-only prospective-ledger boundaries
+    remain separate. Docker Compose, PostgreSQL, admin/auth, trading rules,
+    broker execution, and the broad dirty feature checkout were not published.
+  verification: >
+    Clean-worktree typecheck, lint, focused and full Jest, strategy tests,
+    production browser checks, publication/credential audit, Docker build, and
+    mandatory root builds passed; the final local and Railway builds generated
+    325/325 pages. PR #221 final CI run 33197416809 passed all six required jobs
+    and squash-merged as 2e5fbd77. State-only PR #222 run 33198745180 plus the
+    welcome gate passed all seven checks and squash-merged as exact final main
+    ca926f91; each reviewed head tree matched its squash-merge tree. Railway web
+    deployment 8b8e2a9b reached SUCCESS. Startup reports 56 migrations applied,
+    zero pending, and no bounded runtime errors or HTTP 5xx. /api/health and
+    /api/v1/health return 200 with database and migration 054 healthy. Nineteen
+    focused public routes return 200; five retired paths return the intended 308
+    redirects; sitemap.xml contains exactly 25 intentional URLs. Live Chromium
+    confirms the Evidence/Lab/Build navigation, negative-after-costs homepage,
+    not-deployable candidate verdict, zero Telegram/action links, truthful
+    screener and BTCUSD D1 modeled-backtest defaults, correct es/zh-CN/ms/ar
+    lang and Arabic RTL, zero browser console/page errors, and no horizontal
+    overflow at 1440 or 390 pixels. The repaired /earningsedge/pricing redirect
+    lands on /research at clientWidth=390 and scrollWidth=390.
+
+evidence_first_product_cleanup_2026_08_28:
+  at: 2026-08-28T20:34:09+08:00
+  checkpoint: "2026-08-28 20:34 MPST (+0800)"
+  agent: TradeClaw PM agent
+  status: done
+  scope: Evidence-first public positioning, navigation, candidate feed, first-use lab value, and public-page focus
+  current_step: Complete locally and verified; awaiting an intentional clean release decision
+  notes: >
+    User confirmed the redesign direction: preserve the existing emerald evidence
+    system while organizing public value around Evidence, Lab, and Build. The v0
+    changes the homepage promise and five-step journey, reduces public navigation
+    to Evidence, Lab, and Build, and places a failed-gate verdict before dashboard
+    controls. Candidate cards no longer expose entry/target ladders or action/share
+    controls. Screener defaults now disclose 6/37 provider-backed coverage and treat
+    zero matches as evidence. Backtest defaults now run BTCUSD D1 against 299 Binance
+    bars with the actual modeled cost configuration and fixed disclosed geometry.
+    Added real Studies and Prospective Ledger pages; individual record URLs are now
+    read-only observation provenance with no alert, target, chart-overlay, AI-analysis,
+    sharing, embed, or execution actions. Removed Track Record Telegram/share/embed/
+    leaderboard CTAs. Localized landing pages now lead with the failed cost-adjusted
+    gate and the inspect-test-reproduce journey. The sitemap is 25 intentional URLs
+    instead of 91, and legacy action, paid-tier, gamification, duplicate tool, widget,
+    and campaign routes redirect into the focused public journey. Evidence analytics
+    now capture artifact downloads, record inspections, methodology views, completed
+    screener scans, and completed backtests. Candidate cards and the raw outcome
+    table no longer carry cost-unadjusted win-rate or accuracy badges, and the
+    dashboard and screener use candidate/evidence language in all five locales.
+    No admin, auth, database, trading-rule, broker, Docker Compose, dependency,
+    lockfile, commit, deployment, or remote state changed.
+  verification: >
+    Final web typecheck and focused ESLint pass with zero findings. Focused Jest
+    passes 3 suites / 29 tests covering the 25-URL sitemap, all five localized
+    dictionaries, and public release-blocker surfaces. Chromium Playwright passes
+    42/42 navigation, localization, evidence-page, screener, dashboard, and backtest
+    checks. All 25 sitemap URLs return below 400; representative retired surfaces
+    return permanent redirects to Evidence, Lab, or Build. Direct desktop/mobile
+    checks pass candidate-language and zero-horizontal-overflow assertions. The
+    final root production build passes and generates 326/326 pages. Existing
+    non-blocking warnings remain for the middleware-to-proxy deprecation, three
+    Turbopack NFT traces through trading-agent research routes, Node url.parse,
+    and edge-runtime static generation. No commit, push, PR, deployment, or
+    production mutation was performed.
+
+readme_hygiene_visibility_2026_08_22:
+  at: 2026-08-22T10:35:31+08:00
+  checkpoint: "2026-08-22 10:35 MPST (+0800)"
+  agent: TradeClaw operator
+  status: done
+  scope: Repo hygiene plus README/visuals aligned to the live free research product
+  current_step: Complete locally; not committed or pushed
+  notes: >
+    Canonical English README now leads with the 2026-08-22 hosted finding
+    (4,708 sized signals, 0.00R gross, -0.56R net, modeled sequential -100%)
+    and drops Pricing/Pro upsell. ja/ko/zh files carry a canonical-English
+    notice. Imagine stills seeded from the existing evidence instruments;
+    image_to_video was blocked (ZDR requires output.upload_url), so the
+    18s reel is Ken Burns from those stills. Transients ignored:
+    .playwright-mcp/, /tmp/, web Playwright report/test-results.
+    Broad dirty feat/premium-ui-overhaul product dump was not bundled.
+  verification: >
+    Live equity summary re-fetched 2026-08-22. Social preview wordmark is
+    ffmpeg-composited exact text. README links target public research
+    surfaces. New assets live under docs/assets/.
+
+regime_expectancy_json_path_preflight_2026_08_08_1754:
+  at: 2026-08-08T17:54:01+08:00
+  checkpoint: "2026-08-08 17:54 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Regime-expectancy CLI JSON output path preflight inside the existing read-only research lane
+  current_step: Complete; invalid --json output paths fail before DB connection or artifact writes
+  notes: >
+    Stayed inside the existing regime-expectancy research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    validateJsonOutputPath(...) in scripts/research/regime-expectancy-study.ts
+    now runs after --help and before connect(), rejecting missing parent
+    directories, parent paths that are existing files, and existing-directory
+    targets before opening the database/credential path or writing local JSON.
+    Valid local file paths still proceed to the no-credentials fail-closed
+    boundary without artifact creation. Latest branch posture: upstream f6ddc185,
+    origin/main 58eee2b9, HEAD...upstream 0/0, HEAD...origin/main 37/61,
+    merge-base 524fc44a, local/origin-main path overlap 15,
+    dirty/origin-main overlap 140, dirty inventory 168 rows (103 tracked
+    modified, 3 tracked deleted, 62 untracked). No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation,
+    or live research activation changed.
+  verification: >
+    RED focused missing-parent Jest exited 1 before the source patch; focused
+    regime-expectancy CLI Jest passed 5/5 in 1.817s; adjacent regime lane Jest
+    passed 5 suites / 101 tests in 54.397s; scoped regime TypeScript passed;
+    target diff-check/no-index checks had LF/CRLF warnings only and no whitespace
+    errors; full root Jest passed 219 suites with 3 skipped and 1,868 tests with
+    26 skipped in 93.517s; websocket auth Vitest passed 4/4 in 944ms; web
+    typecheck passed; lint passed with 0 errors and 23 warnings; root build
+    passed with Next 16.2.6 and 324/324 static pages; source/test/config pygount
+    reported 1,523 files / 146,396 code / 15,086 comments; dashboard quick
+    tunnel still failed DNS with curl exit 6; local Hermes telemetry showed
+    1,071 sessions / 1,863,642,754 tokens with provider weekly quota percentage
+    unavailable; independent delegated verifier passed on live files, focused
+    Jest, scoped TypeScript, target diff/no-index checks, and status inventory.
+    No retiering or cron edit occurred.
+
+regime_study_json_option_token_guard_2026_08_06_0549:
+  at: 2026-08-06T05:49:31+08:00
+  checkpoint: "2026-08-06 05:49 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Regime-study CLI option-token JSON path source guard inside the existing read-only research lane
+  current_step: Complete; option-looking --json values fail before ambiguous research artifact paths
+  notes: >
+    Stayed inside the existing regime-expectancy research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    parseCliArgs(...) in scripts/research/regime-study-assembly.ts now rejects
+    --json values starting with '-' (for example --days) as a missing JSON value
+    before accepting a flag token as an artifact path. Existing duplicate
+    singleton flag guards, blank --json guard, defaults, and --help behavior
+    remain unchanged. Latest branch posture: upstream a721b15c, origin/main
+    81a5f3f3, HEAD...upstream 13/0, HEAD...origin/main 33/59, merge-base
+    524fc44a, local/origin-main path overlap 10, dirty/origin-main overlap 137,
+    dirty inventory 162 rows (102 tracked modified, 3 tracked deleted, 57
+    untracked). No web runtime behavior, production trading rule, DB/schema,
+    auth/billing, deployment, cron, secret, dependency, lockfile, push, merge,
+    rebase, reset, Docker runtime operation, or live research activation changed.
+  verification: >
+    RED focused option-token Jest exited 1 before the source patch; GREEN
+    focused option-token Jest passed 1 selected test in 0.634s; focused regime
+    assembly Jest passed 44/44 in 0.554s; adjacent regime lane Jest passed 4
+    suites / 96 tests in 49.237s; scoped regime TypeScript passed; full root
+    Jest passed 218 suites with 3 skipped and 1,863 tests with 26 skipped in
+    111.597s; websocket auth Vitest passed 4/4 in 798ms; web typecheck passed;
+    lint passed with 0 errors and 23 warnings; root build passed with Next
+    16.2.6 and 324/324 static pages; source/test/config pygount reported 1,522
+    files / 146,284 code / 15,078 comments; dashboard quick tunnel still failed
+    DNS with curl exit 6; local Hermes telemetry showed 1,320 sessions /
+    2,795,392,441 tokens with provider weekly quota percentage unavailable;
+    independent delegated verifier passed on the live source/test diff, focused
+    Jest, scoped TypeScript, and source diff-check. No retiering or cron edit
+    occurred.
+
+regime_study_cli_singleton_guard_2026_08_05_2341:
+  at: 2026-08-05T23:41:16+08:00
+  checkpoint: "2026-08-05 23:41 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Regime-study CLI singleton-argument source guard inside the existing read-only research lane
+  current_step: Complete; duplicate singleton flags and blank --json values fail before ambiguous research artifacts
+  notes: >
+    Stayed inside the existing regime-expectancy research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    parseCliArgs(...) in scripts/research/regime-study-assembly.ts now rejects
+    duplicate --days, --min-n, and --json flags with a controlled duplicate
+    argument error, and rejects whitespace-only --json paths before accepting an
+    artifact destination. Existing defaults and --help behavior remain unchanged.
+    Latest branch posture: upstream a721b15c, origin/main 81a5f3f3,
+    HEAD...upstream 13/0, HEAD...origin/main 33/59, merge-base 524fc44a,
+    local/origin-main path overlap 10, dirty/origin-main overlap 137, dirty
+    inventory 162 rows (102 tracked modified, 3 tracked deleted, 57 untracked).
+    No web runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED focused duplicate/blank CLI Jest exited 1 before the source patch;
+    focused regime assembly Jest passed 43/43 in 0.66s; adjacent regime lane
+    Jest passed 4 suites / 95 tests in 52.330s; scoped regime TypeScript passed;
+    full root Jest passed 218 suites with 3 skipped and 1,862 tests with 26
+    skipped in 110.812s; websocket auth Vitest passed 4/4 in 1.56s; web
+    typecheck passed; lint passed with 0 errors and 23 warnings; root build
+    passed with Next 16.2.6 and 324/324 static pages; source/test/config pygount
+    reported 1,522 files / 146,281 code / 15,078 comments; dashboard quick
+    tunnel still failed DNS with curl exit 6; local Hermes telemetry showed 1,326
+    sessions / 2,809,919,001 tokens with provider weekly quota percentage
+    unavailable; independent delegated verifier passed on the live source/test diff,
+    focused Jest, scoped TypeScript, board row/successor, and status inventory. No
+    retiering or cron edit occurred.
+
+regime_study_self_contained_ema_2026_08_05_1808:
+  at: 2026-08-05T18:08:09+08:00
+  checkpoint: "2026-08-05 18:08 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Regime-study self-contained EMA source gate inside the existing read-only research lane
+  current_step: Complete; regime-study assembly no longer imports untracked slow-gate helper
+  notes: >
+    Stayed inside the existing regime-expectancy research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Branch-local HEAD d7342ecf removes the import of untracked
+    ./slow-gate-assembly and inlines the small emaSeries(values, period) helper in
+    scripts/research/regime-study-assembly.ts, preserving the existing EMA200
+    alignment/classification contract while making the local branch self-contained.
+    Latest branch posture: upstream a721b15c, origin/main 705c5268,
+    HEAD...upstream 13/0, HEAD...origin/main 33/58, merge-base 524fc44a,
+    local/origin-main path overlap 10, dirty/origin-main overlap 137, dirty
+    inventory 160 rows (100 tracked modified, 3 tracked deleted, 57 untracked). No
+    web runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    Focused regime assembly Jest passed 39/39 in 0.562s; adjacent regime lane
+    Jest passed 4 suites / 91 tests in 51.999s; scoped regime TypeScript passed;
+    full root Jest passed 218 suites with 3 skipped and 1,858 tests with 26
+    skipped in 114.578s; websocket auth Vitest passed 4/4 in 496ms; web
+    typecheck passed; lint passed with 0 errors and 23 warnings; root build
+    passed with Next 16.2.6 and 324/324 static pages; focused pygount reported
+    1,522 files / 146,264 code / 15,078 comments; dashboard quick tunnel still
+    failed DNS with curl exit 6; local Hermes telemetry showed 1,318 sessions /
+    2,813,785,119 tokens with provider weekly quota percentage unavailable; and
+    independent delegated verifier passed on live HEAD d7342ecf with focused and
+    adjacent Jest plus scoped TypeScript. No retiering or cron edit occurred.
+
+recost_report_duplicate_cell_guard_2026_08_05_1137:
+  at: 2026-08-05T11:37:26+08:00
+  checkpoint: "2026-08-05 11:37 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Recost report duplicate-cell JSON guard inside the existing read-only research helper lane
+  current_step: Complete; duplicate asset-class/band JSON report cells now fail before artifact serialization
+  notes: >
+    Stayed inside the existing recost/slow-regime research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is a721b15c, origin/main is 705c5268, and
+    HEAD...origin/main is 20/58. Added a set-based assetClass/band key guard to
+    assertValidJsonReportCells(...) so buildRecostJsonReport(...) rejects
+    duplicated cell identities such as crypto/all at index 1 before writing or
+    consuming an ambiguous JSON artifact. Valid reports preserve the existing
+    window/minN/all/cells shape and prior envelope/stats/cost/verdict guards. No
+    web runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED focused duplicate-cell Jest exited 1 before the source patch. GREEN
+    focused duplicate-cell Jest exited 0 with 1 passed and 39 skipped in 0.577s,
+    full recost-report Jest passed 40/40 in 0.58s, recost lane Jest passed 65/65
+    in 10.921s, scoped recost TypeScript passed, CLI no-DB boundary probes
+    behaved as expected, full root Jest passed 217 suites and 1,819 tests with
+    26 skips in 119.861s, focused websocket auth Vitest passed 4/4 in 502ms,
+    web typecheck passed, lint passed with 0 errors and 23 warnings, root build
+    passed, focused pygount reported 1,477 files / 141,440 code / 14,849
+    comments, dashboard quick tunnel still failed DNS with curl exit 6, Hermes
+    local telemetry showed 1,315 sessions / 2,812,410,387 tokens with provider
+    weekly quota percentage unavailable, and independent delegated verifier
+    passed on focused duplicate-cell Jest, full recost-report Jest, and scoped
+    TypeScript. No retiering or cron edit occurred.
+
+recost_report_json_stats_guard_2026_08_05_0542:
+  at: 2026-08-05T05:42:06+08:00
+  checkpoint: "2026-08-05 05:42 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Recost report JSON stats/cell guard inside the existing read-only research helper lane
+  current_step: Complete; malformed all/cells JSON report stats now fail before artifact serialization
+  notes: >
+    Stayed inside the existing recost/slow-regime research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is ce00dea0, origin/main is 705c5268, and
+    HEAD...origin/main is 19/58. Added buildRecostJsonReport(...) boundary
+    assertions for the all stats object and each cells[] row, including cell
+    assetClass/band domain checks and numeric/boolean stat validation. Valid
+    reports preserve the existing window/minN/all/cells shape. No web runtime
+    behavior, production trading rule, DB/schema, auth/billing, deployment,
+    cron, secret, dependency, lockfile, push, merge, rebase, reset, Docker
+    runtime operation, or live research activation changed.
+  verification: >
+    RED focused malformed-stats Jest exited 1 before the source patch. GREEN
+    focused malformed-stats Jest exited 0 with 9 passed and 30 skipped, full
+    recost-report Jest passed 39/39, recost lane Jest passed 64/64 in 10.955s,
+    scoped recost TypeScript passed, CLI no-DB boundary probes behaved as
+    expected, full root Jest passed 217 suites and 1,818 tests with 26 skips in
+    115.666s, focused websocket auth Vitest passed 4/4 in 484ms, web typecheck
+    passed, lint passed with 0 errors and 23 warnings, root build passed, focused
+    pygount reported 1,477 files / 141,431 code / 14,849 comments, dashboard
+    quick tunnel still failed DNS with curl exit 6, and independent delegated
+    verifier passed with runtime metadata gpt-5.4-mini (parent did not
+    select/pin child tier per call). Provider quota denominator remains
+    unavailable from local Hermes telemetry, so no retiering or cron edit
+    occurred.
+
+recost_report_json_envelope_guard_2026_08_04_2344:
+  at: 2026-08-04T23:44:18+08:00
+  checkpoint: "2026-08-04 23:44 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Recost report JSON artifact envelope guard inside the existing read-only research helper lane
+  current_step: Complete; invalid JSON report window/minN envelope controls now fail before artifact serialization
+  notes: >
+    Stayed inside the existing recost/slow-regime research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is ce00dea0, origin/main is 705c5268, and
+    HEAD...origin/main is 19/58. Added assertValidJsonReportWindow(...) and
+    assertValidJsonReportMinN(...) so buildRecostJsonReport(...) rejects zero,
+    negative, decimal, infinite, and unsafe integer window/minN controls before
+    writing or consuming a malformed JSON artifact. Valid reports preserve the
+    existing window/minN/all/cells shape, and null window remains valid. No web
+    runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED focused JSON-envelope Jest exited 1 before the source patch. GREEN
+    focused JSON-envelope Jest exited 0 and independent rerun reported 8/30 with
+    22 skips in 0.533s, recost lane Jest passed 55/55 in 9.107s, scoped recost
+    TypeScript passed, CLI no-DB boundary probes behaved as expected, full root
+    Jest passed 217 suites and 1,809 tests with 26 skips in 125.315s, focused
+    websocket auth Vitest passed 4/4 in 1.70s, web typecheck passed, lint passed
+    with 0 errors and 23 warnings, root build passed, focused pygount reported
+    1,477 files / 141,370 code / 14,849 comments, dashboard quick tunnel still
+    failed DNS with curl exit 6, and independent delegated verifier passed with
+    runtime metadata gpt-5.4-mini (parent did not select/pin child tier per
+    call). Provider quota denominator remains unavailable from local Hermes
+    telemetry, so no retiering or cron edit occurred.
+
+recost_report_cost_reality_option_guard_2026_08_04_1805:
+  at: 2026-08-04T18:05:00+08:00
+  checkpoint: "2026-08-04 18:05 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Recost report cost-reality comparator option guard inside the existing read-only research helper lane
+  current_step: Complete; invalid cost-reality comparator options now fail before formatter output
+  notes: >
+    Stayed inside the existing recost/slow-regime research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated; latest branch
+    head is ce00dea0, origin/main is 705c5268, and HEAD...origin/main is 19/58
+    after origin/main advanced. Added assertPositiveFiniteCostOption(...) so
+    formatRecostCostRealityLines(...) rejects zero, negative, infinite, and NaN
+    legacyFlatCostPct/riskPerTradePct comparator values before printing cost
+    reality lines; valid defaults and positive comparator values keep the existing
+    legacy 0.02% baseline and risk-sized cost math. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED focused invalid-option Jest exited 1 before the source patch. GREEN
+    focused cost-reality Jest passed 6/22 with 16 skips in 0.532s, full
+    recost-report Jest passed 22/22 in 0.548s, recost lane Jest passed 47/47 in
+    9.271s, scoped recost TypeScript passed, full root Jest passed 217 suites and
+    1,801 tests with 26 skips in 112.227s, websocket Vitest passed 36/36 in
+    1.39s, web typecheck passed, lint passed with 0 errors and 23 warnings, root
+    build passed, focused pygount reported 1,477 files / 141,337 code / 14,849
+    comments, dashboard quick tunnel still failed DNS with curl exit 6, and
+    independent delegated verifier passed (model tier not selectable/confirmed). Provider quota
+    denominator remains unavailable from local Hermes telemetry, so no retiering
+    or cron edit occurred.
+
+recost_report_verdict_min_n_argument_guard_2026_08_04_1147:
+  at: 2026-08-04T11:47:44+08:00
+  checkpoint: "2026-08-04 11:47 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Recost report verdict minimum-sample threshold argument guard inside the existing read-only research helper lane
+  current_step: Complete; invalid verdict minN values now fail before formatting winners and below-threshold cells remain suppressed
+  notes: >
+    Stayed inside the existing recost/slow-regime research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is ce00dea0, origin/main is bfa4ff80, and
+    HEAD...origin/main is 19/52 after the new daily-standup support commit moved
+    the local feature head. Added assertValidVerdictMinN(...) so
+    formatRecostVerdictLines(...) rejects zero, negative, decimal, infinite, and
+    unsafe verdict thresholds before producing an operator-facing header; the
+    formatter still rechecks cell.n >= minN after the clearing-cell result-domain
+    filter so stale conclusive metadata below the requested sample threshold does
+    not print as clearing real cost. No web runtime behavior, production trading
+    rule, DB/schema, auth/billing, deployment, cron, secret, dependency,
+    lockfile, push, merge, rebase, reset, Docker runtime operation, or live
+    research activation changed.
+  verification: >
+    RED focused invalid-minN/minimum-threshold Jest exited 1 before the source
+    patch. GREEN focused threshold Jest passed 6/16 with 10 skips in 0.592s,
+    recost lane Jest passed 41/41 in 11.038s, scoped recost TypeScript passed,
+    full root Jest passed 217 suites and 1,795 tests with 26 skips in 127.391s,
+    websocket Vitest passed 36/36 in 1.39s, web typecheck passed, lint passed
+    with 0 errors and 23 warnings, root build passed, focused pygount reported
+    1,477 files / 141,313 code / 14,849 comments, dashboard quick tunnel still
+    failed DNS with curl exit 6, and independent delegated source/test verifier
+    passed. Provider quota denominator remains unavailable from local Hermes
+    telemetry, so no retiering or cron edit occurred.
+
+
+recost_report_min_n_verdict_guard_2026_08_04_0553:
+  at: 2026-08-04T05:53:50+08:00
+  checkpoint: "2026-08-04 05:53 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Recost report verdict minimum-sample threshold guard inside the existing read-only research helper lane
+  current_step: Complete; stale conclusive recost cells below the requested minN no longer print under representative verdict headers
+  notes: >
+    Stayed inside the existing recost/slow-regime research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is cf570ee0, origin/main is bfa4ff80, and
+    HEAD...origin/main is 18/52. Added a RED/GREEN guard so
+    formatRecostVerdictLines(...) rechecks cell.n >= minN after the existing
+    clearing-cell result-domain filter, preventing stale conclusive metadata from
+    printing an under-threshold subset as clearing real cost. No web runtime
+    behavior, production trading rule, DB/schema, auth/billing, deployment, cron,
+    secret, dependency, lockfile, push, merge, rebase, reset, Docker runtime
+    operation, or live research activation changed.
+  verification: >
+    RED focused minimum-sample-threshold Jest exited 1 before the source patch
+    because the old formatter printed n=80 under an n>=100 header. GREEN focused
+    threshold Jest passed 1/11 with 10 skips in 0.547s, recost lane Jest passed
+    36/36, scoped recost TypeScript passed, full root Jest passed 217 suites and
+    1,790 tests with 26 skips, websocket Vitest passed 36/36, web typecheck
+    passed, lint passed with 0 errors and 23 warnings, root build passed, focused
+    pygount reported 1,477 files / 141,299 code / 14,849 comments, dashboard
+    quick tunnel still failed DNS with curl exit 6, and independent delegated
+    verifier passed (model tier not selectable/confirmed). Provider quota
+    denominator remains unavailable from local Hermes telemetry, so no retiering
+    or cron edit occurred.
+
+
+recost_report_result_domain_guard_2026_08_03_2340:
+  at: 2026-08-03T23:40:43+08:00
+  checkpoint: "2026-08-03 23:40 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Recost report clearing-cell result-domain guard inside the existing read-only research helper lane
+  current_step: Complete; malformed conclusive recost cells no longer clear real-cost verdicts
+  notes: >
+    Stayed inside the existing recost/slow-regime research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is cf570ee0, origin/main is bfa4ff80, and
+    HEAD...origin/main is 18/52. Added a RED/GREEN guard so recost clearing-cell
+    verdicts reject impossible result-domain artifacts (unsafe or negative sample
+    counts, NaN win rates, negative costs, malformed drawdowns) before ranking or
+    printing them as real-cost survivors. No web runtime behavior, production
+    trading rule, DB/schema, auth/billing, deployment, cron, secret, dependency,
+    lockfile, push, merge, rebase, reset, Docker runtime operation, or live
+    research activation changed.
+  verification: >
+    RED focused malformed-cell Jest exited 1 before the source patch because the
+    old clearing-cell filter could admit malformed conclusive positive cells.
+    GREEN focused malformed-cell Jest passed 1/10 with 9 skips in 0.463s, recost
+    lane Jest passed 35/35, scoped recost TypeScript passed, full root Jest passed
+    217 suites and 1,789 tests with 26 skips, websocket Vitest passed 36/36, web
+    typecheck passed, lint passed with 0 errors and 23 warnings, root build
+    passed, focused pygount reported 1,477 files / 141,295 code / 14,849 comments,
+    dashboard quick tunnel still failed DNS with curl exit 6, and independent
+    gpt-5.4-mini verifier PASS. Provider quota denominator remains unavailable
+    from local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_cli_two_symbol_start_date_guard_2026_08_03_1232:
+  at: 2026-08-03T12:32:38+08:00
+  checkpoint: "2026-08-03 12:32 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate CLI two-symbol D1 start-date guard inside the existing read-only sandbox lane
+  current_step: Complete; two-symbol slow-gate studies now reject mismatched first D1 dates before classification/output
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is cf570ee0, origin/main is bfa4ff80, and
+    HEAD...origin/main is 18/52. Added a RED/GREEN CLI guard so BTCUSD+ETHUSD
+    two-sleeve studies require matching first and latest filtered D1 dates before
+    H1 loading, HMM classification, output writes, or registry appends. Existing
+    parser/date/fold/out/candles-dir, D1/H1 value-domain, timestamp/cadence,
+    H1 coverage, latest-tail-date, pure assembly, simulateDaily, metric, trend,
+    EMA, and vol-target behavior remains intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED focused start-date Jest exited 1 before the source patch because the old
+    CLI accepted mismatched first D1 dates and completed the study. GREEN focused
+    start-date Jest passed 1/40 with 39 skips in 0.866s, slow-gate lane passed
+    75/75, scoped slow-gate TypeScript passed, full root Jest passed 217 suites
+    and 1,787 tests with 26 skips, websocket Vitest passed 36/36, web typecheck
+    passed, lint passed with 0 errors and 23 warnings, root build passed, focused
+    pygount reported 1,477 files / 141,252 code / 14,849 comments, source/test
+    no-index checks returned expected rc=1 with LF/CRLF warning only, git diff
+    --check passed with warnings only, and secondary verifier PASS. Dashboard
+    quick tunnel still failed DNS with curl exit 6; provider quota denominator
+    remains unavailable from local Hermes telemetry, so no retiering or cron edit
+    occurred.
+
+slow_gate_daily_regime_h1_close_coverage_guard_2026_08_03_0759:
+  at: 2026-08-03T07:59:06+08:00
+  checkpoint: "2026-08-03 07:59 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly dailyRegimeSeries day-close H1 coverage guard inside the existing read-only sandbox lane
+  current_step: Complete; dailyRegimeSeries now rejects partial day-close H1 coverage before classifier input
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 697bae37, origin/main is bfa4ff80, and
+    HEAD...origin/main is 17/52 after origin/main advanced during the run. Added
+    a RED/GREEN pure assembly guard so dailyRegimeSeries requires each D1 day to
+    have the latest H1 bar exactly at the day-close hour before classifier input,
+    preventing partial intraday windows from returning a misleading day regime.
+    Existing classifier-label, warmup-null, unexpected-classifier rethrow,
+    timestamp/cadence, H1 value-domain, simulateDaily, metric, trend-gate, EMA,
+    vol-target, and CLI guard behavior remains intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED focused partial-H1 Jest exited 1 before the source patch because the old
+    pure assembly path accepted partial day-close H1 coverage. GREEN focused
+    partial-H1 Jest passed 1/35 with 34 skips in 0.471s, assembly Jest passed
+    35/35, slow-gate lane passed 74/74, scoped slow-gate TypeScript passed, full
+    root Jest passed 217 suites and 1,786 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed, focused pygount reported 1,477 files / 141,222 code /
+    14,849 comments, source/test no-index checks returned expected rc=1 with
+    LF/CRLF warning only, git diff --check passed with warnings only, and
+    secondary verifier PASS. Dashboard quick tunnel still failed DNS with curl
+    exit 6; provider quota denominator remains unavailable from local Hermes
+    telemetry, so no retiering or cron edit occurred.
+
+slow_gate_daily_regime_classifier_failure_guard_2026_08_02_1147:
+  at: 2026-08-02T11:47:16+08:00
+  checkpoint: "2026-08-02 11:47 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly dailyRegimeSeries classifier-failure guard inside the existing read-only sandbox lane
+  current_step: Complete; dailyRegimeSeries now preserves warmup nulls but rethrows unexpected classifier failures before returning a poisoned regime series
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 697bae37, origin/main is f9d6f5b4, and
+    HEAD...origin/main is 17/45. Added a RED/GREEN pure assembly guard so
+    dailyRegimeSeries still maps classifier warmup/insufficient-data failures to
+    null, but now rethrows unexpected classifier failures instead of silently
+    returning a poisoned regime series. Existing invalid classifier-label,
+    window-size, timestamp/cadence, H1 value-domain, simulateDaily, metric,
+    trend-gate, EMA, vol-target, and CLI guard behavior remains intact. No web
+    runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED focused classifier Jest exited 1 before the source patch because the old
+    dailyRegimeSeries catch swallowed an unexpected classifier Error and returned
+    null. GREEN focused classifier Jest passed 5/34 with 29 skips in 0.564s,
+    assembly Jest passed 34/34, slow-gate lane passed 73/73, scoped slow-gate
+    TypeScript passed, full root Jest passed 217 suites and 1,785 tests with 26
+    skips, websocket Vitest passed 36/36, web typecheck passed, lint passed with
+    0 errors and 23 warnings, root build passed, focused pygount reported 1,498
+    files / 142,690 code / 14,882 comments, source/test no-index checks returned
+    expected rc=1 with LF/CRLF warning only, git diff --check passed with
+    warnings only, and secondary verifier PASS. Dashboard quick tunnel still
+    failed DNS with curl exit 6; provider quota denominator remains unavailable
+    from local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_cli_date_range_characterization_2026_08_02_0547:
+  at: 2026-08-02T05:47:32+08:00
+  checkpoint: "2026-08-02 05:47 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate CLI date-range no-candle characterization inside the existing read-only sandbox lane
+  current_step: Complete; reversed and same-day date ranges are now pinned to fail before candle-file lookup or study execution
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is d1016071, origin/main is d87796cb, and
+    HEAD...origin/main is 16/41. Added test-only CLI characterization for
+    reversed and same-day date ranges using a nonexistent candles-dir boundary.
+    The test proves controlled Invalid date range wording plus no candle dump
+    lookup, HMM classifying log, written output, or stack trace. It passed
+    immediately because existing slow-gate CLI date parsing already rejects
+    fromTs >= toTs before candle-file access, so production/runtime source
+    changed none by this increment. No web runtime behavior, production trading
+    rule, DB/schema, auth/billing, deployment, cron, secret, dependency,
+    lockfile, push, merge, rebase, reset, Docker runtime operation, or live
+    research activation changed.
+  verification: >
+    Focused date-range Jest passed 2/39 with 37 skips in 1.279s, slow-gate lane
+    passed 72/72, scoped slow-gate TypeScript passed, full root Jest passed 217
+    suites and 1,784 tests with 26 skips, websocket Vitest passed 36/36, web
+    typecheck passed, lint passed with 0 errors and 23 warnings, root build
+    passed with Next 16.2.6 and 324/324 static pages, focused pygount reported
+    1,475 files / 141,065 code / 14,839 comments, source/test no-index check
+    returned expected rc=1 with LF/CRLF warning only, and secondary verifier
+    PASS. Dashboard quick tunnel still failed DNS with curl exit 6; provider
+    quota denominator remains unavailable from local Hermes telemetry, so no
+    retiering or cron edit occurred.
+
+phd_research_rebuild_2026_08_02_0111:
+  at: 2026-08-02T01:11:35+08:00
+  checkpoint: "2026-08-02 01:11:35 MPST (+0800)"
+  agent: TradeClaw PM agent
+  status: deployed_private_default_branch_ci_passed
+  scope: Replace the standalone tradeclaw-agent implementation with a research-valid doctoral baseline derived from the TradeClaw audit and APU proposal strategy
+  current_step: Complete; the replacement is merged to the private target repository, its state closure is merged, and exact-default-branch CI including Docker replay is green
+  target_repository: naimkatiman/tradeclaw-agent
+  target_visibility_observed: PRIVATE
+  implementation_merge_commit: 5cb16dde4bb19cff6f7dddd313ad41471ab5748a
+  final_default_commit: 8c893b5b939f6efd7fe9f3ab8d0043ec06c86665
+  pull_requests: [1, 2]
+  final_ci_run: 30720994423
+  working_copy: C:\Ai\tradeclaw-agent-import-20260802
+  notes: >
+    GitHub read-back identified naimkatiman/tradeclaw-agent as the intended
+    standalone repository. Zaky then authorized publication; the repository was
+    changed from PUBLIC to PRIVATE. A separate clean working copy was created so the
+    heavily dirty C:\Ai\tradeclaw checkout and its active research/localization
+    lanes remain untouched. Static inspection confirmed that the standalone
+    agent builds indicator histories through a deterministic seeded pseudo-random
+    generator and anchors only the final close to a current quote; displayed
+    confidence is a transformed hand score rather than a calibrated probability.
+    The legacy commit is now protected on local branch
+    archive/pre-phd-rebuild-20260802 and the replacement is isolated on
+    feat/phd-research-baseline. Root research documentation now defines observed
+    data or abstention, canonical event/availability time, purged walk-forward
+    evaluation, explicit costs, hash-verifiable experiments, a fail-closed gate,
+    doctoral research questions, APU eligibility facts, and public/private IP
+    boundaries. Personal application and employer-letter drafts remain held only
+    in ignored private-dossier/ and were not published.
+    Public-safe PR #1 merged the replacement to master at
+    5cb16dde4bb19cff6f7dddd313ad41471ab5748a. State-only closure PR #2 then
+    produced final default commit 8c893b5b939f6efd7fe9f3ab8d0043ec06c86665.
+    The replacement contains schema-v2 dataset
+    provenance, strict config parsing, mark-to-market risk, manifest-bound
+    annualization, a clean-code and positive-net evidence gate, full replay
+    before gate reporting, Docker build identity, 80 passing tests, public-safe
+    doctoral documents, and a negative observed-data baseline report. The final
+    8,760-bar BTCUSDT experiment replayed exactly and remained BLOCKED with
+    -34.82% net return and 38.33% maximum drawdown. This deployment is the private
+    GitHub research repository and verified Docker artifact path; it does not
+    authorize live trading, client money, or a hosted production service.
+  verification: >
+    npm check passed 11 files and 80 tests; typecheck and build passed; npm audit
+    reported 0 vulnerabilities; schema-v2 observed-data validation passed with
+    8,760 rows and no gaps/errors/warnings; final experiment core
+    e3cb748fcbf4f0f33a819651622cf113da10ddc1b5d9e9068253632e6eb1a377
+    replayed as aef9b7151f5f4c832c8d02e1309ca2aff9bcd4ceae078c847dec16e54d0e706a;
+    verify exited 0 and the expected BLOCKED gate exited 3. Docker is not
+    installed locally, but GitHub CI built the provenance-bound image and passed
+    its offline experiment/replay on the final master commit. Final master run
+    30720994423 passed Node 20, Node 22, and Docker jobs. GitHub reports the
+    remote as PRIVATE.
+  blocked_owner: null
+  blocker: null
+
+
+slow_gate_cli_h1_cadence_characterization_2026_08_02_0016:
+  at: 2026-08-02T00:16:00+08:00
+  checkpoint: "2026-08-02 00:16 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate CLI H1-cadence no-output characterization inside the existing read-only sandbox lane
+  current_step: Complete; irregular H1 candle cadence is now pinned by fixture-backed CLI characterization before HMM classification or registry writes
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is d1016071, origin/main is d87796cb, and
+    HEAD...origin/main is 16/41. Added test-only CLI characterization for a
+    BTCUSD-H1 candle dump with a 5,400,000ms H1 cadence gap at index 42. The test
+    proves controlled irregular-cadence wording and no classifying log, written
+    output, registry append, or stack trace. It passed immediately because the
+    existing slow-gate CLI loadDump/assertFiniteCandleRows path already enforces
+    H1 cadence, so production/runtime source changed none by this increment. No
+    web runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    Focused irregular-H1-cadence Jest passed 1/37 with 36 skips in 1.346s,
+    slow-gate lane passed 70/70, scoped slow-gate TypeScript passed, full root
+    Jest passed 217 suites and 1,782 tests with 26 skips, websocket Vitest passed
+    36/36, web typecheck passed, lint passed with 0 errors and 23 warnings, root
+    build passed with Next 16.2.6 and 324/324 static pages, focused pygount
+    reported 1,523 files / 144,151 code / 15,115 comments, source/test no-index
+    checks returned expected rc=1 with LF/CRLF warnings only, and secondary
+    verifier PASS. Dashboard quick tunnel still failed DNS with curl exit 6;
+    provider quota denominator remains unavailable from local Hermes telemetry,
+    so no retiering or cron edit occurred.
+
+slow_gate_h1_value_guard_2026_08_01_1739:
+  at: 2026-08-01T17:39:00+08:00
+  checkpoint: "2026-08-01 17:39 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly dailyRegimeSeries H1 value-domain guard inside the existing read-only sandbox lane
+  current_step: Complete; dailyRegimeSeries now rejects malformed H1 OHLC/volume values before classifier input
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is d1016071, origin/main is d87796cb, and
+    HEAD...origin/main is 16/41. Added fixture-backed pure assembly coverage and
+    minimal H1 value-domain validation so dailyRegimeSeries rejects NaN/non-finite
+    or non-positive OHLC prices, negative volume, and incoherent H1 OHLC ranges
+    before H1 window slicing, regime downsampling, or classifier calls. Existing
+    classifier window-size, timestamp/cadence, invalid-regime-label,
+    classifier-warmup-null, simulateDaily, metric, trend-gate, EMA, vol-target,
+    and prior CLI guard behavior remains intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED malformed-H1 focused Jest exited 1 before the source guard because the old
+    dailyRegimeSeries function did not throw for a NaN H1 close. GREEN focused
+    target passed 1/33 with 32 skips in 0.567s, assembly Jest passed 33/33,
+    slow-gate lane passed 69/69, scoped slow-gate TypeScript passed, full root
+    Jest passed 217 suites and 1,781 tests with 26 skips, websocket Vitest passed
+    36/36, web typecheck passed, lint passed with 0 errors and 23 warnings, root
+    build passed with Next 16.2.6 and 324/324 static pages, focused pygount
+    reported 1,496 files / 142,518 code / 14,872 comments, source/test
+    no-index checks returned expected rc=1 with LF/CRLF warnings only, final
+    live-contract verifier passed, and secondary verifier PASS. Dashboard quick tunnel still failed DNS with curl exit 6; provider quota
+    denominator remains unavailable from local Hermes telemetry, so no retiering or
+    cron edit occurred.
+
+slow_gate_daily_regime_series_daybars_cadence_guard_2026_08_01_1204:
+  at: 2026-08-01T12:04:00+08:00
+  checkpoint: "2026-08-01 12:04 MPST (+0800)"
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly dailyRegimeSeries dayBars/H1-cadence guard inside the existing read-only sandbox lane
+  current_step: Complete; dailyRegimeSeries now rejects non-daily dayBars and irregular H1 cadence before window slicing/downsampling or classifier calls
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is d1016071, origin/main is d87796cb, and
+    HEAD...origin/main is 16/41. Added fixture-backed pure assembly coverage and
+    minimal daily-cadence validation so dailyRegimeSeries rejects intraday one-hour
+    dayBars gaps and multi-day two-day gaps before H1 window slicing, regime
+    downsampling, or classifier calls. Existing classifier window-size,
+    safe-integer/strictly increasing timestamp wording, invalid-regime-label,
+    classifier-warmup-null, simulateDaily, metric, trend-gate, EMA, and vol-target
+    behavior remains intact. No web runtime behavior, production trading rule,
+    DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile, push,
+    merge, rebase, reset, Docker runtime operation, or live research activation
+    changed.
+  verification: >
+    RED dayBars-cadence focused Jest exited 1 before the source guard; detailed
+    failure output was unavailable after context compaction. GREEN focused target
+    passed 1/31 with 30 skips in 0.474s, slow-gate lane passed 68/68, scoped
+    slow-gate TypeScript passed, full root Jest passed 217 suites and 1,780 tests
+    with 26 skips, websocket Vitest passed 36/36, web typecheck passed, lint
+    passed with 0 errors and 23 warnings, root build passed with Next 16.2.6 and
+    324/324 static pages, git diff --check passed with LF/CRLF warnings only,
+    focused pygount reported 1,496 files / 142,477 code / 14,872 comments. Dashboard quick tunnel still failed DNS with
+    curl exit 6; provider quota denominator remains unavailable from local Hermes
+    telemetry, so no retiering or cron edit occurred.
+
+slow_gate_symbol_count_guard_2026_07_31_1750:
+  at: 2026-07-31T17:50:34+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate CLI symbol-count guard inside the existing read-only sandbox lane
+  current_step: Complete; unsupported lists longer than two symbols now fail before candle lookup or registry writes
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is be5445bd, origin/main is d87796cb, and
+    HEAD...origin/main is 15/41. Added fixture-backed CLI coverage and a minimal
+    symbol-count preflight so BTCUSD,ETHUSD,SOLUSD fails with controlled wording
+    before candle-file lookup, HMM classification, written output, or REGISTRY.md
+    appends. Existing one-symbol and two-symbol flows, empty/path-shaped/duplicate
+    symbol validation, date/output/candles-dir/fold/H1/candle/tail-date guards,
+    and single-symbol execution behavior remain intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED symbol-count focused Jest exited 1 before the source guard because the old
+    CLI accepted three symbols. GREEN focused target passed 1/36 with 35 skips in
+    708ms, slow-gate lane passed 65/65, scoped slow-gate TypeScript passed, full
+    root Jest passed 217 suites and 1,777 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused
+    pygount reported 1,475 files / 140,914 code / 14,839 comments. Dashboard quick
+    tunnel still failed DNS with curl exit 6; provider quota denominator remains
+    unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_two_symbol_tail_date_guard_2026_07_31_1158:
+  at: 2026-07-31T11:58:01+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate CLI two-symbol D1 tail-date guard inside the existing read-only sandbox lane
+  current_step: Complete; two-sleeve BTC+ETH studies now reject mismatched latest D1 dates before HMM classification or registry writes
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is be5445bd, origin/main is d87796cb, and
+    HEAD...origin/main is 15/41. Added fixture-backed CLI coverage and a minimal
+    D1 tail-date preflight so BTCUSD+ETHUSD two-sleeve portfolio runs fail when
+    filtered D1 dumps end on different calendar dates, before HMM classification
+    logs, written output, or REGISTRY.md writes. Existing per-symbol D1 minimum,
+    fold-count, H1 coverage, candle validation, output-path validation, and
+    single-symbol execution behavior remain intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED two-symbol tail-date focused Jest exited 1 before the source guard because
+    the old CLI did not reject mismatched BTC/ETH D1 tails before downstream study
+    behavior. GREEN focused target passed 1/35 with 34 skips in 0.774s,
+    slow-gate lane passed 64/64, scoped slow-gate TypeScript passed, full root
+    Jest passed 217 suites and 1,776 tests with 26 skips, websocket Vitest passed
+    36/36, web typecheck passed, lint passed with 0 errors and 23 warnings, root
+    build passed with Next 16.2.6 and 324/324 static pages, and focused pygount
+    reported 1,475 files / 140,912 code / 14,839 comments. Dashboard quick tunnel
+    still failed DNS with curl exit 6; provider quota denominator remains
+    unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+    Secondary verifier was dispatched but unavailable by deterministic closeout;
+    deterministic local final checks are the closeout evidence.
+
+slow_gate_simulate_daily_min_series_guard_2026_07_31_0538:
+  at: 2026-07-31T05:38:40+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly simulateDaily minimum-series guard inside the existing read-only sandbox lane
+  current_step: Complete; simulateDaily now rejects empty or single-bar series before timestamp/cost/equity math
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 9266e0fe, origin/main is d87796cb, and
+    HEAD...origin/main is 13/41. Added fixture-backed pure assembly coverage and
+    minimal length validation so simulateDaily rejects empty or single-bar
+    bars/exposures series before timestamp validation, close-to-close returns,
+    fee/slippage/funding, equity, or average-exposure math. Existing length
+    alignment wording, long-only exposure validation, null flat/warmup semantics,
+    positive close validation, non-negative cost validation, and strictly
+    increasing bar timestamp validation remain intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED minimum-series focused Jest exited 1 before the source guard because empty
+    simulateDaily input did not throw. GREEN focused target passed 1/29 with 28
+    skips in 17ms, assembly Jest passed 29/29, slow-gate lane passed 63/63,
+    scoped slow-gate TypeScript passed, full root Jest passed 217 suites and
+    1,775 tests with 26 skips, websocket Vitest passed 36/36, web typecheck
+    passed, lint passed with 0 errors and 23 warnings, root build passed with
+    Next 16.2.6 and 324/324 static pages, and focused pygount reported 1,475
+    files / 140,866 code / 14,839 comments. Secondary verifier PASS; touched-file
+    whitespace/no-index checks had no whitespace-error lines; dashboard quick
+    tunnel still failed DNS with curl exit 6; provider quota denominator remains
+    unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_trend_gate_close_guard_2026_07_30_2341:
+  at: 2026-07-30T23:41:32+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure trendGateSeries close-domain guard inside the existing read-only sandbox lane
+  current_step: Complete; trendGateSeries now rejects malformed closes before EMA/gate comparison math
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 9266e0fe, origin/main is d87796cb, and
+    HEAD...origin/main is 13/41. Added fixture-backed pure assembly coverage and
+    minimal close-domain validation so trendGateSeries rejects zero, negative, and
+    non-finite closes before EMA computation or long/flat gate comparisons. Existing
+    warmup false/flat behavior and sustained uptrend/downtrend behavior remain intact.
+    No web runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED trend-gate close-domain targeted Jest exited 1 before the source guard
+    because trendGateSeries accepted a zero close. GREEN focused target passed 1/28
+    with 27 skips in 0.562s, assembly Jest passed 28/28, slow-gate lane passed 62/62,
+    scoped slow-gate TypeScript passed, full root Jest passed 217 suites and 1,774
+    tests with 26 skips, websocket Vitest passed 36/36, web typecheck passed, lint
+    passed with 0 errors and 23 warnings, root build passed with Next 16.2.6 and
+    324/324 static pages, and focused pygount reported 1,475 files / 140,852 code /
+    14,839 comments. Secondary verifier PASS; touched-file no-index checks had no
+    whitespace-error lines; dashboard quick tunnel still failed DNS with curl exit 6;
+    provider quota denominator remains unavailable from local Hermes telemetry, so no
+    retiering or cron edit occurred.
+
+slow_gate_regime_label_guard_2026_07_30_1741:
+  at: 2026-07-30T17:41:49+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly regime-label validation guard inside the existing read-only sandbox lane
+  current_step: Complete; invalid allocator/classifier regime labels now fail before conservative sizing fallback or regime-series return
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 9266e0fe, origin/main is d87796cb, and
+    HEAD...origin/main is 13/41. Added fixture-backed pure assembly coverage and
+    minimal regime-label validation so hmmSizeForRegime('breakout') throws instead
+    of falling through to range sizing, and dailyRegimeSeries throws when a
+    classifier returns an unknown label before appending poisoned regime output.
+    Existing null warmup range fallback and classifier-thrown warmup null behavior
+    remain intact. No web runtime behavior, production trading rule, DB/schema,
+    auth/billing, deployment, cron, secret, dependency, lockfile, push, merge,
+    rebase, reset, Docker runtime operation, or live research activation changed.
+  verification: >
+    RED invalid-regime targeted Jest exited 1 before the source guard. GREEN
+    allocator invalid-regime target passed 1/27 with 26 skips in 0.549s, classifier
+    invalid-regime target passed 1/27 with 26 skips in 0.463s, assembly Jest passed
+    27/27, slow-gate lane passed 61/61, scoped slow-gate TypeScript passed, full
+    root Jest passed 217 suites and 1,773 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused pygount
+    reported 1,475 files / 140,835 code / 14,839 comments. Secondary verifier PASS;
+    touched-file no-index checks had no whitespace-error lines; dashboard quick
+    tunnel still failed DNS with curl exit 6; provider quota denominator remains
+    unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_simulate_daily_bar_timestamp_guard_2026_07_30_1139:
+  at: 2026-07-30T11:39:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly simulateDaily bar-timestamp guard inside the existing read-only sandbox lane
+  current_step: Complete; simulateDaily now rejects malformed bar timestamp series before return/cost/funding/equity math
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 9266e0fe, origin/main is d87796cb, and
+    HEAD...origin/main is 13/41. Added fixture-backed pure assembly coverage and
+    reused assertStrictlyIncreasingMillisecondTimestamps so fractional, duplicate,
+    and out-of-order daily bar timestamps fail explicitly before close-to-close
+    return, fee/slippage/funding, equity, or average-exposure math. Existing
+    long-only exposure validation, positive close validation, non-negative cost
+    validation, funding behavior, and null flat/warmup semantics remain intact. No
+    web runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED full assembly Jest exited 1 before the source guard with detailed counts
+    unavailable due tool-output truncation. Focused bar-timestamp Jest passed 1
+    test with 24 skipped / 25 total / 0.463s, slow-gate lane passed 59/59, scoped
+    slow-gate TypeScript passed, full root Jest passed 217 suites and 1,771 tests
+    with 26 skips, websocket Vitest passed 36/36, web typecheck passed, lint passed
+    with 0 errors and 23 warnings, root build passed with Next 16.2.6 and 324/324
+    static pages, and focused pygount reported 1,475 files / 140,809 code / 14,839
+    comments. Secondary verifier PASS; touched-file no-index checks had no
+    whitespace-error lines; dashboard quick tunnel still failed DNS with curl exit
+    6; provider quota denominator remains unavailable from local Hermes telemetry,
+    so no retiering or cron edit occurred.
+
+slow_gate_daily_regime_series_timestamp_guard_2026_07_30_0547:
+  at: 2026-07-30T05:47:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly dailyRegimeSeries timestamp-series guard inside the existing read-only sandbox lane
+  current_step: Complete; dailyRegimeSeries now rejects malformed dayBars/h1Bars timestamp series before H1 downsampling or classifier calls
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 384322bf, origin/main is d87796cb, and
+    HEAD...origin/main is 12/41. Added fixture-backed pure assembly coverage and
+    a minimal assertStrictlyIncreasingMillisecondTimestamps preflight so fractional
+    and duplicate D1 timestamps plus NaN and non-increasing H1 timestamps fail
+    explicitly before H1 downsampling, trailing-window slicing, classifier calls,
+    or null warmup handling. Existing classifier-window validation, no-lookahead H1
+    cutoff behavior, classifier window cap, empty-window null, and classifier-throw
+    null semantics remain intact. No web runtime behavior, production trading rule,
+    DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile, push,
+    merge, rebase, reset, Docker runtime operation, or live research activation
+    changed.
+  verification: >
+    RED timestamp-series targeted Jest exited 1 before the source guard: 1 failed
+    / 23 skipped / 24 total / 0.559s because dailyRegimeSeries did not reject
+    malformed D1/H1 timestamps. Focused assembly Jest passed 24/24, slow-gate lane
+    passed 58/58, scoped slow-gate TypeScript passed, full root Jest passed 217
+    suites and 1,770 tests with 26 skips, websocket Vitest passed 36/36, web
+    typecheck passed, lint passed with 0 errors and 23 warnings, root build passed
+    with Next 16.2.6 and 324/324 static pages, and focused pygount reported 1,475
+    files / 140,793 code / 14,839 comments. Secondary verifier PASS; touched-file
+    no-index checks had no whitespace-error lines; dashboard quick tunnel still
+    failed DNS with curl exit 6; provider quota denominator remains unavailable
+    from local Hermes telemetry, so no retiering or cron edit occurred.
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
+
+
+slow_gate_ema_series_input_domain_guard_2026_07_29_2358:
+  at: 2026-07-29T23:58:10+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly emaSeries input-domain guard inside the existing read-only sandbox lane
+  current_step: Complete; emaSeries now rejects malformed price/period inputs before SMA seeding or EMA recurrence math
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 384322bf, origin/main is d87796cb, and
+    HEAD...origin/main is 12/41. Added fixture-backed pure assembly coverage and
+    a minimal emaSeries preflight so NaN input values, zero periods, fractional
+    periods, and unsafe integer periods fail explicitly before SMA seeding or EMA
+    recurrence math. Existing warmup null alignment, SMA seed at period - 1, and
+    constant/rising-series EMA behavior remain intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED EMA targeted Jest exited 1 before the source guard; exact Jest counts were
+    unavailable after context compression, but the failure proved malformed
+    emaSeries inputs were accepted before the guard. Focused assembly Jest passed
+    23/23, slow-gate lane passed 57/57, scoped slow-gate TypeScript passed, full
+    root Jest passed 217 suites and 1,769 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused
+    pygount reported 1,475 files / 140,747 code / 14,839 comments. Secondary
+    verifier PASS; touched-file no-index checks had no whitespace-error lines;
+    dashboard quick tunnel still failed DNS with curl exit 6; provider quota
+    denominator remains unavailable from local Hermes telemetry, so no retiering
+    or cron edit occurred.
+
+slow_gate_daily_regime_series_window_guard_2026_07_29_1739:
+  at: 2026-07-29T17:39:21+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly dailyRegimeSeries classifier window-size guard inside the existing read-only sandbox lane
+  current_step: Complete; dailyRegimeSeries now rejects malformed windowBars before H1 downsampling and classifier calls
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 384322bf, origin/main is dcccc5d1, and
+    HEAD...origin/main is 12/40. Added fixture-backed pure assembly coverage and
+    a minimal dailyRegimeSeries preflight so zero, fractional, and unsafe
+    windowBars values fail explicitly before H1 downsampling, trailing-window
+    slicing, classifier calls, or null warmup handling. Existing no-lookahead H1
+    cutoff behavior, classifier window cap, empty-window null, and classifier-throw
+    null semantics remain intact. No web runtime behavior, production trading rule,
+    DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile, push,
+    merge, rebase, reset, Docker runtime operation, or live research activation
+    changed.
+  verification: >
+    RED window-size targeted Jest exited 1 before the source guard: 1 failed /
+    21 skipped / 22 total / ~0.7s because dailyRegimeSeries did not reject
+    malformed windowBars. Focused assembly Jest passed 22/22, slow-gate lane passed
+    56/56, scoped slow-gate TypeScript passed, full root Jest passed 217 suites
+    and 1,768 tests with 26 skips, websocket Vitest passed 36/36, web typecheck
+    passed, lint passed with 0 errors and 23 warnings, root build passed with Next
+    16.2.6 and 324/324 static pages, and focused pygount reported 1,475 files /
+    140,721 code / 14,839 comments. Secondary verifier PASS; touched-file no-index
+    checks had no whitespace-error lines; dashboard quick tunnel still failed DNS
+    with curl exit 6; provider quota denominator remains unavailable from local
+    Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_vol_target_series_input_domain_guard_2026_07_29_1141:
+  at: 2026-07-29T11:41:43+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly volTargetSeries input-domain guard inside the existing read-only sandbox lane
+  current_step: Complete; volTargetSeries now rejects malformed volatility-target inputs before exposure sizing
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 384322bf, origin/main is dcccc5d1, and
+    HEAD...origin/main is 12/40. Added fixture-backed pure assembly coverage and
+    a minimal volTargetSeries preflight so NaN daily returns, below -100% returns,
+    zero/non-finite target volatility, and fractional/unsafe lookbacks fail
+    explicitly before volatility-target exposure sizing. Existing warmup null
+    exposures, quiet-series cap-at-1 behavior, and high-realized-volatility
+    exposure shrinkage remain intact. No web runtime behavior, production trading
+    rule, DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile,
+    push, merge, rebase, reset, Docker runtime operation, or live research
+    activation changed.
+  verification: >
+    RED vol-target targeted Jest exited 1 before the source guard: 1 failed /
+    20 skipped / 21 total / 0.547s because volTargetSeries did not throw for a
+    malformed NaN daily return. Focused assembly Jest passed 21/21, slow-gate lane
+    passed 55/55, scoped slow-gate TypeScript passed, full root Jest passed 217
+    suites and 1,767 tests with 26 skips, websocket Vitest passed 36/36, web
+    typecheck passed, lint passed with 0 errors and 23 warnings, root build passed
+    with Next 16.2.6 and 324/324 static pages, and focused pygount reported 1,475
+    files / 140,700 code / 14,839 comments. Secondary verifier PASS; touched-file
+    no-index checks had no whitespace-error lines; dashboard quick tunnel still
+    failed DNS with curl exit 6; provider quota denominator remains unavailable
+    from local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_compute_metrics_metric_series_guard_2026_07_29_0542:
+  at: 2026-07-29T05:42:13+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly computeMetrics metric-series guard inside the existing read-only sandbox lane
+  current_step: Complete; computeMetrics now rejects malformed equity/timestamp series before CAGR, drawdown, volatility, Calmar, or Sharpe math
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 8de16d43, origin/main is dcccc5d1, and
+    HEAD...origin/main is 11/40. Added fixture-backed pure assembly coverage and
+    a minimal computeMetrics preflight so NaN/zero equity values, fractional
+    millisecond timestamps, and duplicate/non-increasing timestamps fail explicitly
+    instead of silently producing misleading CAGR/drawdown/Sharpe metrics. Existing
+    valid CAGR and max-drawdown behavior remains intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED metric-series targeted Jest exited 1 before the source guard: 1 failed /
+    19 skipped / 20 total / 0.549s because computeMetrics did not throw for a NaN
+    equity value. Focused assembly Jest passed 20/20, slow-gate lane passed 54/54,
+    scoped slow-gate TypeScript passed, full root Jest passed 217 suites and 1,766
+    tests with 26 skips, websocket Vitest passed 36/36, web typecheck passed, lint
+    passed with 0 errors and 23 warnings, root build passed with Next 16.2.6 and
+    324/324 static pages, and focused pygount reported 1,475 files / 140,660 code /
+    14,839 comments. Secondary verifier PASS; touched-file no-index checks had no
+    whitespace-error lines; dashboard quick tunnel still failed DNS with curl exit
+    6; provider quota denominator remains unavailable from local Hermes telemetry,
+    so no retiering or cron edit occurred.
+
+slow_gate_simulate_daily_cost_assumption_guard_2026_07_29_0005:
+  at: 2026-07-29T00:05:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly simulateDaily cost-assumption guard inside the existing read-only sandbox lane
+  current_step: Complete; simulateDaily now rejects malformed fee/slippage/funding assumptions before cost, return, funding, equity, or average-exposure math
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 8de16d43, origin/main is dcccc5d1, and
+    HEAD...origin/main is 11/40. Added fixture-backed pure assembly coverage and
+    a minimal assertFiniteNonNegativeCost guard so negative fee, NaN slippage,
+    and negative funding assumptions fail explicitly instead of silently shaping
+    misleading research equity curves. Existing positive-close, long-only exposure,
+    funding, and null flat/warmup guards remain intact. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED cost-assumption targeted Jest exited 1 before the source guard: 1 failed
+    / 18 skipped / 19 total / 0.683s because simulateDaily did not throw for a
+    negative fee. Focused cost-assumption Jest passed 1/19 with 18 skipped in
+    0.5s, slow-gate lane passed 53/53, scoped slow-gate TypeScript passed, full
+    root Jest passed 217 suites and 1,765 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused
+    pygount reported 1,475 files / 140,629 code / 14,839 comments. Secondary
+    verifier PASS; dashboard quick tunnel still failed DNS with curl exit 6;
+    provider quota denominator remains unavailable from local Hermes telemetry,
+    so no retiering or cron edit occurred.
+
+slow_gate_safe_integer_timestamp_preflight_2026_07_25_0644:
+  at: 2026-07-25T06:44:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI safe-integer candle timestamp preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; D1/H1 candle rows now reject non-safe-integer millisecond timestamps before duplicate/non-increasing/cadence checks, sorting/filtering, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 4ca71153, origin/main is dff49fab, and
+    HEAD...origin/main is 10/38. Added fixture-backed CLI coverage and a minimal
+    assertFiniteCandleRows guard so fractional or unsafe timestamp values fail
+    explicitly instead of shaping a plausible-looking study window. Existing
+    duplicate/non-increasing/cadence, H1 coverage, exposure-domain, and close-domain
+    guards remain intact. No web runtime behavior, production trading rule,
+    DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile, push,
+    merge, rebase, reset, Docker runtime operation, or live research activation
+    changed.
+  verification: >
+    RED non-integer timestamp targeted Jest exited 1 before the source guard: 1
+    failed / 33 skipped / 34 total / 1.059s because the CLI returned status 0 for
+    fractional D1 timestamps. Focused timestamp Jest passed 1/34 with 33 skipped
+    in 0.85s, slow-gate lane passed 52/52, scoped slow-gate TypeScript passed,
+    full root Jest passed 217 suites and 1,764 tests with 26 skips, websocket
+    Vitest passed 36/36, web typecheck passed, lint passed with 0 errors and 23
+    warnings, root build passed with Next 16.2.6 and 324/324 static pages, and
+    focused pygount reported 1,475 files / 140,608 code / 14,839 comments.
+    Secondary verifier PASS; dashboard quick tunnel still failed DNS with curl
+    exit 6; provider quota denominator remains unavailable from local Hermes
+    telemetry, so no retiering or cron edit occurred.
+
+slow_gate_simulate_daily_close_domain_guard_2026_07_25_0027:
+  at: 2026-07-25T00:27:18+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly simulateDaily close-domain guard inside the existing read-only sandbox lane
+  current_step: Complete; simulateDaily now rejects non-finite, zero, or negative DailyBar.close values before cost, return, funding, equity, or average-exposure math
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 4ca71153, origin/main is dff49fab, and
+    HEAD...origin/main is 10/38. Added fixture-backed pure assembly coverage and
+    a minimal simulateDaily input-domain guard so zero, negative, and NaN daily
+    closes fail explicitly instead of silently producing infinite, negative, or
+    NaN equity curves. Existing long-only exposure validation and null flat/warmup
+    semantics remain intact. No web runtime behavior, production trading rule,
+    DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile, push,
+    merge, rebase, reset, Docker runtime operation, or live research activation
+    changed.
+  verification: >
+    RED close-domain targeted Jest exited 1 before the source guard: 1 failed /
+    17 skipped / 18 total / 0.632s because simulateDaily did not throw for a zero
+    close. Focused close-domain Jest passed 1/18 with 17 skipped in 0.515s,
+    slow-gate lane passed 51/51, scoped slow-gate TypeScript passed, full root
+    Jest passed 217 suites and 1,763 tests with 26 skips, websocket Vitest passed
+    36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused
+    pygount reported 1,475 files / 140,584 code / 14,839 comments. Secondary
+    verifier PASS; dashboard quick tunnel still failed DNS with curl exit 6;
+    provider quota denominator remains unavailable from local Hermes telemetry,
+    so no retiering or cron edit occurred.
+slow_gate_simulate_daily_exposure_domain_guard_2026_07_23_1738:
+  at: 2026-07-23T17:38:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate pure assembly simulateDaily long-only exposure-domain guard inside the existing read-only sandbox lane
+  current_step: Complete; simulateDaily now rejects non-null exposures outside the finite [0, 1] interval before cost, return, funding, equity, or average-exposure math
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 4ca71153, origin/main is dff49fab, and
+    HEAD...origin/main is 10/38. Added fixture-backed pure assembly coverage and
+    a minimal simulateDaily input-domain guard so negative, leveraged, and NaN
+    exposures fail explicitly instead of silently producing negative, leveraged,
+    or NaN equity curves. Null remains the flat/warmup sentinel. No web runtime behavior, production trading rule, DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or live research activation changed.
+  verification: >
+    RED exposure-domain targeted Jest exited 1 before the source guard: 1 failed
+    / 16 skipped / 17 total / 0.767s because simulateDaily did not throw for
+    -0.1. Focused exposure-domain Jest passed 1/17 with 16 skipped in 0.531s,
+    slow-gate lane passed 50/50, scoped slow-gate TypeScript passed, full root
+    Jest passed 217 suites and 1,762 tests with 26 skips, websocket Vitest passed
+    36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused
+    pygount reported 1,475 files / 140,567 code / 14,839 comments. Secondary
+    verifier PASS; dashboard quick tunnel still failed DNS with curl exit 6;
+    provider quota denominator remains unavailable from local Hermes telemetry,
+    so no retiering or cron edit occurred.
+slow_gate_latest_day_partial_h1_coverage_preflight_2026_07_23_1138:
+  at: 2026-07-23T11:38:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI latest-day partial H1 day-close coverage preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; H1 dumps that reach the latest D1 date but stop before that D1 candle's day-close H1 bar now fail before HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 4ca71153, origin/main is dff49fab, and
+    HEAD...origin/main is 10/38. Added fixture-backed CLI coverage and a minimal
+    latest-day H1 day-close guard so H1 coverage ending at 2020-10-26 00:00
+    against a latest 2020-10-26 D1 bar fails with controlled Insufficient H1
+    coverage wording before expensive HMM classification or output writes. No web
+    runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED latest-day partial-H1 targeted Jest exited 1 before the source guard: 1
+    failed / 32 skipped / 33 total / 1.344s with expected status 1 but received
+    0. Focused latest-day partial-H1 Jest passed 1/33 with 32 skipped in 0.997s,
+    slow-gate lane passed 49/49, scoped slow-gate TypeScript passed, full root
+    Jest passed 217 suites and 1,761 tests with 26 skips, websocket Vitest passed
+    36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused
+    pygount reported 1,475 files / 140,547 code / 14,839 comments. Secondary
+    verifier PASS; dashboard quick tunnel still failed DNS with curl exit 6;
+    provider quota denominator remains unavailable from local Hermes telemetry,
+    so no retiering or cron edit occurred.
+slow_gate_output_path_descendant_preflight_2026_07_23_0959:
+  at: 2026-07-23T09:59:48+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI existing-file-descendant output-path preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; --out and directory paths nested under existing files now fail before candle loading, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 4ca71153, origin/main is dff49fab, and
+    HEAD...origin/main is 10/38. Added fixture-backed CLI coverage and a minimal
+    shared directory-flag guard so package.json/slow-gate-out fails with controlled
+    Invalid --out wording before expensive HMM classification or output writes.
+    No web runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED output-path targeted Jest exited 1 before the source guard; exact stdout/counts
+    were not retained after context compaction. Focused output-path Jest passed 1/32
+    with 31 skipped, slow-gate lane passed 48/48, scoped slow-gate TypeScript passed,
+    full root Jest passed 217 suites and 1,760 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused pygount
+    reported 1,475 files / 140,520 code / 14,839 comments. Secondary verifier PASS;
+    dashboard quick tunnel still failed DNS with curl exit 6; provider quota denominator
+    remains unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+slow_gate_non_object_dump_preflight_2026_07_22_2343:
+  at: 2026-07-22T23:43:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI non-object candle dump JSON preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; null/primitive D1/H1 candle dump JSON now fails before property access, schema validation, candle-row validation, sorting-dependent study execution, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 614030a9, origin/main is dff49fab, and
+    HEAD...origin/main is 9/38. Added fixture-backed CLI coverage and a minimal
+    loader guard so null/primitive D1/H1 candle dump JSON fails with the controlled
+    domain mismatch before symbol/timeframe property access, schema validation,
+    candle-row validation, sorting-dependent study execution, HMM classification,
+    output writes, or registry appends. No web runtime behavior, production trading
+    rule, DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile,
+    push, merge, rebase, reset, Docker runtime operation, or live research activation
+    changed.
+  verification: >
+    RED non-object targeted Jest exited 1 before the source guard; exact stdout/counts
+    were not retained after context compaction. Focused non-object Jest passed 1/31
+    with 30 skipped, slow-gate lane passed 47/47, scoped slow-gate TypeScript passed,
+    full root Jest passed 217 suites and 1,759 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused pygount
+    reported 1,475 files / 140,489 code / 14,839 comments. Secondary verifier PASS;
+    dashboard quick tunnel still failed DNS with curl exit 6; provider quota denominator
+    remains unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+slow_gate_negative_volume_preflight_2026_07_22_1140:
+  at: 2026-07-22T11:40:15+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI negative candle volume preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; D1/H1 candle dumps with negative volume now fail before sorting-dependent study execution, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated;
+    latest branch head is 614030a9, origin/main is dff49fab, and
+    HEAD...origin/main is 9/38. Added fixture-backed CLI coverage and a minimal
+    source guard so D1/H1 candle dumps with negative volume fail with an explicit
+    non-negative-volume message
+    before range validation, sorting-dependent study execution, HMM classification,
+    output writes, or registry appends. Zero volume remains accepted; the guard is
+    intentionally scoped to impossible negative values. No web runtime behavior,
+    production trading rule, DB/schema, auth/billing, deployment, cron, secret,
+    dependency, lockfile, push, merge, rebase, reset, Docker runtime operation, or
+    live research activation changed.
+  verification: >
+    RED negative-volume targeted Jest exited 1 before the source guard; exact
+    stdout was not retained after context compaction. Focused negative-volume Jest
+    passed 1/29 with 28 skipped, slow-gate lane passed 45/45, scoped slow-gate
+    TypeScript passed, full root Jest passed 217 suites and 1,757 tests with 26
+    skips, websocket Vitest passed 36/36, web typecheck passed, lint passed with 0
+    errors and 23 warnings, root build passed with Next 16.2.6 and 324/324 static
+    pages, and focused pygount reported 1,475 files / 140,441 code / 14,839
+    comments. Dashboard quick tunnel still failed DNS with curl exit 6; provider
+    quota denominator remains unavailable from local Hermes telemetry, so no
+    retiering or cron edit occurred.
+
+slow_gate_non_positive_ohlc_preflight_2026_07_22_0549:
+  at: 2026-07-22T05:49:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI non-positive OHLC price preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; zero or negative D1/H1 open/high/low/close prices now fail before sorting-dependent study execution, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so D1/H1 candle
+    dumps with non-positive open/high/low/close prices fail with an explicit
+    positive-price message before range validation, sorting-dependent study
+    execution, HMM classification, output writes, or registry appends. No web
+    runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED non-positive-OHLC targeted Jest exited 1 before the source guard; exact
+    stdout was not retained after context compaction. Focused slow-gate CLI passed
+    28/28, slow-gate lane passed 44/44, scoped slow-gate TypeScript passed, full
+    root Jest passed 217 suites and 1,756 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23 warnings,
+    root build passed with Next 16.2.6 and 324/324 static pages, and focused
+    pygount reported 1,474 files / 140,390 code / 14,827 comments. Dashboard
+    quick tunnel still failed DNS with curl exit 6; provider quota denominator
+    remains unavailable from local Hermes telemetry, so no retiering or cron edit
+    occurred.
+
+slow_gate_irregular_d1_cadence_preflight_2026_07_21_2346:
+  at: 2026-07-21T23:46:41+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI irregular D1 candle cadence preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; irregular D1/H1 candle cadence now fails before sorting-dependent study execution, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so D1/H1 candle
+    dumps whose adjacent timestamps do not advance by the expected timeframe step
+    fail with an explicit cadence message. No web runtime behavior, production
+    trading rule, DB/schema, auth/billing, deployment, cron, secret, dependency,
+    lockfile, push, merge, rebase, reset, Docker runtime operation, or live
+    research activation changed.
+  verification: >
+    RED irregular-D1 targeted Jest exited 1 before the source guard; exact stdout
+    was not retained after context compaction. Focused slow-gate CLI passed 27/27,
+    slow-gate lane passed 43/43, scoped slow-gate TypeScript passed, full root
+    Jest passed 217 suites and 1,755 tests with 26 skips, websocket Vitest passed
+    36/36, web typecheck passed, lint passed with 0 errors and 23 warnings, root
+    build passed with Next 16.2.6 and 324/324 static pages, and focused pygount
+    reported 1,474 files / 140,367 code / 14,827 comments. Dashboard quick tunnel
+    still failed DNS with curl exit 6; provider quota denominator remains
+    unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_late_starting_h1_coverage_preflight_2026_07_21_1740:
+  at: 2026-07-21T17:40:20+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI late-starting H1 coverage preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; H1 coverage that starts after the first filtered D1 bar now fails before sorting-dependent study execution, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so H1 dumps
+    whose first H1 bar is after the first filtered D1 bar fail with an explicit
+    message; the CLI now also limits D1 regime classification/fold sufficiency to
+    D1 timestamps covered by the H1 window. No web runtime behavior, production
+    trading rule, DB/schema, auth/billing, deployment, cron, secret, dependency,
+    lockfile, push, merge, rebase, reset, Docker runtime operation, or live
+    research activation changed.
+  verification: >
+    RED late-starting-H1 targeted Jest exited 1 before the source guard; exact
+    stdout was not retained after context compaction. GREEN slow-gate CLI passed
+    26/26, slow-gate lane passed 42/42, scoped slow-gate TypeScript passed, full
+    root Jest passed 217 suites and 1,754 tests with 26 skips, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23
+    warnings, root build passed with Next 16.2.6 and 324/324 static pages, and
+    focused pygount reported 1,474 files / 140,331 code / 14,827 comments.
+    Dashboard quick tunnel still failed DNS with curl exit 6; provider quota
+    denominator remains unavailable from local Hermes telemetry, so no retiering
+    or cron edit occurred.
+
+slow_gate_stale_h1_coverage_preflight_2026_07_21_1148:
+  at: 2026-07-21T11:48:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI stale H1 coverage preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; non-empty but stale H1 candle dumps now fail before sorting-dependent study execution, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so H1 dumps
+    whose latest H1 bar predates the latest filtered D1 bar fail with an explicit
+    message before sorting-dependent study execution, HMM classification, output
+    writes, or registry appends. No web runtime behavior, production trading rule,
+    DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile, push,
+    merge, rebase, reset, Docker runtime operation, or live research activation
+    changed.
+  verification: >
+    RED slow-gate CLI Jest exited 1 before the source guard because a non-empty
+    H1 fixture ending on 2019-12-17 returned status 0 against a D1 study ending
+    2020-10-26; GREEN slow-gate CLI passed 25/25, slow-gate lane passed 41/41,
+    full root Jest passed 217 suites and 1,753 tests with 26 skips, scoped
+    slow-gate TypeScript passed, websocket Vitest passed 36/36, web typecheck
+    passed, lint passed with 0 errors and 23 warnings, root build passed with
+    Next 16.2.6 and 324/324 static pages, and focused pygount reported 1,474
+    files / 140,309 code / 14,827 comments. Dashboard quick tunnel still failed
+    DNS with curl exit 6; provider quota denominator remains unavailable from
+    local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_ohlc_range_preflight_2026_07_21_0539:
+  at: 2026-07-21T05:39:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI inconsistent OHLC range preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; D1/H1 candle dump rows with impossible OHLC ranges now fail before sorting-dependent study execution, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so candle dumps
+    with high below low or open/close outside the high/low range fail with an
+    explicit message before sorting-dependent study execution, HMM classification,
+    output writes, or registry appends. No web runtime behavior, production
+    trading rule, DB/schema, auth/billing, deployment, cron, secret, dependency,
+    lockfile, push, merge, rebase, reset, Docker runtime operation, or live
+    research activation changed.
+  verification: >
+    RED slow-gate CLI Jest exited 1 before the source guard because a valid
+    300-bar BTCUSD D1 fixture with row 42 close above its high returned status 0
+    and wrote output instead of failing OHLC-range validation; Hermes did not
+    retain the full RED stdout summary after compaction, so durable count/duration
+    evidence is from the final GREEN reruns. GREEN slow-gate
+    CLI passed 24/24, slow-gate lane passed 40/40, full root Jest passed 217
+    suites and 1,752 tests with 26 skips, scoped slow-gate TypeScript passed,
+    websocket Vitest passed 36/36, web typecheck passed, lint passed with 0
+    errors and 23 warnings, root build passed with Next 16.2.6 and 324/324
+    static pages, and focused pygount reported 1,474 files / 140,285 code /
+    14,827 comments. Dashboard quick tunnel still failed DNS with curl exit 6;
+    provider quota denominator remains unavailable from local Hermes telemetry,
+    so no retiering or cron edit occurred.
+
+slow_gate_monotonic_timestamp_preflight_2026_07_20_2338:
+  at: 2026-07-20T23:38:11+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI non-increasing candle timestamp preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; non-monotonic D1/H1 candle dump timestamps now fail before sorting-dependent study execution, HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so candle dumps
+    with unique but non-increasing timestamps fail with an explicit message
+    before sorting-dependent study execution, HMM classification, output writes,
+    or registry appends. No web runtime behavior, production trading rule,
+    DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile,
+    push, merge, rebase, reset, Docker runtime operation, or live research
+    activation changed.
+  verification: >
+    RED slow-gate CLI Jest failed 1/23 before the source guard because a valid
+    300-bar BTCUSD D1 fixture with row 42 timestamped one millisecond before row
+    41 returned status 0 and wrote output instead of failing chronological
+    validation. GREEN slow-gate CLI passed 23/23, slow-gate lane passed 39/39,
+    full root Jest passed 217 suites and 1,751 tests with 26 skips, scoped
+    slow-gate TypeScript passed, websocket Vitest passed 36/36, web typecheck
+    passed, lint passed with 0 errors and 23 warnings, root build passed with
+    Next 16.2.6 and 324/324 static pages, and focused pygount reported 1,474
+    files / 140,258 code / 14,827 comments. Dashboard quick tunnel still failed
+    DNS with curl exit 6; provider quota denominator remains unavailable from
+    local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_duplicate_timestamp_preflight_2026_07_20:
+  at: 2026-07-20T17:40:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI duplicate candle timestamp preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; duplicate D1/H1 candle dump timestamps now fail before HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so candle dumps
+    with repeated timestamps fail with an explicit message before HMM
+    classification, simulation, output writes, or registry appends. No web
+    runtime behavior, production trading rule, DB/schema, auth/billing,
+    deployment, cron, secret, dependency, lockfile, push, merge, rebase, reset,
+    Docker runtime operation, or live research activation changed.
+  verification: >
+    RED slow-gate CLI Jest failed 1/22 before the source guard because a valid
+    300-bar BTCUSD D1 fixture with row 42 repeating row 41's timestamp returned
+    status 0 and wrote output instead of failing duplicate-timestamp validation.
+    GREEN slow-gate CLI passed 22/22, slow-gate lane passed 38/38, full root
+    Jest passed 217 suites and 1,750 tests with 26 skips, scoped slow-gate
+    TypeScript passed, websocket Vitest passed 36/36, web typecheck passed,
+    lint passed with 0 errors and 23 warnings, root build passed with Next
+    16.2.6 and 324/324 static pages, and focused pygount reported 1,474 files /
+    140,229 code / 14,827 comments. Dashboard quick tunnel still failed DNS
+    with curl exit 6; provider quota denominator remains unavailable from local
+    Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_finite_candle_preflight_2026_07_20:
+  at: 2026-07-20T03:41:27+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI finite candle dump preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; malformed D1/H1 candle dump rows now fail before HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so candle rows
+    with non-finite timestamp/open/high/low/close/volume values fail with an
+    explicit message before HMM classification, simulation, output writes, or
+    registry appends. No web runtime behavior, production trading rule,
+    DB/schema, auth/billing, deployment, cron, secret, dependency, lockfile,
+    push, merge, rebase, reset, Docker runtime operation, or live research
+    activation changed.
+  verification: >
+    RED slow-gate CLI Jest exited 1 before the source guard after adding the
+    malformed D1 candle fixture; exact Jest counts/duration from that RED run
+    were not preserved by the terminal capture. GREEN slow-gate CLI passed 21/21,
+    slow-gate lane passed 37/37, full root Jest passed 217 suites and 1,749
+    tests with 26 skips, scoped slow-gate TypeScript passed, websocket Vitest
+    passed 36/36, web typecheck passed, lint passed with 0 errors and 23
+    warnings, root build passed with Next 16.2.6 and 324/324 static pages, and
+    focused pygount reported 1,474 files / 140,203 code / 14,827 comments.
+    Dashboard quick tunnel still failed DNS with curl exit 6; provider quota
+    denominator remains unavailable from local Hermes telemetry, so no retiering
+    or cron edit occurred.
+
+slow_gate_h1_regime_preflight_2026_07_19:
+  at: 2026-07-19T23:42:15+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI H1 regime coverage preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; empty or undersized H1 regime dumps now fail before HMM classification, simulation, JSON output writes, or registry appends
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so H1 candle
+    dumps with fewer than REGIME_CONDITION_WINDOW bars fail with an explicit
+    message instead of producing all-null regime output backed by range-fallback
+    sizing. No web runtime behavior, production trading rule, DB/schema,
+    auth/billing, deployment, cron, secret, dependency, lockfile, push, merge,
+    rebase, reset, Docker runtime operation, or live research activation changed.
+  verification: >
+    RED slow-gate CLI Jest failed 1/20 before the source guard because an empty
+    H1 fixture returned status 0 and wrote output instead of failing the regime
+    coverage boundary. GREEN slow-gate CLI passed 20/20, slow-gate lane passed
+    36/36, full root Jest passed 217 suites and 1,748 tests with 26 skips,
+    scoped slow-gate TypeScript passed, websocket Vitest passed 36/36, web
+    typecheck passed, lint passed with 0 errors and 23 warnings, root build
+    passed with Next 16.2.6 and 324/324 static pages, and focused pygount
+    reported 1,474 files / 140,162 code / 14,827 comments. Dashboard quick
+    tunnel still failed DNS with curl exit 6; provider quota denominator remains
+    unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+
+slow_gate_fold_count_preflight_2026_07_19:
+  at: 2026-07-19T17:47:54+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  status: done
+  scope: Slow-gate research CLI fold-count preflight guard inside the existing read-only sandbox lane
+  current_step: Complete; pathological fold counts now fail before H1/HMM classification or study execution
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane while the shared
+    feat/premium-ui-overhaul checkout remains branch/base and dirty-lane gated.
+    Added fixture-backed CLI coverage and a minimal source guard so fold counts
+    that would leave fewer than two filtered D1 bars per fold fail with an
+    explicit message before H1/HMM classification, local study execution, output
+    writes, or registry appends. No web runtime behavior, production trading
+    rule, DB/schema, auth/billing, deployment, cron, secret, dependency,
+    lockfile, push, merge, rebase, reset, Docker runtime operation, or live
+    research activation changed.
+  verification: >
+    RED slow-gate CLI Jest failed 1/19 before the source guard because 300
+    filtered BTCUSD D1 bars with --folds 151 started classification and then hit
+    the generic one-bar fold metrics error. GREEN slow-gate CLI passed 19/19,
+    slow-gate lane passed 35/35, full root Jest passed 217 suites and 1,747 tests
+    with 26 skips, scoped slow-gate TypeScript passed, websocket Vitest passed
+    36/36, web typecheck passed, lint passed with 0 errors and 23 warnings, root
+    build passed with Next 16.2.6 and 324/324 static pages, and focused pygount
+    reported 1,474 files / 140,143 code / 14,827 comments. Dashboard quick tunnel
+    still failed DNS with curl exit 6; provider quota denominator remains
+    unavailable from local Hermes telemetry, so no retiering or cron edit occurred.
+
+
+stripe_billing_pause_2026_07_18:
+  at: 2026-07-18T11:25:17+08:00
+  last_action_at: 2026-07-18T15:55:18+08:00
+  agent: TradeClaw PM agent
+  status: billing_paused_no_refundable_payment
+  owner_decision: Pause TradeClaw paid subscriptions until the hosted product delivers clear, defensible customer value
+  scope:
+    new_subscription_sales: already_disabled_in_current_application
+    live_pro_subscriptions: 2
+    live_pro_subscription_status: paused
+    retrying_invoices: 0
+    voided_invoices: 2
+    successful_paid_amount_usd: 0
+    refunds_created: 0
+    amount_per_invoice_usd: 29
+    voluntary_waqaf_payment_links: unchanged
+  evidence: >
+    Stripe account tradeclaw.win has two non-canceled Pro Monthly subscriptions:
+    abdalgpt@gmail.com and zakiyoucef112@gmail.com. Both are past due at
+    $29 USD/month and have retrying invoices after failed Jul 16-17 collection
+    attempts. Two older subscriptions are already canceled. Current application
+    code no longer sells subscriptions and presents TradeClaw as free.
+  completed_action: >
+    Zaky selected action 2 only. Permanently voided retrying invoice WWXYL3JV-0002
+    (in_1Tu01WP4NWJFetkFNc3iMmeM) for abdalgpt@gmail.com and retrying invoice
+    DLKDEIT9-0002 (in_1TqtHPP4NWJFetkF5BqpCOEh) for zakiyoucef112@gmail.com.
+    Stripe verified both invoice headers as Void. At 15:55 +08:00, Zaky explicitly
+    confirmed the remaining action: both associated Pro Monthly subscriptions were
+    paused with no credit and no automatic resume. Stripe verified both subscription
+    headers as Paused. Full invoice history for each subscription contains one
+    $0.00 Paid trial invoice and one $29.00 Void invoice, so no customer funds were
+    collected and Stripe had $0 to refund. No refund transaction was created.
+    Payment links and Waqaf links were unchanged.
+  remaining_risk: >
+    Subscription billing and invoice generation remain stopped until an operator
+    manually resumes the subscriptions. Monetization must not resume until an
+    explicit value/readiness decision is recorded.
+
+customer_email_outreach_2026_07_18:
+  at: 2026-07-18T16:08:09+08:00
+  sent_at: 2026-07-18T16:24:48+08:00
+  agent: TradeClaw PM agent
+  status: sent
+  sender: Muhammad Naim <m.naim@robopro.team>
+  recipients:
+    - abdalgpt@gmail.com
+    - zakiyoucef112@gmail.com
+  subject: TradeClaw is moving from Pro to a free public version
+  gmail_drafts:
+    - r4816581313561630629
+    - r2006230371723839192
+  sent_message_ids:
+    abdalgpt@gmail.com: 19f7453f05efb35b
+    zakiyoucef112@gmail.com: 19f7453f9ddb54bc
+  message_summary: >
+    Thanks each recipient for testing TradeClaw Pro, explains the move to a free
+    public version while product value is improved, confirms the subscription is
+    paused and the $29 invoice was voided, states that no payment was collected
+    and no refund was due, confirms no action is required, and links to
+    https://tradeclaw.win. Drafts are separate to preserve recipient privacy.
+  verification: >
+    Zaky explicitly confirmed sending both drafts. Gmail returned SENT receipts
+    for message 19f7453f05efb35b to abdalgpt@gmail.com and message
+    19f7453f9ddb54bc to zakiyoucef112@gmail.com. A Gmail SENT-label readback found
+    both recipients with the approved subject and no attachments.
+
+phase2_product_localization_release_2026_07_19:
+  at: 2026-07-19T10:24:44+08:00
+  agent: TradeClaw PM agent
+  status: deployed
+  scope: Commit and production deployment of the verified full-sweep debug and five-locale product repair
+  base_commit: 2506a795af09a02f553d069d36235ebe6770f900
+  release_branch: release/full-sweep-localization-20260719
+  code_commit: fe66b91e
+  release_record_commit: 873689aeb3f40074ab7676a70a1c0c436086069a
+  console_hotfix_commit: 9ffd0529d41b332dcade3929ff9f4c25d40477a2
+  deployed_commit: 9ffd0529d41b332dcade3929ff9f4c25d40477a2
+  current_step: Complete; the exact clean release and live-audit hotfix are deployed and verified on Railway production
+  deployment_target:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment_id: 148430a0-4280-4cc6-a730-e4edca98141e
+    service_id: b958acce-02e3-4aee-9e5f-c2f1f1897253
+    domain: https://tradeclaw.win
+  deployment_result:
+    initial_deployment_id: fa40e76e-1f15-43dd-a5de-5a5006001701
+    final_deployment_id: 8a8e0c0d-6066-4397-add6-81092ea5b9ef
+    final_status: SUCCESS
+    created_at: 2026-07-19T03:02:45.253Z
+    image_digest: sha256:890bde724ab8d6f275e0e110375a4ab36d876de118f0d590bd4abd506d7ed202
+    application_build_id: 07b3ceff-ad8d-428a-b00d-00d8f562caec
+    health_status: ok
+    database_status: ok
+    migrations_status: ok
+    required_migration: 053_drop_monetization.sql
+  notes: >
+    Zaky explicitly authorized commit and deployment. The release was extracted
+    from the broad dirty checkout as an exact 118-file debug allowlist and ported
+    onto current origin/main. Research, billing, AI-tracking, standup,
+    generated-artifact, and unrelated market-data drift remain excluded. Merge
+    conflicts preserved main's build identity, proof schema, and cyan CTA styling
+    while applying the readiness, deployment, and localization repairs. The first
+    production audit exposed a non-blocking GitHub 403 console error from direct
+    client metric requests. Commit 9ffd0529 routed the main hero, localized landing,
+    and share surface through the cached same-origin endpoint; the final deployment
+    supersedes the initial successful release.
+  verification: >
+    On the clean origin/main-based worktree, root Jest passed 219 suites and 1,732
+    tests with 26 intentional skips and one snapshot. Web TypeScript passed; lint
+    passed with zero errors and 23 existing warnings. The required root production
+    build compiled signals, trading-agents, and Next.js 16.2.6 and generated
+    324/324 pages. WebSocket TypeScript and all 36 Vitest checks passed. Six
+    targeted Chromium Playwright checks passed across the five-locale matrix,
+    invalid and blocked storage fallback, Arabic persistence/RTL, and mobile
+    containment. The follow-up hotfix passed 14 focused Jest checks, web TypeScript,
+    lint with zero errors and the same 23 warnings, and another required 324/324
+    production build. Final live Chromium verification rendered dashboard, screener,
+    and track record in all five languages with correct titles, document language,
+    and Arabic RTL; all five landing pages rendered translated content. Desktop and
+    390px Arabic product/landing layouts had no horizontal overflow, all observed
+    GitHub metric calls returned 200 through TradeClaw, no direct browser GitHub API
+    request remained, and no console error was emitted. Health returned HTTP 200 with
+    database and migrations ready; Fly and Replit returned 307 to /start. STATE YAML,
+    shell syntax, and git diff checks passed. Docker is unavailable locally, so
+    Compose runtime validation remains assigned to CI; the Railway Dockerfile image
+    built, started, applied all 55 migrations, and passed its production healthcheck.
+    npm audit reported 62 existing lockfile advisories; the two critical findings
+    are outside the deployed web image (an Expo-mobile transitive dependency and a
+    dev-only Vitest UI dependency). Web production scope has zero critical audit
+    findings, and no package manifest or lockfile changed in this release.
+
+phase2_product_localization_2026_07_19:
+  at: 2026-07-19T07:29:34+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: Core product localization for Spanish, Chinese, Malay, and Arabic
+  current_step: Complete; five-locale product flow and adversarial persistence/RTL checks verified locally
+  notes: >
+    Zaky approved continuation after the full-sweep locale repair. This phase
+    extends the existing five-locale provider beyond translated landing pages
+    into the highest-traffic product journey. The broad dirty worktree contains
+    unrelated billing, research, AI-tracking, deployment, and generated-artifact
+    changes; those lanes are preserved and excluded. Runtime verification will
+    cover all five languages, Arabic RTL, route-safe preference persistence, and
+    mobile overflow before this phase is marked complete. The desktop and mobile
+    product navigation now consume a typed five-locale shell dictionary, and an
+    in-app language selector updates the persisted locale without leaving the
+    current product route. Dashboard, screener, and track-record primary copy now
+    consume typed five-locale dictionaries, including localized trust disclosures,
+    stat explanations, dates, statuses, empty states, filters, table labels, and
+    accessible names. The identity menu is localized and uses logical RTL layout.
+    Supporting live, evidence, export, chart, share, and tour widgets now use the
+    same five-locale contracts. Browser-driven QA exposed and fixed a hydration
+    interaction race and canonical metadata overwriting localized tab titles;
+    product metadata now reads the persisted locale cookie while product controls
+    remain disabled until React handlers are attached. The Chromium matrix passes
+    all five locales across dashboard, screener, and track record, plus in-place
+    Arabic switching, reload persistence, correct RTL direction, and 390px mobile
+    overflow. Independent QA also fixed logo-navigation preference loss, an
+    inclusive 80/100 label mismatch, locale-inconsistent counts, keyboard-inert
+    sort headers, missing live-region semantics, and guided-tour focus trapping.
+    The shared marketing navbar and theme controls are localized too, and their
+    selectors use the same hydration guard. Ten localization contract suites cover full
+    placeholder, shape, encoding, boundary, and invariant parity. The screener
+    high-score band now shares the inclusive 80/100 threshold, and remaining
+    probability-like percent labels use rule-score units. The expanded Chromium
+    matrix includes the Arabic brand-home-app round trip, mobile RTL containment,
+    and uncaught page-error enforcement. That enforcement exposed and fixed an
+    unavailable GitHub star-count crash; malformed or failed metrics now stay
+    hidden instead of throwing or fabricating zero. Adversarial persistence checks
+    also cover invalid or blocked localStorage, cookie fallback, unknown theme values,
+    English-first-paint suppression, and the compact mobile app CTA. All final repository gates
+    are green and no Docker, dependency, database, schema, trading-rule,
+    deployment, commit, or unrelated research changes were added by this phase.
+  verification: >
+    Final root Jest passed 217 suites and 1,743 tests with 26 intentional skips
+    and one snapshot. Web lint passed with zero errors and the existing 23 warnings;
+    web TypeScript passed. The required root production build compiled signals,
+    trading-agents, and Next.js 16.2.6 and generated 324/324 static pages while
+    dashboard, screener, and track-record remain intentionally dynamic for
+    cookie-localized metadata. Chromium passed all six targeted Playwright checks:
+    five languages across all three core product routes, localized document titles,
+    invalid and blocked localStorage cookie fallback, in-place Arabic switching and
+    reload, homepage/app preference round trip, correct lang/RTL state, 390px
+    containment, the compact mobile app CTA, and zero uncaught page errors.
+    Git diff whitespace validation and STATE.yaml parsing passed. The build still
+    reports existing non-blocking middleware, url.parse, and broad NFT-tracing
+    deprecation/warning output; those are outside this completed locale phase.
+
+full_sweep_debug_2026_07_18:
+  at: 2026-07-18T00:41:00+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: Full application regression sweep with localization failures prioritized
+  current_step: Full sweep complete; fixes verified locally, with Docker runtime validation deferred to CI because Docker is unavailable
+  notes: >
+    Confirmed the required browser automation prerequisite (npx) is available.
+    The existing worktree is dirty with unrelated AI-improvement, research-helper,
+    standup, STATE, and tmp changes; those paths will be preserved and excluded
+    from this debugging scope unless direct overlap is unavoidable. Static and
+    real-browser evidence confirms two unsynchronized locale systems: URL-prefixed
+    landing pages render translated copy, while the global provider defaults to
+    English and the navbar selector only changes client state. On /es the page is
+    Spanish while the navbar remains EN and the global footer stays English; on /
+    choosing ES does not navigate to /es. Mobile hides the only navbar selector,
+    /ar uses inconsistent full product chrome, /ar is missing from the layer-one
+    chrome gate, and sitemap/hreflang coverage omits supported locales. The browser
+    sweep also exposed repeated development HMR WebSocket failures because the
+    global middleware matcher does not exclude /_next/webpack-hmr. Baseline web
+    typecheck and lint pass; focused existing Jest suites pass, while no locale
+    interaction coverage exists. The localization repair now makes exact landing
+    URLs authoritative, persists app-shell preference, navigates the navbar
+    selector between all five locales, exposes it at 320px, synchronizes document
+    language and Arabic RTL, gives Arabic the same minimal layer-one chrome,
+    suppresses the English-only footer on translated landing pages, and publishes
+    all locale alternates in metadata and the sitemap. Focused TypeScript, ESLint,
+    diff checks, and 31 Jest assertions pass. Playwright CLI verified English to
+    Spanish to Arabic switching, persistence, translated navbar copy, zero browser
+    console errors on localhost, no horizontal overflow at 320px, and the Arabic
+    page at lang=ar/dir=rtl. The full deploy audit additionally found fresh-Compose
+    legacy schema collisions, unsafe volume cleanup defaults, Windows CRLF shell
+    failures, missing admin env forwarding, an impossible production WebSocket
+    handshake, shallow health checks, and stale Fly/Replit guidance; safe repairs
+    are now being isolated and verified. Docker bootstrap now reserves schema
+    ownership for the tracked migration runner, preserves volumes by default,
+    enforces LF shell scripts, forwards admin configuration, and checks for an
+    empty migration queue. Production browser WebSockets now fail closed before
+    connection and immediately use the existing SSE stream; focused web and
+    relay auth tests pass. /api/health now returns 200 only after PostgreSQL and
+    the latest tracked core migration are ready, otherwise a sanitized 503.
+    The create-tradeclaw path now generates every required secret even when env
+    templates contain inline comments and discovers Docker/Git correctly on
+    Windows. Unsupported Fly/Replit promotion has been removed pending a live,
+    database-backed provider validation. Docker is unavailable on this machine,
+    so container runtime validation remains delegated to Docker CI.
+  verification: >
+    Final root Jest run passed 204 suites and 1,578 tests with 26 intentional
+    skips and one snapshot. Web lint passed with zero errors and the same 23
+    pre-existing warnings; web TypeScript, signals, trading-agents, websocket
+    server build, and all 36 websocket tests passed. The required root production
+    build compiled and generated 324/324 pages. A production-server crawl fetched
+    all 89 sitemap URLs with HTTP 200. Browser automation verified English,
+    Spanish, Chinese, Malay, and Arabic titles/copy, persisted route selection,
+    correct lang values, Arabic RTL, visible 320px language controls, zero
+    horizontal overflow, and zero browser console errors. Fly/Replit return HTTP
+    307 to /start, the no-database provider directory renders a truthful fallback,
+    and /api/health returns a sanitized 503 until PostgreSQL and the latest tracked
+    migration are ready. YAML/TOML parsing, shell syntax, LF enforcement, CLI
+    syntax/help, and git diff whitespace checks passed. Docker is not installed,
+    so Compose services could not be started locally; Docker CI now owns that
+    runtime proof. Locale support remains intentionally scoped to the translated
+    landing routes and shared navbar chrome; translating every product/dashboard
+    surface is a separate Phase 2 feature, not silently claimed by this repair.
 
 truth_release_2026_07_15:
   at: 2026-07-15T14:31:11+08:00
@@ -92,24 +2019,116 @@ product_integrity_repair:
     health checks, and migration ordering intact. Docker is not installed, so the
     services could not be started locally.
 
-ai_improvement_last_run:
-  at: 2026-07-12T23:40:21+08:00
-  agent: CEO Zaky recurring Product + Engineering repository improvement agent
-  scope: source/test recost CLI parser fail-closed hardening; no web runtime, trading-rule, DB/schema, auth/billing, deployment, cron, secret, dependency, or lockfile changes
+premium_ui_green_assets:
+  at: 2026-07-16T23:09:39+08:00
+  agent: TradeClaw PM agent
+  status: deployed
+  scope: Original emerald brand assets, SVGs, icons, and reduced-motion-safe hero motion
+  brand_color: "#10b981"
+  asset: apps/web/public/brand/tradeclaw-market-sculpture-v1.webp
+  source_commit: c70be6bfee842555f0778a01a79df4e2b108b92a
+  source_branch: release/premium-green-assets-20260716
+  deployed_commit: e46b597e2779cbbafe13e07ff266e51269f1bc6e
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: 71e73f78-a21d-4da2-a55a-f0e81f7c8137
+    status: SUCCESS
+    image_digest: sha256:abcfefefe046ee4ad632e7f9cb7f3df0b4ef010e12cde4c3bc18e696b437ed90
+    live_url: https://tradeclaw.win
+    health: HTTP 200 /api/health with status ok
   notes: >
-    Hardened scripts/research/recost-segment.ts so malformed CLI input fails
-    before opening Postgres: help now works without DB credentials, duplicate
-    --days/--min-n/--json flags fail closed, numeric flags require full-string
-    positive safe integers, --days has an explicit maximum, and blank/malformed
-    JSON paths are rejected. The release follow-up also rejects JSON targets
-    whose parent directory is missing or whose target is an existing directory,
-    before any database connection is opened. Expanded
-    scripts/research/__tests__/recost-segment-cli.test.ts to 23 no-DB
-    parser/credential/filesystem-boundary cases. Verified focused Jest,
-    scoped script/test tsc, npm ci, full npm run build, focused pygount, and
-    docs/board static checks. The owner authorized this coherent source/test
-    lane for commit to main and production deployment on 2026-07-12; release
-    verification is tracked separately below.
+    Corrected the premium UI interpretation after owner feedback: premium
+    references guide hierarchy, density, iconography, and motion, not
+    TradeClaw's palette. Removed the broad color remapping so feature, warning,
+    integration, and data colors remain semantic. Unified the original emerald
+    across the shared logo, generated app and Apple icons, favicon SVG,
+    navigation accent, Open Graph image, and aurora decor. Added a transparent
+    74,888-byte WebP market-claw sculpture as a low-opacity desktop watermark
+    behind the left hero atmosphere and copy, away from Cost Field controls and
+    evidence. Reveal, float, breathing, and scan motion use transform/opacity
+    only and honor reduced motion. The interactive terminal stays fixed.
+  verification: >
+    Integrated the 13-file UI source commit onto current origin/main so the
+    deployed snapshot retains production follow-up PR #169. Root npm run build
+    passed with all 324 static routes generated. Web TypeScript and focused
+    ESLint passed with zero errors; two focused Jest suites passed all four
+    tests. Focus rings meet the 3:1 adjacent-color target in light and dark
+    themes, broad palette remapping is absent, and git diff whitespace checks
+    pass. Railway deployment 71e73f78 reached terminal SUCCESS from the clean
+    exact-commit worktree. Production returned HTTP 200/status ok, the homepage
+    returned the sculpture plus the truthful headline and CTA, icon.svg returned
+    the #10b981 signature, and the WebP returned image/webp at 74,888 bytes.
+    Startup applied 55/55 migrations with zero pending and emitted no error-level
+    logs. No dependency, lockfile, database, schema, trading-rule, Docker, or
+    Railway configuration change is included.
+
+ai_improvement_last_run:
+  at: 2026-07-19T11:41:46+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  scope: Slow-gate CLI candles-dir path validation characterization inside the existing read-only slow-regime sandbox lane, plus tracking docs/STATE/central board actualization
+  notes: >
+    Stayed inside the existing slow-regime/recost research lane instead of adding
+    unrelated product scope to the broad dirty PM full-sweep worktree. Final branch
+    probes after git fetch --prune show branch feat/premium-ui-overhaul synced with
+    origin/feat/premium-ui-overhaul at HEAD=69a97b2e, origin/main=2506a795,
+    HEAD...upstream=0/0, HEAD...origin/main=7/22, merge-base 524fc44a,
+    origin_main_paths=38, local_head_paths=17, branch path overlap 0, and
+    dirty/origin-main overlap 10 paths: STATE.yaml, apps/web/app/api/health/route.ts,
+    apps/web/app/docs/self-hosting/page.tsx, apps/web/lib/openapi.ts,
+    docs/plans/2026-07-18-slow-regime-gate-sandbox.md,
+    docs/research/experiments/REGISTRY.md,
+    docs/research/experiments/slow-gate-BTCUSD_ETHUSD-D1-2017-09-01-2026-07-16-f4.json,
+    scripts/research/__tests__/slow-gate-assembly.test.ts,
+    scripts/research/slow-gate-assembly.ts, and scripts/research/slow-gate-cli.ts.
+    Dirty inventory is 145 non-branch rows: 96 tracked modified, 3 tracked deleted,
+    and 46 untracked paths across PM full-sweep runtime/config/docs/tests, recost
+    helper/test files, slow-gate research CLI/test/artifact files, AI tracking/STATE
+    docs, standup/support artifacts, generated source-image files, product-localization
+    support files, and release-support residue. This run added test-only
+    characterization coverage in scripts/research/__tests__/slow-gate-cli.test.ts for
+    whitespace-only and existing-file --candles-dir values. Both cases passed
+    immediately against the existing shared directory preflight, confirming malformed
+    candle directory inputs fail before candle-file lookup or local study execution;
+    no production code change was required. Fresh evidence passed: slow-gate CLI Jest
+    1 suite / 18 tests / 6.171s, slow-gate lane Jest 2 suites / 34 tests / 6.326s,
+    broader source-lane Jest 11 suites / 130 tests / 15.523s, scoped slow-gate
+    TypeScript, websocket auth Vitest 1 file / 4 tests / 931ms, npm run typecheck:web,
+    npm run lint with 23 warnings and 0 errors, npm run build with Next 16.2.6 and
+    324/324 static pages, focused pygount 1,474 files / 140,106 code / 14,827
+    comments, and dashboard quick-tunnel DNS still failed with curl exit 6. Local
+    Hermes telemetry reported 932 sessions / 2,129,950,275 tokens with no provider
+    weekly quota denominator, so no retiering or cron edits were made. Delegated
+    secondary verifier was dispatched for final artifact review; if it misses
+    deterministic close, final reporting relies on package gates, read-backs, static
+    checks, board row-plus-successor proof, and the local ad-hoc live-contract
+    verifier. Owner/Fatin should split/commit/revert the broad full-sweep, recost,
+    slow-gate, standup, generated-image, and release-support lanes intentionally
+    before more runtime/product scope.
+infrastructure_cleanup_last_run:
+  at: 2026-07-19T08:39:44+08:00
+  agent: TradeClaw PM agent
+  status: scheduled_for_deletion
+  scope: Remove the accidental Railway project created by the unscoped deploy
+  target:
+    name: handsome-possibility
+    project_id: 5860cef1-9fcf-4eba-87d0-3a56ab71cb9e
+    service_id: 7272b7e7-19d3-4f0a-8ada-855dfb9cf036
+  deletion:
+    requested_at: 2026-07-19T00:39:44.510Z
+    deleted_at: 2026-07-21T00:39:44.510Z
+  production_guard:
+    name: tradeclaw
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    deleted_at: null
+  notes: >
+    Railway CLI deletion completed successfully against the explicit stray project
+    ID and returned that same ID. Read-back confirms Railway's 48-hour deletion
+    grace window and confirms the production TradeClaw project remains active and
+    unscheduled for deletion. No repository code, deployment, database, service,
+    domain, or production configuration was changed by this cleanup.
 
 release_last_run:
   at: 2026-07-12T23:23:40+08:00
@@ -916,7 +2935,10 @@ tasks:
       Complete: Description updated with emoji + keywords. 20 topics (maxed: finance, rsi, macd added).
       CITATION.cff created for academic discovery. welcome.yml GH Action (welcome first-time contributors + CTA to star).
       star-milestone.yml GH Action (auto-issue at 10/25/50/100/500/1000 stars). social-preview.svg (1280x640).
-      Committed d40f10fd. 2026-03-28
+      Committed d40f10fd. 2026-03-28. On 2026-08-29, the current 1280x640
+      docs/assets/social-preview.png evidence-instrument card was uploaded in
+      GitHub repository settings; authenticated GraphQL read-back reports
+      usesCustomOpenGraphImage=true.
 
   - id: TC-055
     title: "Signal accuracy leaderboard public API — /api/v1 RESTful endpoint with OpenAPI, showcase on landing"
@@ -3604,3 +5626,340 @@ next_actions:
       focus containment, and body scroll locking. No Docker, deployment,
       dependency, lockfile, database, trading-rule, or inherited research-lane
       changes were made.
+
+  - id: TC-244
+    title: "Generated editorial artwork for Research, Open Data, and Methodology"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-02 from the owner's request to make tradeclaw.win feel less
+      plain without crowding it with images. Completed a coordinated three-piece
+      "Evidence Instruments" set for the sparse editorial heroes on /research,
+      /open-data, and /methodology: hypothesis crucible (87,034-byte WebP), open
+      ledger core (106,468-byte WebP), and measurement engine (99,016-byte WebP).
+      A shared server component serves the transparent assets through next/image;
+      the artwork is decorative, claim-free, desktop-only, and subordinate to the
+      unchanged page copy. The existing homepage sculpture and data/product-heavy
+      routes remain unchanged. Verification passed: web typecheck; focused ESLint;
+      claim-integrity Jest 5/5; production build 324/324 pages; focused Chromium
+      E2E 21/21; and browser QA across dark/light 1440px desktop plus 390px mobile.
+      No Docker, dependency, lockfile, database, auth, billing, trading rule, or
+      unrelated dirty-worktree change was made. At 2026-08-02 10:02 MPST the owner
+      authorized commit and production deployment. Release PR #185 passed all seven
+      GitHub checks and merged as 921cc976517abdd666f72fe6f49f5aaeafdd6a6a.
+      Exact-source Railway deployment 7a9a6a7c-6ad1-4915-9a3b-69990e79c86c
+      reached SUCCESS with image digest sha256:4fa8385b7254502e35bdf6524d719687448ca2cecad6dd4bacc4b0d4f0b4eefd.
+      Live health, database, migration 053, route markers, exact asset bytes, and
+      desktop browser rendering passed; the bounded deployment error log was empty.
+      State-only closure PR #186 passed all seven checks and produced final main
+      f9d6f5b487505f5f7b8a909d2d36eb8a03cb1937. Exact-final-main Railway
+      deployment a24da0ca-9aa5-40cd-9778-c2b51192302c reached SUCCESS with image
+      sha256:fced29b2101ceeaefefd67c534b4b89b504fe8992a10d7cafebdd95a91e716e0;
+      fresh health build 7cb84273-4cae-410f-ad1a-6f1f712ece24 and a second bounded
+      error-log read-back were clean. The broad dirty checkout remained excluded
+      from Git history and both Railway uploads.
+
+  - id: TC-245
+    title: "Low-opacity generated backgrounds for homepage destination cards"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-02 from the owner's request for more generated imagery on
+      the homepage, clarified as low-opacity backgrounds that follow the existing
+      graphite, ivory, and emerald instrument assets. Completed in clean branch
+      agent/tc245-homepage-art based on exact origin/main
+      f9d6f5b487505f5f7b8a909d2d36eb8a03cb1937. The homepage ExploreStrip now
+      gives all five destination cards a restrained trailing-edge instrument:
+      two new transparent 1254x1254 WebPs for Live App (113,124 bytes; SHA-256
+      E214B71484E472B9852983FF336D9DB9CD9E5809BE5566C475A284FEF77BBF31)
+      and How It Works (94,642 bytes; SHA-256
+      889245C491904439B8A77588ECC903C40DF5F4C0D250F38EAC6A10EC46F4311D),
+      plus the shipped Research, Methodology, and Open Data cutouts. Responsive
+      masks, copy-side contrast, and 6.5%-17% theme/hover opacity keep the art
+      quiet on desktop and mobile. Every image is pointer-free, aria-hidden, and
+      has empty alt text; links, copy, navigation, reading order, product behavior,
+      dependencies, Docker, database, auth, billing, and trading rules are
+      unchanged. Verification passed web typecheck, focused ESLint, the required
+      production build (324/324 pages), focused Chromium E2E (11/11), and
+      Playwright visual QA at 1440px and 390px in dark and light themes with no
+      browser console errors. At 2026-08-02 11:48 MPST the owner explicitly
+      authorized commit and production deployment. Release preflight confirmed
+      authenticated GitHub access, exact current origin/main
+      f9d6f5b487505f5f7b8a909d2d36eb8a03cb1937, and only the six intended TC-245
+      paths in the isolated lane. Release commit
+      13d486b6e2cc5c6610a773f75c163e03951f180f plus test-stabilization commit
+      3ce8cccf22708118ae28ceead144998494117d79 shipped through PR #187. The
+      first CI pass exposed only a new mobile lazy-image assertion sequencing issue;
+      scrolling each off-screen image into view resolved it. Final CI run
+      30732257558 passed lint/typecheck, build, unit tests, strategy backtests,
+      Docker Build, and the complete Playwright E2E matrix before PR #187 merged as
+      b635c5655d49d3085f9aa57dcb6279e6a656ea94. Exact-merge Railway deployment
+      7a3dca65-c89d-4ce1-9498-9b0370d08ac8 reached SUCCESS with image digest
+      sha256:2cb943b08f0a268b415749ab5a1fca27f10df0d6306b1ca604405c9843c8aae0.
+      Live read-back passed /api/health with database and migration 053 healthy and
+      build 39cd7e01-c9b4-4cc3-a605-1b3dd3101b2b; the homepage contained both new
+      asset references, each WebP returned its exact committed bytes and SHA-256,
+      and fresh 1440px/390px Chromium rendering showed all five backgrounds at
+      restrained opacity with no overflow, browser errors, or bounded Railway
+      error logs. State-only closure commit
+      1077a7f762b1b17540e01dbd8aa23a2241c3e411 passed all seven checks in PR #188
+      and produced final main e905d654e2a4aa3264895ce415e68b4b5350416d.
+      Exact-final-main Railway deployment 8badbec6-fe8b-4c19-96ae-70321af95268
+      reached SUCCESS with image digest
+      sha256:aeaf2fc7ed816fa5b7c645e95e47c35d1c9a6f10c19504b252ab26bce278fc8d;
+      fresh health build 75e7de64-1f03-4a91-b222-c7d082e3ddc8, database,
+      migration 053, homepage markers, exact artwork hashes, desktop/mobile
+      rendering, overflow checks, browser errors, and a second bounded Railway
+      error-log read-back were clean. The primary checkout remains broadly dirty
+      and was excluded from Git history and both Railway uploads.
+
+  - id: TC-246
+    title: "Generated hero backgrounds for core product pages"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-02 after the owner clarified that the generated raster art
+      should sit behind each page's primary hero copy, using the Research page's
+      dark perspective data-field treatment as the visual reference, rather than
+      living inside homepage destination cards. The requested page family is the
+      homepage plus Today, Signals, Copilot, Screener, Backtest, Leaderboard, and
+      Track Record. Work is isolated in clean branch
+      agent/tc246-hero-backgrounds from exact origin/main
+      e905d654e2a4aa3264895ce415e68b4b5350416d. Three coordinated transparent WebP
+      panoramas are generated and validated; the shared decorative backdrop is
+      now integrated behind the primary copy on all eight routes, Today/Signals
+      reuse the existing live-signal observatory, and the superseded Explore card
+      artwork has been removed. Full lint passes with zero errors, the final
+      required npm run build passes, 11/11 Chromium desktop route checks pass,
+      11/11 Chromium mobile-fallback checks pass, and headed visual QA covers
+      dark/light desktop, 390px mobile, data-heavy pages, and Arabic RTL. The
+      environment's WebKit browser download stalled, so the normal mobile project
+      was reproduced with its 390x844 contract on installed Chromium; the failure
+      was browser availability, not an application assertion. Implementation
+      commit f2943667f844e6d29f4d40a59d93e96c568244a0 was pushed on the isolated
+      branch; every required GitHub check passed and PR #189 was squash-merged to
+      main as 47478b3ac073a473085e37a508fffafa5f5934e2. The isolated release tree
+      exactly matches the merged main tree. Railway deployment
+      c74bb49e-3e36-47a7-b39b-cf59a5b81fc5 reached SUCCESS, live health and exact
+      asset-byte checks passed, and 10/10 production Chromium route checks passed.
+      State-only completion PR #190 passed all seven protected checks and merged
+      from clean commit f6e5cd00aeaca9a344b619155c2d79faea581358 to final main
+      bfa4ff80e3136fb1c5846a44f5d2e139f2ee4ad7. Exact-final-main Railway deployment
+      c3db8b82-5981-461b-a7d9-4f4f1cc9d48e reached SUCCESS with image digest
+      sha256:8af877a644abd4830f3d311e4f842ef63e7ea0f57854e7bb1ed3820f554bec25.
+      Final health build 002a3480-4b03-4adf-8706-ed5502a844a0 has healthy database
+      and migration 053; all eight routes returned HTTP 200, all three WebPs matched
+      their committed bytes, and the post-deploy production Playwright suite passed
+      10/10. No dependency, Docker,
+      database, auth, billing, strategy, allocation, or trading-rule change is
+      authorized. The broad primary checkout remains excluded from Git and
+      deployment payloads.
+
+  - id: TC-247
+    title: "Homepage hero artwork at narrow desktop widths"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-03 after the owner supplied a roughly 702px-wide homepage
+      screenshot where the primary proof hero still appeared on the plain grid.
+      Audit confirmed that the generated market-field asset and stacking context
+      are present, but the shared backdrop is deliberately display:none below
+      768px and its responsive image sizes fall back to 1px. Work is isolated in
+      clean branch agent/tc247-home-narrow-art from exact origin/main
+      bfa4ff80e3136fb1c5846a44f5d2e139f2ee4ad7. Scope is a homepage-only
+      640px-767px treatment at lower opacity with an accurate image-size hint;
+      phone widths below 640px, all other product heroes, copy, charts, product
+      behavior, dependencies, Docker, database, auth, billing, strategy,
+      allocation, and trading rules remain unchanged. Implementation now exposes
+      only the homepage variant from 640px through 767px at 12% dark-theme and
+      7% light-theme opacity and supplies a 640px responsive image threshold.
+      Browser QA at the owner's exact 702x717 viewport confirmed a decoded 435px
+      local WebP, hero-heading overlap, pointer-events none, empty alt text,
+      aria-hidden decoration, and no horizontal overflow; 390x844 remains hidden
+      and overflow-free. Focused ESLint, web typecheck, the required production
+      build (324/324 generated pages), and git diff whitespace validation pass.
+      Completed locally 2026-08-03 13:02 MPST (+0800); no commit, push, PR, or
+      deployment was performed, and the broad dirty primary checkout was excluded.
+      Release was explicitly authorized 2026-08-04. Fresh release audit confirms
+      the same four intended files, authenticated GitHub access, unchanged exact
+      origin/main bfa4ff80e3136fb1c5846a44f5d2e139f2ee4ad7, and no merge
+      conflict. Publication and deployment are in progress from the clean worktree
+      only; the broad dirty primary checkout remains excluded.
+      Fresh pre-commit production build (324/324 pages), web typecheck, focused
+      ESLint, and diff whitespace validation pass. Docker CLI is unavailable on
+      this host, so the protected GitHub Docker Build check will gate that path.
+      Clean implementation commit 5e13a375 was created with only the four intended
+      TC-247 files; push, protected checks, merge, and deployment remain in progress.
+      Branch was pushed and draft implementation PR #192 is open against main;
+      GitHub checks are in progress.
+      PR #192 passed Lint & Type Check, Build, Unit Tests, Strategy Backtests,
+      Docker Build, and Playwright E2E; merge is in progress.
+      PR #192 merged to main as 825c9490f9a684eb7bd8abbb4d3b523e0866e12c.
+      State-only closure and exact-final-main Railway deployment are in progress.
+      State closure commit 9f909e9b is pushed in draft PR #193; checks are in
+      progress before the exact-final-main deployment.
+      PR #193 passed all seven observed checks and merged as final main
+      d0aa57276cfe9eb72cce1f09cc627b8c10707c42. Exact-final-main Railway
+      deployment is now in progress from a fresh detached clean worktree.
+      Exact-final-main Railway deployment e7270ed9-c8df-41a8-897c-151c5390f3ef
+      reached terminal SUCCESS with image
+      sha256:c813811a4ace7d4541203290c8061c76686f57d99025889546e91df896933709.
+      Fresh health build 597fad44-8f82-4c9f-8d15-4aa08a52fc76, database,
+      migration 053, 55/55 applied migrations, eight route 200s, all three exact
+      WebP bytes/hashes, empty bounded Railway error logs, live 702x717 dark/light
+      assertions, 390x844 hidden-art assertions, and the production hero suite
+      (10/10) all pass. TC-247 is complete and live; the broad dirty primary
+      checkout was excluded from both GitHub PRs and the Railway upload.
+
+  - id: TC-248
+    title: "Restore homepage destination-card artwork"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-04 after the owner supplied a 1515x385 homepage screenshot
+      showing that the five Explore the stack destination cards were plain. Audit
+      confirmed TC-246 removed the TC-245 card markup and styling when artwork was
+      moved behind the core page heroes, even though all five generated WebPs remain
+      tracked. The owner now wants the restrained card backgrounds restored while
+      retaining every current hero background. Work is isolated in clean branch
+      agent/tc248-explore-art from exact origin/main
+      d0aa57276cfe9eb72cce1f09cc627b8c10707c42. Scope is limited to restoring the
+      proven low-opacity, trailing-edge ExploreStrip treatment with the existing
+      assets and verifying desktop, light theme, and mobile readability. No new
+      asset, dependency, copy, route, Docker, database, auth, billing, strategy,
+      allocation, or trading-rule change is included. The exact TC-245 ExploreStrip markup
+      and styling are now restored alongside the TC-246/TC-247 hero backgrounds:
+      all five local WebPs render on the cards' trailing edge behind z-10 copy,
+      remain decorative and pointer-free, and use the original theme-aware opacity
+      caps. Full lint passed with zero errors and 23 pre-existing warnings; focused
+      ESLint, web typecheck, the required production build (324/324 pages), diff
+      whitespace validation, and the existing homepage destination plus product
+      hero Chromium suite (11/11) passed. Direct browser QA at 1515x900 and 390x844
+      in dark and light themes confirmed five unique decoded images, one preserved
+      homepage hero backdrop, exact source mappings, 12%/7.5% desktop and 10%/6.5%
+      mobile base opacity, 17% desktop hover cap, correct z-index and mask layering,
+      readable copy, and zero horizontal overflow. Completed locally 2026-08-04;
+      no commit, push, PR, or deployment was performed, and the broad dirty primary
+      checkout remains excluded from release payloads. At 2026-08-04 15:20 MPST
+      (+0800) the owner explicitly authorized commit and production deployment.
+      Fresh release audit confirmed authenticated GitHub access, unchanged exact
+      origin/main d0aa57276cfe9eb72cce1f09cc627b8c10707c42, and only STATE.yaml,
+      globals.css, and explore-strip.tsx as content diffs. Publication is in
+      progress from the isolated clean branch; the broad dirty primary checkout
+      remains excluded. Clean release commit
+      829972fb9aaeca8bb91c8068a5ab06c43803c3b6 contains exactly the three
+      intended files, the branch is pushed, and draft implementation PR #194 is
+      open against main. Protected checks are in progress.
+      Release audit then caught four original TC-245 presentation declarations
+      missing from the first commit. Follow-up commit
+      900f095396b53b322312c67cafb5733ee1b2842d restores the exact selection
+      guard, dark-theme filter, and standard/WebKit trailing-edge masks. A fresh
+      required production build again generated 324/324 pages, and direct
+      1515x900 dark/light plus 390x844 dark browser QA confirmed the mask,
+      filter, five decoded unique sources, preserved homepage hero, historical
+      opacity caps, and zero overflow. The correction is pushed to PR #194;
+      Lint & Type Check, Unit Tests, Build, Strategy Backtests, Docker Build,
+      and Playwright E2E all passed on corrected head
+      900f095396b53b322312c67cafb5733ee1b2842d. PR #194 has been promoted from
+      draft and merged through the protected workflow at
+      ed380e2ac22a9503e4fb77b1bdc3b90eeb8b1fa7 after all six checks passed. A
+      state-only closure branch was created from that exact post-merge main;
+      STATE.yaml parses cleanly and the required build generated 324/324 pages.
+      State-only commit 3211c342 records the completed implementation release and
+      is pushed as agent/tc248-state-close. Draft state-only PR #195 is open and
+      Lint & Type Check, Unit Tests, Build, Strategy Backtests, Docker Build, and
+      Playwright E2E all passed, with welcome also green. The closure is ready to
+      merge before exact final main is deployed to Railway production. PR #195
+      then squash merged as df41b2910058002a9ad457ba80be12748c868f6e; remote
+      main and ls-remote agree on that exact final SHA. A fresh detached deployment
+      worktree is clean at that SHA. Railway production deployment
+      a8ecea72-8463-42a5-b0b1-66585c4fb1bf reached SUCCESS with image
+      sha256:e37d6ba27bd512aff27aa7b8ab99f6dc97cb0655ceaf101a4fa15d34fc5d5a96.
+      Fresh health build 71a582d1-44b1-45b3-9077-2ea64a3cdca2 reports status ok,
+      database ok, required migration 053 present, and /api/v1/health healthy;
+      startup logs report all 55 migrations applied and bounded error logs are
+      empty. The homepage and seven requested product routes return 200. All five
+      restored WebPs return image/webp with their exact expected byte counts.
+      Live Playwright QA passed all six 1515x900, 390x844, and 702x717 dark/light
+      cases with exact sources and hrefs, decoded art, historical filters, masks,
+      base and hover opacity caps, correct layering, preserved hero breakpoints,
+      zero overflow, and no console or page errors. Clean screenshots are balanced
+      and readable, and the production hero plus destination suite passed 10/10.
+      TC-248 is complete and live; the broad dirty primary checkout was excluded
+      from both GitHub PRs and the Railway upload.
+
+
+  - id: TC-249
+    title: "Place generated artwork behind the homepage headline"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-04 after the owner supplied
+      C:\Users\User\Pictures\Screenshot\2026-08-04 13_17_47-.png and clarified
+      that the homepage hero needs an actual generated image visibly behind the
+      main text. The current market-field panorama is technically present but its
+      subject is concentrated low and right, so the headline reads as image-free.
+      Work is isolated in agent/tc249-home-text-art from exact origin/main
+      df41b2910058002a9ad457ba80be12748c868f6e. Generate one new versioned wide
+      Research-themed market-evidence field, compose its focal instrument behind
+      the headline at restrained opacity, preserve copy contrast and existing
+      destination-card artwork, and verify dark/light desktop plus the established
+      responsive hero behavior. No copy, route, dependency, database, Docker,
+      auth, billing, strategy, allocation, or trading-rule change is included.
+      Built-in image generation produced a 1717x916 matte-black evidence
+      instrument field with the focal ring across the left-center headline zone.
+      The accepted result is saved non-destructively as the new 62,274-byte WebP
+      apps/web/public/brand/hero/tradeclaw-evidence-instrument-field-v1.webp;
+      existing generated assets remain unchanged.
+      The homepage now references that asset with a full-width frame, a
+      headline-first directional mask, and 18% dark / 11% light desktop opacity;
+      the 640px-767px dark treatment is 18%, while phones below 640px remain
+      image-free. The copy stays at z-10 and the decorative image remains inert.
+      Full lint passed with zero errors and 23 pre-existing warnings, web
+      typecheck passed, and the required production build generated 324/324
+      pages. Direct browser QA passed eight dark/light cases at 1515x900, the
+      owner's 762x646 screenshot size, 702x717, and 390x844: the exact new source
+      decoded, overlapped 100% of the headline bounds at visible widths, retained
+      the directional mask and theme opacity caps, preserved z-10 copy over z-0
+      inert art, stayed hidden below 640px, and produced zero horizontal overflow
+      or page errors. Visual inspection confirms the instrument is now clearly
+      behind the main text with readable contrast; the sole console entry was
+      local development HMR websocket noise. Completed locally 2026-08-04.
+      The owner's repeated commit-and-deploy authorization for this homepage-art
+      correction applies to TC-249; protected GitHub publication and exact-main
+      Railway deployment are now in progress from the clean isolated worktree.
+      Release commit 1fa329c4 contains exactly the four intended paths and all
+      unrelated Windows status noise remains unstaged. The broad dirty primary
+      checkout remains excluded from every release payload. Draft implementation
+      PR #196 is open against main, is ready for review, and protected CI will
+      gate its merge. The first CI pass found the new 24% desktop-dark opacity
+      exceeded the repository's established decorative-art cap of 18%; all other
+      gates passed. The CSS is now aligned to 18% without changing the accepted
+      asset or its placement. The required fresh production build again generated
+      324/324 pages, and the focused Chromium homepage hero contract now passes at
+      the exact 18% cap. Protected CI run 30895297896 passed Lint & Type Check,
+      Build, Unit Tests, Strategy Backtests, Docker Build, and Playwright E2E on
+      corrected head 4adad2d3. Implementation PR #196 then squash merged to main
+      as b032defcc2f2dca6d03749f60c0e58e40ef31be8. The state-only closure is
+      isolated from exact post-merge main; its required production build generated
+      324/324 pages and STATE.yaml parses cleanly. Protected CI will gate the final
+      exact-main Railway release. The broad dirty primary checkout remains excluded
+      from GitHub and every deployment payload. State-only PR #197 is open against
+      main from closure commit 64ef0ae4. Protected CI run 30896447177 passed Lint
+      & Type Check, Build, Unit Tests, Strategy Backtests, Docker Build, and
+      Playwright E2E. State-only PR #197 then squash merged to final main as
+      705c5268f0737a31e6787f1307f3bea5702057a3. Exact-main Railway production
+      deployment bbb7b8c3-c198-4091-b33c-892882b248f5 reached SUCCESS from a
+      fresh detached clean worktree with image digest
+      sha256:11957e8845b36e85b987f403f09bff93c8891fb76496ba5cb6000594bc9db7ce.
+      Runtime reported 55/55 migrations, zero pending, immediate Next.js readiness,
+      and empty bounded error logs. /api/health and /api/v1/health returned 200
+      with healthy database/migration state and fresh build
+      978334a6-6352-4db7-8b0b-7029b2344283; the homepage and seven requested
+      product routes all returned 200. The exact new WebP returned 200 image/webp
+      at 62,274 bytes. Live dark/light QA at 1515x900 and 762x646 plus 702x717
+      dark and 390x844 dark confirmed the exact decoded source, full headline
+      overlap at visible widths, 18% dark / 11% light caps, directional mask and
+      filters, inert semantics, mobile suppression, zero overflow, and no page or
+      console errors. Visual inspection confirms the generated instrument is
+      clearly behind readable homepage text. TC-249 is complete and live.
