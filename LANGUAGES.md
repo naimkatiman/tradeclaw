@@ -1,4 +1,6 @@
-# 🌍 TradeClaw — Available Languages
+# TradeClaw — Available Languages
+
+The [English README](README.md) is the canonical product description as of 2026-08-22. Other language files may still describe an older paid-signals surface until they are rewritten.
 
 TradeClaw's README is available in the following languages. Community contributions for additional translations are welcome!
 

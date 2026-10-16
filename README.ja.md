@@ -1,3 +1,5 @@
+> 現行の製品説明は [English README](README.md) を正とします。この翻訳は古い有料シグナル説明が残っており、現行製品の説明ではありません。
+
 <div align="center">
 
 <img src="docs/assets/logo.svg" alt="TradeClaw ロゴ" width="88" height="88" />

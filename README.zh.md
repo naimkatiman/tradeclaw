@@ -1,3 +1,5 @@
+> 当前产品说明以 [English README](README.md) 为准。本译本仍描述较旧的付费信号表面，不能当作现行产品说明。
+
 <div align="center">
 
 <img src="docs/assets/logo.svg" alt="TradeClaw 标志" width="88" height="88" />

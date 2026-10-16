@@ -4,9 +4,11 @@ The social preview image is shown when TradeClaw links are shared on Twitter, Sl
 
 ## Recommended Image
 
-Use the banner SVG converted to PNG (1280×640px):
+Use the generated 1280×640 PNG:
 
-**Source:** `apps/web/public/readme-banner.svg`
+**Source:** `docs/assets/social-preview.png`
+
+Atmosphere still: `docs/assets/social-preview-base.jpg` (no wordmark). Rebuild the titled card with `scripts/build-readme-media.ps1`.
 
 ## How to Set It
 
