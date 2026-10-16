@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { STAT_HINTS } from '../stat-hints';
 import { generateTradeClawPineScript } from '../tv-pine-export';
+import { getDashboardTranslations } from '../product-i18n/dashboard';
+import { getDashboardEvidenceTranslations } from '../product-i18n/dashboard-evidence';
 
 describe('truth-in-labeling copy', () => {
   it('labels the equity path as a hypothetical sequential simulation', () => {
@@ -108,6 +110,7 @@ describe('truth-in-labeling copy', () => {
       resolve(__dirname, '../../app/dashboard/DashboardClient.tsx'),
       'utf8',
     );
+    const dashboardCopy = JSON.stringify(getDashboardTranslations('en'));
     const howItWorks = readFileSync(
       resolve(__dirname, '../../app/components/how-it-works.tsx'),
       'utf8',
@@ -121,7 +124,7 @@ describe('truth-in-labeling copy', () => {
       'utf8',
     );
 
-    expect(dashboard).toMatch(/inspect the research output/i);
+    expect(dashboardCopy).toMatch(/inspect the research output/i);
     expect(dashboard).not.toMatch(/steps to start trading|every signal is tagged with its real data source/i);
     expect(howItWorks).toMatch(/not a verified trading edge or broker instructions/i);
     expect(howItWorks).not.toMatch(/Your edge|under 60 seconds|up and running in/i);
@@ -146,6 +149,7 @@ describe('truth-in-labeling copy', () => {
       resolve(__dirname, '../../app/components/data-source-badge.tsx'),
       'utf8',
     );
+    const sourceBadgeCopy = JSON.stringify(getDashboardEvidenceTranslations('en').dataSource);
     const readme = readFileSync(
       resolve(__dirname, '../../../../README.md'),
       'utf8',
@@ -164,7 +168,8 @@ describe('truth-in-labeling copy', () => {
     expect(enginePage).toMatch(/Stooq fallback for forex\/metals/i);
     expect(enginePage).not.toContain('Yahoo Finance');
     expect(sourceBadge).toMatch(/expected provider lane/i);
-    expect(sourceBadge).toMatch(/Runtime fallbacks may differ/i);
+    expect(sourceBadge).toContain('getDashboardEvidenceTranslations');
+    expect(sourceBadgeCopy).toMatch(/Runtime fallbacks may differ/i);
     expect(readme).toMatch(/gate-approved entry-like signals/i);
     expect(readme).not.toMatch(/instant per-signal alerts/i);
     expect(localizedFaq).toMatch(/explicit allowlist/i);
