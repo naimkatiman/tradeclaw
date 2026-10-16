@@ -40,6 +40,7 @@ describe("middleware matcher characterization", () => {
     const excluded = [
       "/_next/static/chunks/main.js",
       "/_next/image",
+      "/_next/webpack-hmr",
       "/favicon.ico",
       "/sw.js",
       "/manifest.json",
