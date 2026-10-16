@@ -2,9 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import {
   buildDailyCheck,
+  DAILY_FOLLOWS_COOKIE,
+  DAILY_PREVIOUS_COOKIE,
   formatSigned,
   setFollow,
   snapshotFromStudyFile,
+  syncShownCheck,
+  type CheckStorage,
   type PublishedRecord,
   type PreviousObservation,
 } from '../daily-check';
@@ -107,6 +111,47 @@ describe('daily check comparison', () => {
     expect(result.rows[0].followed).toBe(true);
   });
 
+  it('does not claim a comparison when previous is null', () => {
+    const missing = record({ value: null, sampleCount: 0, stale: true, observedAt: '2026-08-29T03:30:00.000Z' });
+    const study = record({
+      id: 'study-daily-momentum',
+      title: 'Daily momentum study',
+      value: 0.012,
+      unit: 'cost-adjusted return fraction',
+      modeledCostBasis: 'Modeled costs from the study file: feePctPerSide 0.0006',
+      stale: false,
+    });
+    const result = buildDailyCheck({
+      records: [missing, study],
+      previous: null,
+      follows: [],
+      status: 'ready',
+    });
+
+    expect(result.verdictClass).toBe('unchanged');
+    expect(result.condition).toBe('stale');
+    expect(result.headline.toLowerCase()).toContain('stale');
+    expect(result.headline.toLowerCase()).toContain('no earlier observation');
+    expect(result.headline.toLowerCase()).not.toContain('nothing material changed');
+    expect(result.headline.toLowerCase()).not.toContain('since the last check');
+    expect(result.rows[0].plain.toLowerCase()).toContain('no number is substituted');
+    expect(result.rows[1].plain.toLowerCase()).toContain('no earlier observation');
+    expect(result.rows[1].delta).toBeNull();
+    expect(result.nextLook).toContain(missing.updateBoundary ?? '');
+    expect(result.nextAction.kind).toBe('finish');
+
+    const firstLook = buildDailyCheck({
+      records: [record()],
+      previous: null,
+      follows: [],
+      status: 'ready',
+    });
+    expect(firstLook.verdictClass).toBe('unchanged');
+    expect(firstLook.headline.toLowerCase()).not.toContain('nothing material changed');
+    expect(firstLook.headline.toLowerCase()).not.toContain('since the last check');
+    expect(firstLook.rows[0].plain.toLowerCase()).toContain('no earlier observation');
+  });
+
   it('names stale, empty, and unread checks without dropping follows', () => {
     const stale = buildDailyCheck({
       records: [record({ stale: true })],
@@ -152,6 +197,91 @@ describe('daily check comparison', () => {
     expect(loading.conditionLabel).toContain('Loading the published record');
     expect(loading.followedIds).toEqual(['study-carry']);
     expect(loading.nextAction.kind).toBe('wait');
+  });
+});
+
+describe('shown check baseline', () => {
+  function memory(): CheckStorage & { values: Map<string, string> } {
+    const values = new Map<string, string>();
+    return {
+      values,
+      get(name) {
+        return values.get(name) ?? null;
+      },
+      set(name, value) {
+        values.set(name, value);
+      },
+    };
+  }
+
+  it('persists the shown snapshot and compares the next read against it', () => {
+    const storage = memory();
+    const basis = 'Modeled fee and slippage per sized trade';
+    const first = record({ value: -0.41 });
+    const opened = syncShownCheck({
+      records: [first],
+      serverPrevious: null,
+      follows: [],
+      storage,
+      now: '2026-10-16T00:00:00.000Z',
+      ignoreStored: false,
+      status: 'ready',
+    });
+
+    expect(opened.result.headline.toLowerCase()).not.toContain('nothing material changed');
+    expect(opened.result.headline.toLowerCase()).not.toContain('since the last check');
+    expect(opened.previous).toBeNull();
+    const saved = storage.values.get(DAILY_PREVIOUS_COOKIE);
+    expect(saved).toContain(String(first.value));
+
+    const moved = record({ value: -0.5, observedAt: '2026-10-17T00:00:00.000Z' });
+    const later = syncShownCheck({
+      records: [moved],
+      serverPrevious: null,
+      follows: [],
+      storage,
+      now: '2026-10-17T00:00:00.000Z',
+      ignoreStored: false,
+      status: 'ready',
+    });
+    expect(later.result.verdictClass).toBe('changed');
+    expect(later.result.rows[0].delta).toBeCloseTo(-0.5 - -0.41, 10);
+    expect(later.result.headline).toContain(formatSigned(-0.5 - -0.41));
+    expect(later.result.headline).toContain(basis);
+    expect(later.previous?.byId[first.id]?.value).toBe(-0.41);
+
+    const strictRemount = syncShownCheck({
+      records: [moved],
+      serverPrevious: null,
+      follows: [],
+      storage,
+      now: '2026-10-17T00:00:01.000Z',
+      ignoreStored: true,
+      status: 'ready',
+    });
+    expect(strictRemount.previous).toBeNull();
+    expect(strictRemount.result.headline.toLowerCase()).not.toContain('since the last check');
+    expect(storage.values.get(DAILY_PREVIOUS_COOKIE)).toContain(String(moved.value));
+  });
+
+  it('keeps a followed record first when the shown check is read again', () => {
+    const storage = memory();
+    const records = [
+      record({ id: 'cost-adjusted-record' }),
+      record({ id: 'prospective-ledger', title: 'Prospective observation ledger', value: 12, unit: 'observations' }),
+    ];
+    storage.set(DAILY_FOLLOWS_COOKIE, 'prospective-ledger');
+    const read = syncShownCheck({
+      records,
+      serverPrevious: null,
+      follows: [],
+      storage,
+      now: '2026-10-16T00:00:00.000Z',
+      ignoreStored: false,
+      status: 'ready',
+    });
+    expect(read.result.rows.map((row) => row.id)).toEqual(['prospective-ledger', 'cost-adjusted-record']);
+    expect(read.result.rows[0].followed).toBe(true);
   });
 });
 
